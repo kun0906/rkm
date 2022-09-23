@@ -1,0 +1,23 @@
+# Author: Kun
+# Email: kun.bj@outlook.com
+
+### System setting
+# Conda 4.10.3 # conda -V
+# conda create --name py3104 python==3.10.4
+# Python 3.10.4 # Python3 -V
+# Pip3 21.1.2 # Pip3 -V
+
+### Installation
+# pip3 install -r requirements.txt
+
+### Library requirement
+numpy==1.22.1
+matplotlib==3.5.1
+scikit-learn==1.0.2
+ruamel.yaml==0.17.21
+coloredlogs==15.0.1
+
+
+
+
+
