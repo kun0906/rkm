@@ -4,20 +4,18 @@
 import collections
 import copy
 import os
-import shutil
 import traceback
 import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
-import sklearn
 from sklearn import metrics
 from sklearn.metrics import pairwise_distances
 from sklearn.metrics.cluster._unsupervised import check_number_of_labels
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import check_X_y, _safe_indexing
-from rkm.utils.utils_func import timer
-from rkm.utils.silhouette_plot import silhouette_plot
+from rkm.utils.common import timer
+from utils.tests.silhouette_plot import silhouette_plot
 project_dir = os.path.dirname(os.getcwd())
 
 def davies_bouldin(x, labels, centroids, verbose=False):
