@@ -6,13 +6,14 @@
 	$PYTHONPATH='..' python3 main_single.py
 """
 # Email: kun.bj@outllok.com
-
+import os.path
 from pprint import pprint
 
+from datasets.dataset import generate_dataset
 from rkm import config
-from rkm import datasets
 from rkm.cluster.kmeans import KMeans
 from rkm.cluster.kmedian import KMedian
+from utils.common import dump, load
 
 
 class Framework:
@@ -21,21 +22,35 @@ class Framework:
 		self.args = args
 
 	def run(self):
-
-		self.data = datasets.gen_data(self.args)
-		X, y = self.data
+		# Generate different data and initial centroids based the given DATA_SEED.
+		data_file = generate_dataset(self.args)
+		self.data = load(data_file)
+		X, y, init_centroids, true_centroids = self.data['X'], self.data['y'], \
+		                                       self.data['init_centroids'], self.data['true_centroids']
+		delta_X = self.data['delta_X']
 
 		ALG2PY = {'kmeans': KMeans,
 		          'kmedian': KMedian,
 		          }
 
-		self.model = ALG2PY[self.args['ALGORITHM']['name']]
+		self.model = ALG2PY[self.args['ALGORITHM']['py_name']](n_clusters=2,
+		                                                       init_centroids=init_centroids,
+		                                                       true_centroids=true_centroids,
+		                                                       max_iter=self.args['MAX_ITERATION'],
+		                                                       tol=1e-4,
+		                                                       verbose=self.args['VERBOSE'],
+		                                                       random_state=self.args['SEED'],  # model seed
+		                                                       n_consecutive=self.args['n_consecutive'],
+		                                                       params=self.args)
 
 		self.model.fit(X, y)
 
-		self.history = self.model.history
+		scores = self.model.eval(X, y)
+		self.history = {'scores': scores, 'delta_X': delta_X, 'history': self.model.history, 'data': self.data}
 
 		# save results
+		out_file = os.path.join(self.args['OUT_DIR'], 'history.dat')
+		dump(self.history, out_file)
 
 	def vis(self):
 		pass
@@ -74,27 +89,6 @@ def main(config_file='config.yaml'):
 	fw.run()
 
 	return fw
-
-
-	# # Step 0: config the experiment
-	# args = config.parser(config_file)
-	# if args['VERBOSE'] >= 2:
-	# 	print(f'~~~ The template config {config_file}, which will be modified during the later experiment ~~~')
-	# 	pprint(args, sort_dicts=False)
-	#
-	# # Step 1: run cluster and get result
-	# history_file = _main.run_model(args)
-	# args['history_file'] = history_file
-	#
-	# # Step 2: visualize the result
-	# visual_file = visualize.visualize_data(args)
-	# args['visual_file'] = visual_file
-	#
-	# # # Step 3: dump the config
-	# # config.dump(args['config_file'][:-4] + 'out.yaml', args)
-	#
-	# return args
-
 
 
 if __name__ == '__main__':

@@ -6,8 +6,8 @@ https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_plusplus.html#
 import os
 import pickle
 
-from rkm.datasets.gaussian3 import gaussian3_diff_sigma_n
-from rkm.utils.utils_func import timer, check_path
+from rkm.datasets.gaussian3 import gaussian3_diff_outliers, gaussian3_mixed_clusters
+from rkm.utils.common import timer, check_path
 
 
 @timer
@@ -26,10 +26,7 @@ def generate_dataset(args):
 	SEED_DATA = args['SEED_DATA']
 	dataset_name = args['DATASET']['name']
 	dataset_detail = args['DATASET']['detail']
-	N_CLIENTS = args['N_CLIENTS']
-	N_REPEATS = args['N_REPEATS']
-	N_CLUSTERS = args['N_CLUSTERS']
-	data_file = os.path.join(args['IN_DIR'], dataset_name,  f'{dataset_detail}.dat')
+	data_file = os.path.join(args['IN_DIR'], dataset_name, f'{dataset_detail}.dat')
 	# print(data_file)
 	check_path(data_file)
 	args['data_file'] = data_file
@@ -41,22 +38,12 @@ def generate_dataset(args):
 	else:
 		print('Generate dataset')
 
-
+	print(f'SEED_DATA: {SEED_DATA}')
 	if dataset_name == '3GAUSSIANS':
-		if 'diff_sigma_n' in dataset_detail:
-			data = gaussian3_diff_sigma_n(args, random_state=SEED_DATA)
-		# elif dataset_detail == '1client_1cluster':
-		# 	data = gaussian3_1client_1cluster(params, random_state=SEED_DATA)
-		# elif dataset_detail.split(':')[-1] == 'mix_clusters_per_client':
-		# 	data =  gaussian3_mix_clusters_per_client(params, random_state=SEED_DATA)
-		# elif dataset_detail == '1client_ylt0':
-		# 	data =  gaussian3_1client_ylt0(params, random_state=SEED_DATA)
-		# elif dataset_detail == '1client_xlt0':
-		# 	data = gaussian3_1client_xlt0(params, random_state=SEED_DATA)
-		# elif dataset_detail == '1client_1cluster_diff_sigma':
-		# 	data = gaussian3_1client_1cluster_diff_sigma(params, random_state=SEED_DATA)
-		# elif dataset_detail == '1client_xlt0_2':
-		# 	data = gaussian3_1client_xlt0_2(params, random_state=SEED_DATA)
+		if 'diff_outliers' in dataset_detail:
+			data = gaussian3_diff_outliers(args, random_state=SEED_DATA)
+		elif 'mixed_clusters' in dataset_detail:
+			data = gaussian3_mixed_clusters(args, random_state=SEED_DATA)
 		else:
 			msg = f'{dataset_name}, {dataset_detail}'
 			raise NotImplementedError(msg)

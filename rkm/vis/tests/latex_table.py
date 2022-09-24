@@ -16,7 +16,7 @@ import xlsxwriter
 
 from rkm import config
 from rkm.main_all import get_datasets_config_lst, get_algorithms_config_lst
-from rkm.utils.utils_func import load
+from rkm.utils.common import load
 
 algorithm2abbrv = {'Centralized_true': 'True-CKM',
                    'Centralized_random': 'Random-CKM',

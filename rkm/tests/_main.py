@@ -16,13 +16,13 @@ from sklearn.preprocessing import StandardScaler
 
 from rkm import vis
 from rkm.cluster import centralized_minibatch_kmeans
-from rkm.utils.utils_func import dump, obtain_true_centroids
-from rkm.utils.utils_stats import evaluate2
-from rkm.utils.utils_func import timer
+from rkm.utils.common import dump, obtain_true_centroids
+from utils.tests.utils_stats import evaluate2
+from rkm.utils.common import timer
 # These options determine the way floating point numbers, arrays and
 # other NumPy objects are displayed.
 # np.set_printoptions(precision=3, suppress=True)
-from rkm.vis.visualize import plot_2gaussian, plot_3gaussian
+from rkm.vis.visualize import plot_2gaussian
 
 np.set_printoptions(precision=3, suppress=True, formatter={'float': '{:.3f}'.format}, edgeitems=120, linewidth=100000)
 
@@ -311,7 +311,7 @@ def run_model(args):
 		print(f'{idx_seed}th repeat with seed {seed} takes {(t2 - t1):.4f}s')
 
 		# for each seed, we will save the results.
-		history[seed] = {'initial_centroids': kmeans.initial_centroids,
+		history[seed] = {'init_centroids': kmeans.init_centroids,
 		                 'true_centroids': kmeans.true_centroids,
 		                 'final_centroids': kmeans.centroids,
 		                 'training_iterations': kmeans.training_iterations,

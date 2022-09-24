@@ -15,9 +15,9 @@
 
 ## Environment requirement <a name="Environment"></a>
 
-- Conda 4.10.3 # Conda -V
-- Python 3.9.7 # Python3 -V
-- Pip3 21.2.4 # Pip3 -V
+- Conda 4.10.3 # conda -V
+- Python 3.10.4 # python3 -V
+- Pip3 22.1.2 # pip3 -V
 
 ## Installation  <a name="Installation"></a>
   `$pip3 install -r requirements.txt`
@@ -38,8 +38,10 @@
 ## Dataset:
 
 - GAUSSIAN3: _simulated 3 clusters from 3 Gaussian distributions._
-- MNIST: _handwritten datasets: https://yann.lecun.com/exdb/mnist/ or https://web.archive.org/web/20160828233817/http://yann.lecun.com/exdb/mnist/index.html
-- NBAIOT: _IoT dataset: https://archive.ics.uci.edu/ml/datasets/detection_of_IoT_botnet_attacks_N_BaIoT
+
+[//]: # (- MNIST: _handwritten datasets: https://yann.lecun.com/exdb/mnist/ or https://web.archive.org/web/20160828233817/http://yann.lecun.com/exdb/mnist/index.html)
+
+[//]: # (- NBAIOT: _IoT dataset: https://archive.ics.uci.edu/ml/datasets/detection_of_IoT_botnet_attacks_N_BaIoT)
 
 ## Usage
 
