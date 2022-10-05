@@ -37,7 +37,7 @@
 
 ## Dataset:
 
-- GAUSSIAN3: _simulated 3 clusters from 3 Gaussian distributions._
+- GAUSSIAN3: _simulated 2 clusters from 2 Gaussian distributions._
 
 [//]: # (- MNIST: _handwritten datasets: https://yann.lecun.com/exdb/mnist/ or https://web.archive.org/web/20160828233817/http://yann.lecun.com/exdb/mnist/index.html)
 
