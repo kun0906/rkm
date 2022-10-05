@@ -280,7 +280,7 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 		out_file = os.path.join(OUT_DIR, 'xlsx', args1['DATASET']['name'],
 		                        f'{os.path.dirname(dataset_detail)}',
 		                        args1['ALGORITHM']['detail'] + '-mixed_clusters.png')
-		plot_mixted_clusters(results, out_file, is_show=True, n_th=5)  # show misclustered error at the n_th iteration
+		plot_mixted_clusters(results, out_file, is_show=True, n_th=1)  # show misclustered error at the n_th iteration
 		print(out_file)
 
 

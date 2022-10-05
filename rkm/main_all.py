@@ -142,24 +142,25 @@ def get_datasets_config_lst(dataset_names=['3GAUSSIANS', '10GAUSSIANS'], case=''
 				raise NotImplementedError
 
 		elif dataset_name == 'NBAIOT':
-			data_details_lst = []
-
-			tmp_list = []
-			# N1S = [50, 100, 500, 1000, 2000, 3000, 5000, 8000, 10000]
-			# N1S = [5000]    # (49548, 115) datasets/NBAIOT/Danmini_Doorbell/benign_traffic.csv
-			# N = 9000        # (92141, 115) datasets/NBAIOT/Danmini_Doorbell/gafgyt_attacks/tcp.csv
 			n_clusters = 2
-			n_clients = 2
+			# case = 'mixed_clusters'  # 'mixed_clusters'
+			if case == 'diff_outliers':
+				"""
+				  r:0.1|mu:-3,0|cov:0.1,0.1|diff_outliers
+				"""
+				for _x in [-5, -12.5, -25, -50, -100, -200]:
+					detail = f'r:0.1|mu:{_x},0|cov:0.1,0.1|diff_outliers'
+					datasets.append({'name': dataset_name, 'detail': detail, 'n_clusters': n_clusters})
+			elif case == 'mixed_clusters':
+				"""
+					d:2|r:0.4|mixed_clusters
+				"""
+				for d in [0.1, 0.5, 1, 2.5, 5, 10]:  # the distance between two clusters is 2*d.
+					detail = f'd:{d}|r:0.4|mixed_clusters'
+					datasets.append({'name': dataset_name, 'detail': detail, 'n_clusters': n_clusters})
+			else:
+				raise NotImplementedError
 
-			ratios = [0, 0.1, 0.3, 0.5]  # [0, 0.1, 0.3, 0.5]
-			for ratio in ratios:
-				p1 = f'n1_5000+n2_9000:ratio_{ratio:.2f}:C_2_diff_sigma_n'
-				tmp_list.append((p1, n_clusters, n_clients))
-			data_details_lst += tmp_list
-
-			for data_detail, n_clusters, n_clients in data_details_lst:
-				datasets.append(
-					{'name': dataset_name, 'detail': data_detail, 'n_clusters': n_clusters, 'n_clients': n_clients})
 
 		else:
 			msg = f'{dataset_name}'
@@ -199,7 +200,7 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 	args['VERBOSE'] = VERBOSE
 
 	tot_cnt = 0
-	dataset_names = ['3GAUSSIANS']
+	dataset_names = ['NBAIOT']  #  '3GAUSSIANS'
 	py_names = [
 		'kmeans',
 		'kmedian',

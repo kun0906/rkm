@@ -6,6 +6,7 @@ https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_plusplus.html#
 import os
 import pickle
 
+from datasets.nbaiot import nbaiot_diff_outliers, nbaiot_mixed_clusters
 from rkm.datasets.gaussian3 import gaussian3_diff_outliers, gaussian3_mixed_clusters
 from rkm.utils.common import timer, check_path
 
@@ -47,6 +48,15 @@ def generate_dataset(args):
 		else:
 			msg = f'{dataset_name}, {dataset_detail}'
 			raise NotImplementedError(msg)
+	elif dataset_name == 'NBAIOT':
+		if 'diff_outliers' in dataset_detail:
+			data = nbaiot_diff_outliers(args, random_state=SEED_DATA)
+		elif 'mixed_clusters' in dataset_detail:
+			data = nbaiot_mixed_clusters(args, random_state=SEED_DATA)
+		else:
+			msg = f'{dataset_name}, {dataset_detail}'
+			raise NotImplementedError(msg)
+
 	else:
 		msg = f'{dataset_name}, {dataset_detail}'
 		raise NotImplementedError(msg)
