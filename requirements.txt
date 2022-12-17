@@ -21,7 +21,12 @@ ruamel.yaml==0.17.21
 coloredlogs==15.0.1
 XlsxWriter==3.0.3
 pandas==1.5.0
+statsmodels==0.13.5
 
+### Libraries used for converting R to python
+#pyensae==1.3.967
+#antlr4-python3-runtime==4.11.1
+#autopep8==2.0.1
 
 
 

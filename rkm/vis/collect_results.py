@@ -12,8 +12,8 @@ import traceback
 
 from rkm import config
 from rkm.main_all import get_datasets_config_lst, get_algorithms_config_lst
-from rkm.utils.common import load
-from vis.visualize import plot_misclustered_errors, plot_mixted_clusters
+from rkm.utils.common import load, check_path
+from rkm.vis.visualize import plot_misclustered_errors, plot_mixted_clusters
 
 n_precision = 3
 
@@ -30,6 +30,7 @@ def _parser_history(args):
 		           'final_centroids': history['history'][-1]['centroids'],
 		           'n_training_iterations': len(history['history']),
 		           'history': history['history']}
+		print(len(history['history']), history['delta_X'], history['scores']['misclustered_error'])
 	except Exception as e:
 		traceback.print_exc()
 
@@ -210,10 +211,11 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 	args['VERBOSE'] = VERBOSE
 
 	tot_cnt = 0
-	dataset_names = ['3GAUSSIANS']
+	dataset_names = ['NBAIOT']  #  '3GAUSSIANS'
 	py_names = [
 		'kmeans',
 		'kmedian',
+		'kmedian_tukey',
 	]
 
 	results = {}
@@ -273,6 +275,7 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 		out_file = os.path.join(OUT_DIR, 'xlsx', args1['DATASET']['name'],
 		                        f'{os.path.dirname(dataset_detail)}',
 		                        args1['ALGORITHM']['detail'] + '-diff_outliers.png')
+		check_path(out_file)
 		plot_misclustered_errors(results, out_file, is_show=True)
 		print(out_file)
 
@@ -280,7 +283,8 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 		out_file = os.path.join(OUT_DIR, 'xlsx', args1['DATASET']['name'],
 		                        f'{os.path.dirname(dataset_detail)}',
 		                        args1['ALGORITHM']['detail'] + '-mixed_clusters.png')
-		plot_mixted_clusters(results, out_file, is_show=True, n_th=1)  # show misclustered error at the n_th iteration
+		check_path(out_file)
+		plot_mixted_clusters(results, out_file, is_show=True, n_th=5)  # show misclustered error at the n_th iteration
 		print(out_file)
 
 

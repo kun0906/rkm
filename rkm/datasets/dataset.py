@@ -6,7 +6,7 @@ https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_plusplus.html#
 import os
 import pickle
 
-from datasets.nbaiot import nbaiot_diff_outliers, nbaiot_mixed_clusters
+from rkm.datasets.nbaiot import nbaiot_diff_outliers, nbaiot_mixed_clusters
 from rkm.datasets.gaussian3 import gaussian3_diff_outliers, gaussian3_mixed_clusters
 from rkm.utils.common import timer, check_path
 
