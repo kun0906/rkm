@@ -14,13 +14,14 @@ Data Set Information:
 https://archive.ics.uci.edu/ml/datasets/detection_of_IoT_botnet_attacks_N_BaIoT#
 
 """
-
+import collections
 import os
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import sklearn.model_selection
+from sklearn.manifold import TSNE
 from sklearn.model_selection import train_test_split
 
 
@@ -69,6 +70,13 @@ def nbaiot_diff_outliers(args, random_state=42, **kwargs):
 		X2 = pd.read_csv(f_abnormal).values
 		y2 = np.asarray([1] * X2.shape[0])
 
+		X, y = np.concatenate([X1, X2], axis=0), np.concatenate([y1, y2])
+		std = sklearn.preprocessing.StandardScaler()
+		std.fit(X)
+
+		X1 = std.transform(X1)
+		X2 = std.transform(X2)
+
 		############
 		# cluster 1
 		n1 = 500
@@ -80,6 +88,9 @@ def nbaiot_diff_outliers(args, random_state=42, **kwargs):
 		n2 = 500
 		X2, _, y2, _ = sklearn.model_selection.train_test_split(X2, y2, train_size=n2, random_state=random_state,
 		                                                        shuffle=True)
+
+		print(f'X1(normal): {np.mean(X1, axis=0)}')
+		print(f'X2(abnormal): {np.mean(X2, axis=0)}')
 
 		# obtain ground truth centroids
 		true_centroids = np.zeros((2, X1.shape[1]))
@@ -110,40 +121,53 @@ def nbaiot_diff_outliers(args, random_state=42, **kwargs):
 		return X, y, true_centroids, init_centroids, delta_X
 
 	X, y, true_centroids, init_centroids, delta_X = get_xy(ratio, mu, cov)
-
+	print(collections.Counter(y))
 	is_show = args['IS_SHOW']
 	if is_show:
+
+		tsne = TSNE(perplexity=30, random_state=42)
+		X_ = tsne.fit_transform(X)
+		plt.scatter(X_[:, 0], X_[:, 1], c=y)
+		plt.title(f'{dataset_detail}')
+		plt.tight_layout()
+		# f = os.path.join(args['OUT_DIR'], dataset_detail+'.png')
+		f = args['data_file'] + '.png'
+		print(f)
+		plt.savefig(f, dpi=600, bbox_inches='tight')
+		plt.show()
+
+
 		# Plot init seeds along side sample data
 		fig, ax = plt.subplots()
 		# colors = ["#4EACC5", "#FF9C34", "#4E9A06", "m"]
 		colors = ["r", "g", "b", "m", 'black']
 		ax.scatter(X[:, 0], X[:, 1], c=y, marker="x", s=10, alpha=0.3, label='$G_1$')
-		p = np.mean(X, axis=0)
-		ax.scatter(p[0], p[1], marker="x", s=150, linewidths=3, color="w", zorder=10)
-		offset = 0.3
-		# xytext = (p[0] + (offset / 2 if p[0] >= 0 else -offset), p[1] + (offset / 2 if p[1] >= 0 else -offset))
-		xytext = (p[0] - offset, p[1] - offset)
-		# print(xytext)
-		ax.annotate(f'({p[0]:.1f}, {p[1]:.1f})', xy=(p[0], p[1]), xytext=xytext, fontsize=15, color='b',
-		            ha='center', va='center',  # textcoords='offset points',
-		            bbox=dict(facecolor='none', edgecolor='b', pad=1),
-		            arrowprops=dict(arrowstyle="->", color='b', shrinkA=1, lw=2,
-		                            connectionstyle="angle3, angleA=90,angleB=0"))
+		# p = np.mean(X, axis=0)
+		# ax.scatter(p[0], p[1], marker="x", s=150, linewidths=3, color="w", zorder=10)
+		# offset = 0.3
+		# # xytext = (p[0] + (offset / 2 if p[0] >= 0 else -offset), p[1] + (offset / 2 if p[1] >= 0 else -offset))
+		# xytext = (p[0] - offset, p[1] - offset)
+		# # print(xytext)
+		# ax.annotate(f'({p[0]:.1f}, {p[1]:.1f})', xy=(p[0], p[1]), xytext=xytext, fontsize=15, color='b',
+		#             ha='center', va='center',  # textcoords='offset points',
+		#             bbox=dict(facecolor='none', edgecolor='b', pad=1),
+		#             arrowprops=dict(arrowstyle="->", color='b', shrinkA=1, lw=2,
+		#                             connectionstyle="angle3, angleA=90,angleB=0"))
 
-		ax.axvline(x=0, color='k', linestyle='--')
-		ax.axhline(y=0, color='k', linestyle='--')
-		ax.legend(loc='upper right', fontsize=13)
-		if args['SHOW_TITLE']:
-			plt.title(dataset_detail.replace(':', '\n'))
+		# ax.axvline(x=0, color='k', linestyle='--')
+		# ax.axhline(y=0, color='k', linestyle='--')
+		# ax.legend(loc='upper right', fontsize=13)
+		# if args['SHOW_TITLE']:
+		# 	plt.title(dataset_detail.replace(':', '\n'))
 
-		if 'xlim' in kwargs:
-			plt.xlim(kwargs['xlim'])
-		else:
-			plt.xlim([-6, 6])
-		if 'ylim' in kwargs:
-			plt.ylim(kwargs['ylim'])
-		else:
-			plt.ylim([-6, 6])
+		# if 'xlim' in kwargs:
+		# 	plt.xlim(kwargs['xlim'])
+		# else:
+		# 	plt.xlim([-6, 6])
+		# if 'ylim' in kwargs:
+		# 	plt.ylim(kwargs['ylim'])
+		# else:
+		# 	plt.ylim([-6, 6])
 
 		fontsize = 13
 		plt.xticks(fontsize=fontsize)
@@ -153,10 +177,10 @@ def nbaiot_diff_outliers(args, random_state=42, **kwargs):
 		# if not os.path.exists(params['OUT_DIR']):
 		#     os.makedirs(params['OUT_DIR'])
 		# f = os.path.join(args['OUT_DIR'], dataset_detail+'.png')
-		f = args['data_file'] + '.png'
-		print(f)
-		plt.savefig(f, dpi=600, bbox_inches='tight')
-		plt.show()
+		# f = args['data_file'] + '.png'
+		# print(f)
+		# plt.savefig(f, dpi=600, bbox_inches='tight')
+		# plt.show()
 
 	return {'X': X, 'y': y, 'true_centroids': true_centroids, 'init_centroids': init_centroids, 'delta_X': delta_X}
 
@@ -198,19 +222,28 @@ def nbaiot_mixed_clusters(args, random_state=42, **kwargs):
 		X2 = pd.read_csv(f_abnormal).values
 		y2 = np.asarray([1] * X2.shape[0])
 
+		X, y = np.concatenate([X1, X2], axis=0),  np.concatenate([y1, y2])
+		std = sklearn.preprocessing.StandardScaler()
+		std.fit(X)
+
+		X1 = std.transform(X1)
+		X2 = std.transform(X2)
+
 		############
 		# cluster 1
 		n1 = 500
 		X1, _, y1, _ = sklearn.model_selection.train_test_split(X1, y1, train_size=n1, random_state=random_state,
 		                                                        shuffle=True)
-		X1[:, 0] = X1[:, 0] - d
+		# X1[:, 0] = X1[:, 0] - d
+		X1 = X1 - d
 
 		############
 		# cluster 2
 		n2 = 500
 		X2, _, y2, _ = sklearn.model_selection.train_test_split(X2, y2, train_size=n2, random_state=random_state,
 		                                                        shuffle=True)
-		X2[:, 0] = X2[:, 0] + d
+		# X2[:, 0] = X2[:, 0] + d
+		X2 = X2 + d
 
 		# obtain ground truth centroids
 		true_centroids = np.zeros((2, X1.shape[1]))
@@ -239,6 +272,19 @@ def nbaiot_mixed_clusters(args, random_state=42, **kwargs):
 
 	X, y, true_centroids, init_centroids, delta_X = get_xy(d, ratio)
 
+	is_show = args['IS_SHOW']
+	if is_show:
+		tsne = TSNE(perplexity=30, random_state=42)
+		X_ = tsne.fit_transform(X)
+		plt.scatter(X_[:, 0], X_[:, 1], c=y)
+		plt.title(f'{dataset_detail}')
+		plt.tight_layout()
+		# f = os.path.join(args['OUT_DIR'], dataset_detail+'.png')
+		f = args['data_file'] + '.png'
+		print(f)
+		plt.savefig(f, dpi=600, bbox_inches='tight')
+		plt.show()
+
 	return {'X': X, 'y': y, 'true_centroids': true_centroids, 'init_centroids': init_centroids, 'delta_X': delta_X}
 
 
@@ -253,5 +299,7 @@ def stats(in_dir='datasets/NBAIOT/Danmini_Doorbell'):
 
 
 if __name__ == '__main__':
-	stats()
-# nbaiot_diff_sigma_n({'N_CLIENTS': 0, 'N_CLUSTERS': 2, 'IS_PCA':True, 'DATASET': {'detail': 'n1_100+n2_100+n3_100:ratio_0.00:diff_sigma_n'}})
+	# stats()
+	nbaiot_diff_outliers({'N_CLIENTS': 0, 'N_CLUSTERS': 2, 'IS_PCA':True,
+	                      'DATASET': {'detail': 'r:0.1|mu:-3,0|cov:0.1,0.1|diff_outliers'},
+	                       'IS_SHOW': True, 'SHOW_TITLE': True})

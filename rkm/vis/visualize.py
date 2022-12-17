@@ -40,10 +40,14 @@ def plot_misclustered_errors(resutls, out_file='.png', title='', is_show=True):
 			label = 'K-Means'
 			color = 'blue'
 			ecolor = 'tab:red'
-		else:
+		elif alg_name == 'kmedian':
 			label = 'K-Median'
 			color = 'green'
 			ecolor = 'tab:brown'
+		else:
+			label = 'K-Median(Tukey)'
+			color = 'm'
+			ecolor = 'tab:cyan'
 		plt.errorbar(X, Y, Y_errs, fmt='*-',
 		             capsize=3, color=color, ecolor=ecolor,
 		             markersize=8, markerfacecolor='black',
@@ -98,10 +102,14 @@ def plot_mixted_clusters(resutls, out_file='.png', n_th = 5, title='', is_show=T
 			label = 'K-Means'
 			color = 'blue'
 			ecolor = 'tab:red'
-		else:
+		elif alg_name =='kmedian':
 			label = 'K-Median'
 			color = 'green'
 			ecolor = 'tab:brown'
+		else:
+			label = 'K-Median(Tukey)'
+			color = 'm'
+			ecolor = 'tab:cyan'
 		plt.errorbar(X, Y, Y_errs, fmt='*-',
 		             capsize=3, color=color, ecolor=ecolor,
 		             markersize=8, markerfacecolor='black',

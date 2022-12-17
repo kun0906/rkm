@@ -39,6 +39,14 @@ def timer(func):
 
 
 def check_path(file):
-	tmp_dir = os.path.dirname(file)
+	# # file = fr"{file}"
+	# file = os.path.expanduser(file).encode('unicode_escape')
+	# if os.path.isfile(file):
+	# 	tmp_dir = os.path.dirname(file)
+	if os.path.isdir(file):
+		tmp_dir = file
+	else:
+		tmp_dir = os.path.dirname(file)
+
 	if not os.path.exists(tmp_dir):
 		os.makedirs(tmp_dir)

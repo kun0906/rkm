@@ -7,7 +7,7 @@
 import numpy as np
 from sklearn.cluster import kmeans_plusplus
 
-from utils.common import timer
+from rkm.utils.common import timer
 
 
 class KMBase:

@@ -7,6 +7,7 @@ from pprint import pprint
 
 import numpy as np
 
+from rkm.depth.tukeyR import tukey_median
 from rkm.cluster._base import KMBase
 from rkm.utils.common import timer
 
@@ -23,6 +24,7 @@ class KMedian(KMBase):
 			verbose=0,
 			random_state=42,
 			n_consecutive=5,
+			median_method= 'median',    # median or tukey_median
 			params=None,
 	):
 		self.n_clusters = n_clusters
@@ -33,6 +35,7 @@ class KMedian(KMBase):
 		self.verbose = verbose
 		self.random_state = random_state
 		self.n_consecutive = n_consecutive
+		self.median_method = median_method
 		self.params = params
 
 	@timer
@@ -96,7 +99,10 @@ class KMedian(KMBase):
 				size = np.sum(mask)
 				counts[i] = size
 				if size > 0:
-					new_centroids[i] = np.median(X[mask], axis=0)
+					if self.median_method == 'tukey_median':
+						new_centroids[i], depth_, max_index_ = tukey_median(X[mask], random_state=self.random_state)
+					else:
+						new_centroids[i] = np.median(X[mask], axis=0)
 					# new_centroids[i, :] = np.mean(X[mask], axis=0)
 
 			# delta is the difference of medians

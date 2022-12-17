@@ -10,6 +10,8 @@
 	# check why the process is killed
 	dmesg -T| grep -E -i -B100 'killed process'
 
+	PYTHONPATH='..' PYTHONUNBUFFERED=TRUE python3 main_all.py
+
 """
 # Email: kun.bj@outllok.com
 import copy
@@ -18,8 +20,11 @@ import shutil
 import traceback
 from pprint import pprint
 
+import numpy as np
+
 from rkm import config, main_single
 
+np.set_printoptions(precision=3, suppress=True)
 
 def gen_all_sh(args_lst):
 	"""
@@ -148,14 +153,14 @@ def get_datasets_config_lst(dataset_names=['3GAUSSIANS', '10GAUSSIANS'], case=''
 				"""
 				  r:0.1|mu:-3,0|cov:0.1,0.1|diff_outliers
 				"""
-				for _x in [-5, -12.5, -25, -50, -100, -200]:
+				for _x in [-5, -12.5, -25, -50, -100, -200]:#[-5, -12.5, -25, -50, -100, -200]:
 					detail = f'r:0.1|mu:{_x},0|cov:0.1,0.1|diff_outliers'
 					datasets.append({'name': dataset_name, 'detail': detail, 'n_clusters': n_clusters})
 			elif case == 'mixed_clusters':
 				"""
 					d:2|r:0.4|mixed_clusters
 				"""
-				for d in [0.1, 0.5, 1, 2.5, 5, 10]:  # the distance between two clusters is 2*d.
+				for d in [0.1, 0.5, 1, 2.5, 5, 10]: #[0.1, 0.5, 1, 2.5, 5, 10]:  # the distance between two clusters is 2*d.
 					detail = f'd:{d}|r:0.4|mixed_clusters'
 					datasets.append({'name': dataset_name, 'detail': detail, 'n_clusters': n_clusters})
 			else:
@@ -182,6 +187,10 @@ def get_algorithms_config_lst(py_names, n_clusters=2):
 			for init_method in ['init']:  # ('random', None), ('kmeans++', None)
 				algorithms.append({'py_name': py_name, 'name': name, 'n_clusters': n_clusters,
 				                   'init_method': init_method})
+		elif py_name == 'kmedian_tukey':
+			for init_method in ['init']:  # ('random', None), ('kmeans++', None)
+				algorithms.append({'py_name': py_name, 'name': name, 'n_clusters': n_clusters,
+				                   'init_method': init_method, 'median_method': 'tukey_median'})
 		else:
 			msg = py_name
 			raise NotImplementedError(msg)
@@ -204,6 +213,7 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 	py_names = [
 		'kmeans',
 		'kmedian',
+		'kmedian_tukey',
 	]
 
 	datasets = get_datasets_config_lst(dataset_names, case=CASE)
@@ -263,8 +273,8 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 
 
 if __name__ == '__main__':
-	for CASE in ['diff_outliers', 'mixed_clusters']:  # , 'mixed_clusters'
+	for CASE in ['diff_outliers', 'mixed_clusters']:  # , 'mixed_clusters', 'diff_outliers',
 		try:
-			main(N_REPEATS=50, OVERWRITE=True, IS_DEBUG=True, VERBOSE=1, CASE=CASE)
+			main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=True, VERBOSE=1, CASE=CASE)
 		except Exception as e:
 			traceback.print_exc()
