@@ -8,3 +8,4 @@ rsync -azP ky8517@tiger.princeton.edu:/scratch/gpfs/ky8517/rkm/rkm/out/xlsx ~/Do
 #rsync -azP ky8517@tiger.princeton.edu:/scratch/gpfs/ky8517/rkm/rkm/results/5GAUSSIANS-Client_epochs_1.xlsx ~/Downloads/
 #rsync -azP ky8517@tiger.princeton.edu:/scratch/gpfs/ky8517/rkm/rkm/results/2GAUSSIANS-Client_epochs_1.xlsx ~/Downloads/
 
+#rsync -azP /Users/kunyang/PycharmProjects/rkm/rkm/datasets/NBAIOT/Danmini_Doorbell ky8517@tiger.princeton.edu:/scratch/gpfs/ky8517/rkm/rkm/datasets
