@@ -15,3 +15,5 @@ srun --nodes=1  --mem=128G --ntasks-per-node=1 --time=20:00:00 --pty bash -i
 #srun --nodes=1 --gres=gpu:1 --mem=128G --ntasks-per-node=1 --time=20:00:00 --pty bash -i
 #cd /scratch/gpfs/ky8517/rkm/rkm
 #module load anaconda3/2021.11
+
+#sshfs ky8517@tiger.princeton.edu:/scratch/gpfs/ky8517/rkm tiger

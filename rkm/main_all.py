@@ -209,7 +209,7 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 	args['VERBOSE'] = VERBOSE
 
 	tot_cnt = 0
-	dataset_names = ['NBAIOT']  #  '3GAUSSIANS'
+	dataset_names = ['3GAUSSIANS'] #['NBAIOT']  #  '3GAUSSIANS'
 	py_names = [
 		'kmeans',
 		'kmedian',
@@ -275,6 +275,6 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 if __name__ == '__main__':
 	for CASE in ['diff_outliers', 'mixed_clusters']:  # , 'mixed_clusters', 'diff_outliers',
 		try:
-			main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=True, VERBOSE=1, CASE=CASE)
+			main(N_REPEATS=10, OVERWRITE=True, IS_DEBUG=True, VERBOSE=1, CASE=CASE)
 		except Exception as e:
 			traceback.print_exc()
