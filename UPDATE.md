@@ -1,9 +1,7 @@
-V0.0.5: Add TukeyDepth with "exact=True"
 
-1. Add TukeyDepth with "exact=True"
-   a) Call TukeyDepth.cpp from Python with Ctypes 
-   b) Add setup.py to generate '.so'
-   c) Use glob to find '.so' with recursive = True 
 
-2. Call C++ from python with Cython 
-   not working
+V0.0.6: Add a new dataset and centroid_diff as an evaluation metric
+
+1. Add a new dataset (constructed_3gaussians)
+2. Add 'centroid_diff' = diff(centroid_pred, centroid_true).
+3. Update the plots

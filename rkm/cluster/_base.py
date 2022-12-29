@@ -107,6 +107,11 @@ class KMBase:
 		if self.verbose >= 3:
 			s = [f'{key}:{len(vs)}' for key, vs in misclustered.items()]
 			print(f'misclustered_error: {misclustered_error}, n (excluded noise): {(X.shape[0] - n_noise)}, misclusterd: {s}')
-		scores = {'misclustered_error': misclustered_error, 'misclustered': misclustered}
+
+		centroid_diff = np.sum(np.sum(np.square(self.centroids - self.true_centroids), axis=1), axis=0)/self.n_clusters
+		if self.verbose >=3:
+			print(f'centroid_diff: {centroid_diff}')
+		scores = {'misclustered_error': misclustered_error,
+		          'misclustered': misclustered, 'centroid_diff': centroid_diff}
 
 		return scores

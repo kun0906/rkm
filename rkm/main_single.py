@@ -34,7 +34,7 @@ class Framework:
 		          'kmedian_tukey': KMedian,
 		          }
 		if self.args['ALGORITHM']['py_name'] == 'kmeans':
-			self.model = ALG2PY[self.args['ALGORITHM']['py_name']](n_clusters=2,
+			self.model = ALG2PY[self.args['ALGORITHM']['py_name']](n_clusters=self.args['N_CLUSTERS'],
 			                                                       init_centroids=init_centroids,
 			                                                       true_centroids=true_centroids,
 			                                                       max_iter=self.args['MAX_ITERATION'],
@@ -50,7 +50,7 @@ class Framework:
 				median_method = 'tukey_median'
 			else:
 				raise NotImplementedError(self.args)
-			self.model = ALG2PY[self.args['ALGORITHM']['py_name']](n_clusters=2,
+			self.model = ALG2PY[self.args['ALGORITHM']['py_name']](n_clusters=self.args['N_CLUSTERS'],
 		                                                       init_centroids=init_centroids,
 		                                                       true_centroids=true_centroids,
 		                                                       max_iter=self.args['MAX_ITERATION'],
