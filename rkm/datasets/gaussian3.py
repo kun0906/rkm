@@ -100,7 +100,7 @@ def gaussian3_diff_outliers(args, random_state=42, **kwargs):
         ax.axhline(y=0, color='k', linestyle='--')
         ax.legend(loc='upper right', fontsize = 13)
         if args['SHOW_TITLE']:
-            plt.title(dataset_detail.replace(':', '\n'))
+            plt.title(dataset_detail.replace(':', ':'))
 
         if 'xlim' in kwargs:
             plt.xlim(kwargs['xlim'])
@@ -126,7 +126,6 @@ def gaussian3_diff_outliers(args, random_state=42, **kwargs):
 
 
     return {'X':X, 'y': y, 'true_centroids': true_centroids, 'init_centroids': init_centroids, 'delta_X': delta_X}
-
 
 
 
@@ -202,3 +201,135 @@ def gaussian3_mixed_clusters(args, random_state=42, **kwargs):
     return {'X': X, 'y': y, 'true_centroids': true_centroids, 'init_centroids': init_centroids, 'delta_X': delta_X}
 
 
+
+def gaussian3_constructed_clusters(args, random_state=42, **kwargs):
+    """
+        p:0.4|constructed_3gaussians
+        Constructed example, in which mean doesn't work; however, median works.
+        3 Gaussians:
+            the first Gaussian with mu= [-1, 0] and covariance = [1, 1], n1=1000;
+            the second Gaussian with mu= [1, 0] and covariance = [1, 1], n2=1000; and
+            the last Gaussian with mu= [10, 0] and covariance = [3, 3], n3=2000;
+
+            # For the initialization,
+            The first cluster with the mean of Gaussian 1 as its centroid;
+            The second cluster with the mean of (100% Gaussian 2 + p (e.g., 20%) of data from Gaussian 3) as its centroid; and
+            The third cluster with the mean of (1-p) of data from Gaussian 3 as its centroid.
+
+    Parameters
+    ----------
+    params
+    random_state
+
+    Returns
+    -------
+
+    """
+    # p:0.4|constructed_3gaussians
+    dataset_detail = args['DATASET']['detail']
+    tmp = dataset_detail.split('|')
+
+    p = float(tmp[0].split(':')[1])
+
+    r = np.random.RandomState(random_state)
+    def get_xy(p):
+
+        ############
+        # cluster 1
+        n0 = 500
+        mu0 = np.asarray([-1, 0])
+        cov0 = np.asarray([[1, 0], [0, 1]])
+        X0 = r.multivariate_normal(mu0, cov0, size=n0)
+        y0 = np.asarray([0] * n0)
+
+        ############
+        # cluster 2
+        n1 = 500
+        mu1 = np.asarray([1, 0])
+        cov1 = np.asarray([[1, 0], [0, 1]])
+        X1 = r.multivariate_normal(mu1, cov1, size=n1)
+        y1 = np.asarray([1] * n1)
+
+        ############
+        # cluster 3
+        n2 = 1000
+        mu2 = np.asarray([10, 0])
+        cov2 = np.asarray([[1, 0], [0, 1]])
+        X2 = r.multivariate_normal(mu2, cov2, size=n2)
+        y2 = np.asarray([2] * n2)
+
+        # obtain  ground truth centroids
+        true_centroids = np.zeros((3, 2))
+        true_centroids[0] = np.mean(X0, axis=0)
+        true_centroids[1] = np.mean(X1, axis=0)
+        true_centroids[2] = np.mean(X2, axis=0)
+
+        X = np.concatenate([X0, X1, X2], axis=0)
+        y = np.concatenate([y0, y1, y2], axis=0)
+
+        # obtain initial centroids after mixing the data
+        X2, X12, y2, y12 = train_test_split(X2, y2, test_size=p, shuffle=True, random_state=random_state)
+        # Mix them togather
+        X1 = np.concatenate([X1, X12], axis=0)
+        # y1 = np.concatenate([y1, y12], axis=0)
+
+        init_centroids = np.zeros((3, 2))
+        init_centroids[0] = np.mean(X0, axis=0)
+        init_centroids[1] = np.mean(X1, axis=0)
+        init_centroids[2] = np.mean(X2, axis=0)
+
+        delta_X = p
+
+        return X, y, true_centroids, init_centroids, delta_X
+
+    X, y, true_centroids, init_centroids, delta_X = get_xy(p)
+
+    is_show =  args['IS_SHOW']
+    is_show = True
+    if is_show:
+        # Plot init seeds along side sample data
+        fig, ax = plt.subplots()
+        # colors = ["#4EACC5", "#FF9C34", "#4E9A06", "m"]
+        colors = ["r", "g", "b", "m", 'black']
+        ax.scatter(X[:, 0], X[:, 1], c=y, marker="x", s=10, alpha=0.3, label='$$')
+        p = np.mean(X, axis=0)
+        ax.scatter(p[0], p[1], marker="x", s=150, linewidths=3, color="w", zorder=10)
+        offset = 0.3
+        # xytext = (p[0] + (offset / 2 if p[0] >= 0 else -offset), p[1] + (offset / 2 if p[1] >= 0 else -offset))
+        xytext = (p[0] - offset, p[1] - offset)
+        # print(xytext)
+        ax.annotate(f'({p[0]:.1f}, {p[1]:.1f})', xy=(p[0], p[1]), xytext=xytext, fontsize=15, color='b',
+                    ha='center', va='center',  # textcoords='offset points',
+                    bbox=dict(facecolor='none', edgecolor='b', pad=1),
+                    arrowprops=dict(arrowstyle="->", color='b', shrinkA=1, lw=2,
+                                    connectionstyle="angle3, angleA=90,angleB=0"))
+
+        ax.axvline(x=0, color='k', linestyle='--')
+        ax.axhline(y=0, color='k', linestyle='--')
+        ax.legend(loc='upper right', fontsize=13)
+        if args['SHOW_TITLE']:
+            plt.title(dataset_detail.replace(':', ':'))
+
+        # if 'xlim' in kwargs:
+        #     plt.xlim(kwargs['xlim'])
+        # else:
+        #     plt.xlim([-6, 6])
+        # if 'ylim' in kwargs:
+        #     plt.ylim(kwargs['ylim'])
+        # else:
+        #     plt.ylim([-6, 6])
+
+        fontsize = 13
+        plt.xticks(fontsize=fontsize)
+        plt.yticks(fontsize=fontsize)
+
+        plt.tight_layout()
+        # if not os.path.exists(params['OUT_DIR']):
+        #     os.makedirs(params['OUT_DIR'])
+        # f = os.path.join(args['OUT_DIR'], dataset_detail+'.png')
+        f = args['data_file'] + '.png'
+        print(f)
+        plt.savefig(f, dpi=600, bbox_inches='tight')
+        plt.show()
+
+    return {'X': X, 'y': y, 'true_centroids': true_centroids, 'init_centroids': init_centroids, 'delta_X': delta_X}

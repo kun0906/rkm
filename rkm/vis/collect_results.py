@@ -25,6 +25,7 @@ def _parser_history(args):
 		out_dat = os.path.join(OUT_DIR, 'history.dat')
 		history = load(out_dat)
 		results = {'delta_X': history['delta_X'], 'misclustered_error': history['scores']['misclustered_error'],
+		           'centroid_diff': history['scores']['centroid_diff'],
 		           'true_centroids': history['data']['true_centroids'],
 		           'init_centroids': history['data']['init_centroids'],
 		           'final_centroids': history['history'][-1]['centroids'],
@@ -215,7 +216,7 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 	py_names = [
 		'kmeans',
 		'kmedian',
-		'kmedian_tukey',
+		# 'kmedian_tukey',
 	]
 
 	results = {}
@@ -271,26 +272,27 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 	# print(results.items())
 	print(f'*** Total cases: {tot_cnt}')
 
-	if CASE == 'diff_outliers':
-		out_file = os.path.join(OUT_DIR, 'xlsx', args1['DATASET']['name'],
-		                        f'{os.path.dirname(dataset_detail)}',
-		                        args1['ALGORITHM']['detail'] + '-diff_outliers.png')
-		check_path(out_file)
-		plot_misclustered_errors(results, out_file, is_show=True)
-		print(out_file)
+	for error_method in ['centroid_diff', 'misclustered_error']:
+		if CASE == 'diff_outliers':
+			out_file = os.path.join(OUT_DIR, 'xlsx', args1['DATASET']['name'],
+			                        f'{os.path.dirname(dataset_detail)}',
+			                        args1['ALGORITHM']['detail'] + f'-diff_outliers-{error_method}.png')
+			check_path(out_file)
+			plot_misclustered_errors(results, out_file, error_method=error_method, is_show=True)
+			print(out_file)
 
-	else:
-		out_file = os.path.join(OUT_DIR, 'xlsx', args1['DATASET']['name'],
-		                        f'{os.path.dirname(dataset_detail)}',
-		                        args1['ALGORITHM']['detail'] + '-mixed_clusters.png')
-		check_path(out_file)
-		plot_mixted_clusters(results, out_file, is_show=True, n_th=5)  # show misclustered error at the n_th iteration
-		print(out_file)
+		else:
+			out_file = os.path.join(OUT_DIR, 'xlsx', args1['DATASET']['name'],
+			                        f'{os.path.dirname(dataset_detail)}',
+			                        args1['ALGORITHM']['detail'] + f'-mixed_clusters-{error_method}.png')
+			check_path(out_file)
+			plot_mixted_clusters(results, out_file, error_method=error_method, is_show=True, n_th=5)  # show misclustered error at the n_th iteration
+			print(out_file)
 
 
 if __name__ == '__main__':
-	for CASE in ['diff_outliers', 'mixed_clusters']:  # , 'mixed_clusters'
+	for CASE in ['constructed_3gaussians']: # ['diff_outliers', 'mixed_clusters', 'constructed_3gaussians']:  # , 'mixed_clusters'
 		try:
-			main(N_REPEATS=10, OVERWRITE=True, IS_DEBUG=True, VERBOSE=1, CASE=CASE)
+			main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=True, VERBOSE=1, CASE=CASE)
 		except Exception as e:
 			traceback.print_exc()

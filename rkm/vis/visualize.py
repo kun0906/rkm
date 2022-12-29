@@ -9,7 +9,7 @@ import numpy as np
 precision = 3
 
 
-def plot_misclustered_errors(resutls, out_file='.png', title='', is_show=True):
+def plot_misclustered_errors(resutls, out_file='.png', title='', error_method = 'misclustered_error', is_show=True):
 	fig, axes = plt.subplots()  # (width, height)
 	# fig.suptitle(title  + ', centroids update')
 	colors = ['blue', 'green', 'orange', 'c', 'm', 'b', 'r', 'tab:brown', 'tab:green']
@@ -23,7 +23,7 @@ def plot_misclustered_errors(resutls, out_file='.png', title='', is_show=True):
 			for repeat_vs in diff_outliers:
 				_tmp = [repeat['delta_X'] for repeat in repeat_vs]  # for different repeats, the delta is the same.
 				X.append(_tmp[0])
-				_tmp = [repeat['misclustered_error'] for repeat in repeat_vs]
+				_tmp = [repeat[error_method] for repeat in repeat_vs]
 				mu = float(f'{np.mean(_tmp):.{precision}f}')
 				std = float(f'{np.std(_tmp):.{precision}f}')
 				Y.append(mu)
@@ -55,7 +55,11 @@ def plot_misclustered_errors(resutls, out_file='.png', title='', is_show=True):
 
 	font_size = 15
 	plt.legend(loc='upper right', fontsize=font_size - 2)  # bbox_to_anchor=(0.5, 0.3, 0.5, 0.5),
-	axes.set_ylabel('Average Misclustered Error: $A_T$')
+	if error_method == 'centroid_diff':
+		ylabel = '$\\left||\mu_*-\mu\\right||_2^2$'
+	else:
+		ylabel = 'Average Misclustered Error'
+	axes.set_ylabel(f'{ylabel}: $A_T$')
 	axes.set_xlabel('$\Delta$')  # the distance between outlier and origin.
 	X = [_v for _i, _v in enumerate(X) if _i != 1]
 	axes.set_xticks(X)
@@ -69,7 +73,7 @@ def plot_misclustered_errors(resutls, out_file='.png', title='', is_show=True):
 	plt.close(fig)
 
 
-def plot_mixted_clusters(resutls, out_file='.png', n_th = 5, title='', is_show=True):
+def plot_mixted_clusters(resutls, out_file='.png', n_th = 5, title='', error_method='misclustered_error', is_show=True):
 	fig, axes = plt.subplots()  # (width, height)
 	# fig.suptitle(title  + ', centroids update')
 	colors = ['blue', 'green', 'orange', 'c', 'm', 'b', 'r', 'tab:brown', 'tab:green']
@@ -84,7 +88,7 @@ def plot_mixted_clusters(resutls, out_file='.png', n_th = 5, title='', is_show=T
 				_tmp = [repeat['delta_X'] for repeat in repeat_vs]  # for different repeats, the delta is the same.
 				X.append(_tmp[0])
 				# _tmp = [repeat['misclustered_error'] for repeat in repeat_vs]    # when training is finished, we get the misclustered error
-				_tmp = [repeat['history'][n_th]['scores']['misclustered_error'] for repeat in
+				_tmp = [repeat['history'][n_th]['scores'][error_method] for repeat in
 				        repeat_vs]  # during the training, we get the misclustered error after 5 iterations.
 				mu = float(f'{np.mean(_tmp):.{precision}f}')
 				std = float(f'{np.std(_tmp):.{precision}f}')
@@ -117,7 +121,11 @@ def plot_mixted_clusters(resutls, out_file='.png', n_th = 5, title='', is_show=T
 
 	font_size = 15
 	plt.legend(loc='upper right', fontsize=font_size - 2)  # bbox_to_anchor=(0.5, 0.3, 0.5, 0.5),
-	axes.set_ylabel(f'Average Misclustered Error: $A_{n_th}$')
+	if error_method == 'centroid_diff':
+		ylabel = '$\\left||\mu_*-\mu\\right||$'
+	else:
+		ylabel = 'Average Misclustered Error'
+	axes.set_ylabel(f'{ylabel}: $A_{n_th}$')
 	axes.set_xlabel('$\Delta$')  # the distance between outlier and origin.
 	X = [_v for _i, _v in enumerate(X) if _i != 1]
 	axes.set_xticks(X)
