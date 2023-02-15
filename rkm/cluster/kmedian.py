@@ -58,14 +58,14 @@ class KMedian(KMBase):
 		self.history = []
 		self.n_training_iterations = self.max_iter
 		n_consecutive = 0
-
+		r = np.random.RandomState(self.random_state)
 		for iteration in range(0, self.max_iter + 1):
 			self.n_training_iterations = iteration
 			if self.verbose >= 2:
 				print(f'iteration: {iteration}')
 			if iteration == 0:
 				# Use the init_centroids from __init__()
-				self.init_centroids = self.do_init_centroids(None)
+				self.init_centroids = self.do_init_centroids(X=X, y=y)
 				self.init_centroids = self.align_centroids(self.init_centroids, self.true_centroids)
 				# print(f'initialization method: {self.init_centroids}, centers: {centroids}')
 				self.centroids = self.init_centroids
@@ -78,7 +78,7 @@ class KMedian(KMBase):
 				centroids_update = self.centroids - np.zeros((self.n_clusters, self.dim))
 				self.history.append({'iteration': iteration, 'centroids': self.centroids, 'scores': copy.deepcopy(scores),
 				                     'centroids_update': centroids_update, 'centroids_diff': centroids_diff})
-				if self.verbose >= 5:
+				if self.verbose >= 20:
 					pprint(scores)
 				continue
 			# compute distances
@@ -92,7 +92,9 @@ class KMedian(KMBase):
 			labels = np.argmin(sq_dist, axis=1)
 
 			# reassign each data point to the closet centroid
-			new_centroids = np.zeros((self.n_clusters, self.dim))
+			# new_centroids = np.zeros((self.n_clusters, self.dim))
+			new_centroids = copy.deepcopy(
+				self.centroids)  # if the centroid has no data point, then use the previous centroid.
 			counts = np.zeros((self.n_clusters,))
 			for i in range(self.n_clusters):
 				mask = np.equal(labels, i)
@@ -104,6 +106,9 @@ class KMedian(KMBase):
 					else:
 						new_centroids[i] = np.median(X[mask], axis=0)
 					# new_centroids[i, :] = np.mean(X[mask], axis=0)
+				else:
+					_i = r.choice(range(0, X.shape[0]), size=1, replace=False)  # without replacement and random
+					new_centroids[i, :] = X[_i]  # random choose a point as centroid
 
 			# delta is the difference of medians
 			centroids_update = new_centroids - self.centroids
@@ -133,7 +138,7 @@ class KMedian(KMBase):
 			centroids_diff = self.centroids - self.true_centroids
 			self.history.append({'iteration': iteration, 'centroids': self.centroids, 'scores': copy.deepcopy(scores),
 			                     'centroids_update': centroids_update, 'centroids_diff': centroids_diff})
-			if self.verbose >= 5:
+			if self.verbose >= 20:
 				pprint(scores)
 
 		return

@@ -27,11 +27,15 @@ module load anaconda3/2021.11
 pwd
 python3 -V
 
-PYTHONPATH='..' PYTHONUNBUFFERED=TRUE python3 main_all.py > 'out/sh/log.txt' 2>&1  &
+# sshfs ky8517@tiger.princeton.edu:/scratch/gpfs/ky8517/rkm tiger
+PYTHONPATH='..' PYTHONUNBUFFERED=TRUE python3 main_all.py > 'out/sh/log.txt' 2>&1
+#### sbatch ./sbatch.sh
+#PYTHONPATH='..' PYTHONUNBUFFERED=TRUE python3 main_all.py > 'out/sh/log.txt' 2>&1  &
+# if you use & at the end of your command, your job cannot be seen by 'squeue -u'
 
-wait
-echo $!
-echo $?
+#wait
+#echo $!
+#echo $?
 
-echo 'done
+echo 'done'
 

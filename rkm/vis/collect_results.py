@@ -13,7 +13,7 @@ import traceback
 from rkm import config
 from rkm.main_all import get_datasets_config_lst, get_algorithms_config_lst
 from rkm.utils.common import load, check_path
-from rkm.vis.visualize import plot_misclustered_errors, plot_mixted_clusters
+from rkm.vis.visualize import plot_misclustered_errors, plot_mixed_clusters
 
 n_precision = 3
 
@@ -201,7 +201,7 @@ def save2xls(workbook, worksheet, column_idx, args, results_avg, metric_names):
 	row += 1
 
 
-def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=5, CASE=''):
+def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=5, CASE='', init_method='random'):
 	# get default config.yaml
 	config_file = 'config.yaml'
 	args = config.load(config_file)
@@ -216,6 +216,7 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 	py_names = [
 		'kmeans',
 		'kmedian',
+		'kmedian_l1',
 		# 'kmedian_tukey',
 	]
 
@@ -224,11 +225,12 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 	for dataset in datasets:
 		algorithms = get_algorithms_config_lst(py_names, dataset['n_clusters'])
 		for i_alg, algorithm in enumerate(algorithms):
+			if algorithm['init_method'] != init_method: continue
 			if VERBOSE > 0: print(f'\n*** {tot_cnt}th experiment ***:', dataset['name'], algorithm['py_name'])
 			args_lst = []
 			for i_repeat in range(N_REPEATS):
 				seed_data = i_repeat * 10  # data seed
-				if VERBOSE >= 1: print('***', dataset['name'], i_repeat, seed_data)
+				if VERBOSE >= 5: print('***', dataset['name'], i_repeat, seed_data)
 				args1 = copy.deepcopy(args)
 				args1['SEED_DATA'] = seed_data
 				args1['DATASET']['name'] = dataset['name']
@@ -272,27 +274,51 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 	# print(results.items())
 	print(f'*** Total cases: {tot_cnt}')
 
-	for error_method in ['centroid_diff', 'misclustered_error']:
-		if CASE == 'diff_outliers':
+	for n_th in [-1]: #[1, 2, 3, 4, 5, 10, -1]:
+		# show  error at the n_th iteration
+		# 'centroid_diff2' is the next round iteration of centroid_diff,
+		# e.g., the ith differences of centroid_diff2 is the (i+1)th differences of centroid_diff.
+		for error_method in ['centroid_diff']: #  'misclustered_error'
+			# if CASE in ['diff_outliers', 'diff2_outliers']:
+			# 	out_file = os.path.join(OUT_DIR, 'xlsx', args1['DATASET']['name'],
+			# 	                        f'{os.path.dirname(dataset_detail)}',
+			# 	                        args1['ALGORITHM']['detail'] + f'-diff_outliers-{error_method}-{n_th}th.png')
+			# 	check_path(out_file)
+			# 	plot_misclustered_errors(results, out_file, error_method=error_method, is_show=True, raw_n_th=n_th,
+			# 	                         verbose=10, case = CASE, init_method=init_method)
+			# 	print(out_file)
+			# else:
+			# 	out_file = os.path.join(OUT_DIR, 'xlsx', args1['DATASET']['name'],
+			# 	                        f'{os.path.dirname(dataset_detail)}',
+			# 	                        args1['ALGORITHM']['detail'] + f'-mixed_clusters-{error_method}-{n_th}th.png')
+			# 	check_path(out_file)
+			# 	plot_mixed_clusters(results, out_file, error_method=error_method, is_show=True, raw_n_th=n_th,
+			# 	                    verbose=10, case = CASE, init_method=init_method)  # show misclustered error at the n_th iteration
+			# 	print(out_file)
+			if error_method == 'centroid_diff':
+				metric = 'ACD'
+			else:
+				raise NotImplementedError(error_method)
+			if CASE == 'diff_outliers':
+				f = f'Case1_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th.png'
+			elif CASE=='diff2_outliers':
+				f = f'Case2_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th.png'
+			else:
+				raise NotImplementedError(CASE)
+			f = f.replace('|','_')
 			out_file = os.path.join(OUT_DIR, 'xlsx', args1['DATASET']['name'],
-			                        f'{os.path.dirname(dataset_detail)}',
-			                        args1['ALGORITHM']['detail'] + f'-diff_outliers-{error_method}.png')
+			                        f'{os.path.dirname(dataset_detail)}', f)
 			check_path(out_file)
-			plot_misclustered_errors(results, out_file, error_method=error_method, is_show=True)
+			plot_misclustered_errors(results, out_file, error_method=error_method, is_show=True, raw_n_th=n_th,
+			                         verbose=VERBOSE, case=CASE, init_method=init_method)
 			print(out_file)
-
-		else:
-			out_file = os.path.join(OUT_DIR, 'xlsx', args1['DATASET']['name'],
-			                        f'{os.path.dirname(dataset_detail)}',
-			                        args1['ALGORITHM']['detail'] + f'-mixed_clusters-{error_method}.png')
-			check_path(out_file)
-			plot_mixted_clusters(results, out_file, error_method=error_method, is_show=True, n_th=5)  # show misclustered error at the n_th iteration
-			print(out_file)
-
 
 if __name__ == '__main__':
-	for CASE in ['constructed_3gaussians']: # ['diff_outliers', 'mixed_clusters', 'constructed_3gaussians']:  # , 'mixed_clusters'
-		try:
-			main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=True, VERBOSE=1, CASE=CASE)
-		except Exception as e:
-			traceback.print_exc()
+	cases = ['diff_outliers', 'diff2_outliers', 'constructed2_3gaussians', 'constructed_3gaussians']
+	cases = ['diff_outliers','diff2_outliers']
+	for CASE in cases: # , 'constructed_3gaussians', 'diff2_outliers', 'diff_outliers', 'mixed_clusters']: # ['diff_outliers', 'mixed_clusters', 'constructed_3gaussians']:  # , 'mixed_clusters'
+		for init_method in ['random', 'kmeans++', 'omniscient',]: #['random', 'kmeans++', 'omniscient',]:
+			try:
+				main(N_REPEATS=100, OVERWRITE=True, IS_DEBUG=True, VERBOSE=1, CASE=CASE, init_method=init_method)
+			except Exception as e:
+				traceback.print_exc()

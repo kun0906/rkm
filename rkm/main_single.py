@@ -13,6 +13,7 @@ from rkm.datasets.dataset import generate_dataset
 from rkm import config
 from rkm.cluster.kmeans import KMeans
 from rkm.cluster.kmedian import KMedian
+from rkm.cluster.kmedian_l1 import KMedian_L1
 from rkm.utils.common import dump, load
 
 
@@ -29,8 +30,17 @@ class Framework:
 		                                       self.data['init_centroids'], self.data['true_centroids']
 		delta_X = self.data['delta_X']
 
+		if self.args['ALGORITHM']['init_method'] == 'random':
+			init_centroids = 'random'
+		elif self.args['ALGORITHM']['init_method'] == 'kmeans++':
+			init_centroids = 'kmeans++'
+		elif self.args['ALGORITHM']['init_method'] == 'omniscient':
+			init_centroids = init_centroids     # use the omniscient centroids
+		else:
+			raise NotImplementedError(self.args['ALGORITHM']['py_name'])
 		ALG2PY = {'kmeans': KMeans,
 		          'kmedian': KMedian,
+		          'kmedian_l1': KMedian_L1,
 		          'kmedian_tukey': KMedian,
 		          }
 		if self.args['ALGORITHM']['py_name'] == 'kmeans':
@@ -46,6 +56,8 @@ class Framework:
 		else:
 			if self.args['ALGORITHM']['py_name'] == 'kmedian':
 				median_method = 'median'
+			elif self.args['ALGORITHM']['py_name'] == 'kmedian_l1':
+				median_method = 'median_l1'
 			elif self.args['ALGORITHM']['py_name'] == 'kmedian_tukey':
 				median_method = 'tukey_median'
 			else:

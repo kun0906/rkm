@@ -404,7 +404,7 @@ def evaluate2(kmeans, x, y=None, splits=['train', 'test'], federated=False, verb
             if is_saving_time:
                 db_normalized = db_weighted = db_weighted2 = 0
             else:
-                # for testing new customized metrics:
+                # for testing new omniscient metrics:
                 db_normalized = davies_bouldin_score_normalized(x[split], labels_pred)
                 db_weighted = davies_bouldin_score_weighted(x[split], labels_pred)
                 db_weighted2 = davies_bouldin_score_weighted2(x[split], labels_pred)

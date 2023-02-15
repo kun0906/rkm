@@ -7,7 +7,8 @@ import os
 import pickle
 
 from rkm.datasets.nbaiot import nbaiot_diff_outliers, nbaiot_mixed_clusters
-from rkm.datasets.gaussian3 import gaussian3_diff_outliers, gaussian3_mixed_clusters, gaussian3_constructed_clusters
+from rkm.datasets.gaussian3 import gaussian3_diff_outliers, gaussian3_mixed_clusters, gaussian3_constructed_clusters, \
+	gaussian3_constructed2_clusters, gaussian3_diff2_outliers
 from rkm.utils.common import timer, check_path
 
 
@@ -43,10 +44,14 @@ def generate_dataset(args):
 	if dataset_name == '3GAUSSIANS':
 		if 'diff_outliers' in dataset_detail:
 			data = gaussian3_diff_outliers(args, random_state=SEED_DATA)
+		elif 'diff2_outliers' in dataset_detail:
+			data = gaussian3_diff2_outliers(args, random_state=SEED_DATA)
 		elif 'mixed_clusters' in dataset_detail:
 			data = gaussian3_mixed_clusters(args, random_state=SEED_DATA)
 		elif 'constructed_3gaussians' in dataset_detail:
 			data = gaussian3_constructed_clusters(args, random_state=SEED_DATA)
+		elif 'constructed2_3gaussians' in dataset_detail:
+			data = gaussian3_constructed2_clusters(args, random_state=SEED_DATA)
 		else:
 			msg = f'{dataset_name}, {dataset_detail}'
 			raise NotImplementedError(msg)

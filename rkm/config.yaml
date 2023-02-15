@@ -8,7 +8,7 @@ VERBOSE: 2     # (almost) no info: 0, basic info: 1, debug level1: 2, debug leve
 IN_DIR: './datasets'
 OUT_DIR: './out'
 IS_SHOW: False
-SHOW_TITLE: True
+SHOW_TITLE: False
 SEPERTOR: '|'
 OVERWRITE: True
 

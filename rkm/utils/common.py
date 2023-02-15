@@ -7,7 +7,7 @@ import os
 import pickle
 import time
 from datetime import datetime
-
+import numpy as np
 
 def load(in_file):
 	with open(in_file, 'rb') as f:
@@ -50,3 +50,8 @@ def check_path(file):
 
 	if not os.path.exists(tmp_dir):
 		os.makedirs(tmp_dir)
+
+
+def fmt_np(X, precision=3, max_line_width=1000):
+	return np.array_str(X, max_line_width=max_line_width, precision=precision, suppress_small=True)
+
