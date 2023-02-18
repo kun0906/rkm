@@ -84,7 +84,7 @@ def gaussian3_diff_outliers(args, random_state=42, **kwargs):
     X,y, true_centroids, init_centroids, delta_X= get_xy(ratio, mu, cov)
 
     is_show = args['IS_SHOW']
-    is_show=True
+    # is_show=True
     if is_show:
         # Plot init seeds along side sample data
         fig, ax = plt.subplots()

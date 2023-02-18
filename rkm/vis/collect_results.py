@@ -38,12 +38,12 @@ def _parser_history(args):
 	return results
 
 
-def parser_history(args_lst):
-	results_detail = []
-	for i_args, args in enumerate(args_lst):
+def parser_history(args_dict):
+	results_detail = {}
+	for i_args, (seed2, args) in enumerate(args_dict.items()):
 		try:
 			results = _parser_history(args)
-			results_detail.append(results)
+			results_detail[seed2] = results
 		except Exception as e:
 			traceback.print_exc()
 
@@ -214,9 +214,9 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 	tot_cnt = 0
 	dataset_names = ['3GAUSSIANS']  #  '3GAUSSIANS'
 	py_names = [
-		'kmeans',
-		'kmedian',
+		# 'kmeans',
 		'kmedian_l1',
+		# 'kmedian',
 		# 'kmedian_tukey',
 	]
 
@@ -226,50 +226,58 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 		algorithms = get_algorithms_config_lst(py_names, dataset['n_clusters'])
 		for i_alg, algorithm in enumerate(algorithms):
 			if algorithm['init_method'] != init_method: continue
-			if VERBOSE > 0: print(f'\n*** {tot_cnt}th experiment ***:', dataset['name'], algorithm['py_name'])
-			args_lst = []
+			if VERBOSE > 10: print(f'\n*** {tot_cnt}th experiment ***:', dataset['name'], algorithm['py_name'])
 			for i_repeat in range(N_REPEATS):
-				seed_data = i_repeat * 10  # data seed
-				if VERBOSE >= 5: print('***', dataset['name'], i_repeat, seed_data)
-				args1 = copy.deepcopy(args)
-				args1['SEED_DATA'] = seed_data
-				args1['DATASET']['name'] = dataset['name']
-				args1['DATASET']['detail'] = dataset['detail']
-				args1['N_CLUSTERS'] = dataset['n_clusters']
-				N_REPEATS = args1['N_REPEATS']
-				N_CLUSTERS = args1['N_CLUSTERS']
-				NORMALIZE_METHOD = args1['NORMALIZE_METHOD']
-				args1['DATASET']['detail'] = os.path.join(f'{SEPERTOR}'.join([args1['DATASET']['detail'],
-				                                                              NORMALIZE_METHOD, f'K_{N_CLUSTERS}']),
-				                                          f'SEED_DATA_{seed_data}')
-				dataset_name = args1['DATASET']['name']
-				dataset_detail = args1['DATASET']['detail']
-				args1['data_file'] = os.path.join(args1['IN_DIR'], dataset_name, f'{dataset_detail}.dat')
-				if VERBOSE >= 2: print(f'arg1.data_file:', args1['data_file'])
-				args1['ALGORITHM']['py_name'] = algorithm['py_name']
-				args1['ALGORITHM']['init_method'] = algorithm['init_method']
-				init_method = args1['ALGORITHM']['init_method']
-				NORMALIZE_METHOD = args1['NORMALIZE_METHOD']
-				args1['ALGORITHM']['detail'] = f'{SEPERTOR}'.join([f'R_{N_REPEATS}',
-				                                                   f'{init_method}',
-				                                                   f'{NORMALIZE_METHOD}'])
-				args1['OUT_DIR'] = os.path.join(OUT_DIR, args1['DATASET']['name'], f'{dataset_detail}',
-				                                args1['ALGORITHM']['py_name'], args1['ALGORITHM']['detail'])
-				args_lst.append(copy.deepcopy(args1))
+				seed_step = 1000
+				seed = i_repeat * seed_step  # data seed
+				seed_step2 = seed_step // 100  # repeats 10 times in the inner loop
+				args_dict = {}
+				for seed2 in range(seed, seed + seed_step, seed_step2):
+					if VERBOSE >=10: print('***', dataset['name'], i_repeat, seed, seed2)
+					args1 = copy.deepcopy(args)
+					args1['SEED_1'] = seed2
+					args1['SEED_DATA'] = seed2
+					args1['DATASET']['name'] = dataset['name']
+					args1['DATASET']['detail'] = dataset['detail']
+					args1['N_CLUSTERS'] = dataset['n_clusters']
+					N_REPEATS = args1['N_REPEATS']
+					N_CLUSTERS = args1['N_CLUSTERS']
+					NORMALIZE_METHOD = args1['NORMALIZE_METHOD']
+					args1['DATASET']['detail'] = os.path.join(f'{SEPERTOR}'.join([args1['DATASET']['detail'],
+					                                                              NORMALIZE_METHOD, f'K_{N_CLUSTERS}']),
+					                                           f'SEED_{seed}', f'SEED2_{seed2}')
+					dataset_name = args1['DATASET']['name']
+					dataset_detail = args1['DATASET']['detail']
+					args1['data_file'] = os.path.join(args1['IN_DIR'], dataset_name, f'{dataset_detail}.dat')
+					if VERBOSE >= 10: print(f'arg1.data_file:', args1['data_file'])
+					args1['ALGORITHM']['py_name'] = algorithm['py_name']
+					args1['ALGORITHM']['init_method'] = algorithm['init_method']
+					init_method = args1['ALGORITHM']['init_method']
+					NORMALIZE_METHOD = args1['NORMALIZE_METHOD']
+					args1['ALGORITHM']['detail'] = f'{SEPERTOR}'.join([f'R_{N_REPEATS}',
+					                                                   f'{init_method}',
+					                                                   f'{NORMALIZE_METHOD}'])
+					args1['OUT_DIR'] = os.path.join(OUT_DIR, args1['DATASET']['name'], f'{dataset_detail}',
+					                                args1['ALGORITHM']['py_name'], args1['ALGORITHM']['detail'])
+					args_dict[f'Seed2_{seed2}'] = copy.deepcopy(args1)
 
-			tot_cnt += 1
-			try:
-				results_detail = parser_history(args_lst)
-			except Exception as e:
-				traceback.print_exc()
-			tot_cnt += 1
+				try:
+					results_detail = parser_history(args_dict)
+				except Exception as e:
+					traceback.print_exc()
+				tot_cnt += 1
 
-			alg_key = algorithm['py_name']
-			data_key = dataset['name']
-			if alg_key not in results:
-				results[alg_key] = {data_key: [results_detail]}
-			else:
-				results[alg_key][data_key].append(results_detail)
+				alg_key = algorithm['py_name']
+				data_key = dataset['name']
+				detail = dataset['detail']
+				if alg_key not in results.keys():
+					results[alg_key] = {}
+				if data_key not in results[alg_key].keys():
+					results[alg_key][data_key] = {}
+				if detail not in results[alg_key][data_key].keys():
+					results[alg_key][data_key][detail] = {f'Seed_{seed}': results_detail}
+
+				results[alg_key][data_key][detail][f'Seed_{seed}'] = results_detail
 
 	# print(results.items())
 	print(f'*** Total cases: {tot_cnt}')
@@ -307,7 +315,7 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 				raise NotImplementedError(CASE)
 			f = f.replace('|','_')
 			out_file = os.path.join(OUT_DIR, 'xlsx', args1['DATASET']['name'],
-			                        f'{os.path.dirname(dataset_detail)}', f)
+			                        f'{os.path.dirname(os.path.dirname(dataset_detail))}', f)
 			check_path(out_file)
 			plot_misclustered_errors(results, out_file, error_method=error_method, is_show=True, raw_n_th=n_th,
 			                         verbose=VERBOSE, case=CASE, init_method=init_method)
@@ -315,10 +323,10 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 
 if __name__ == '__main__':
 	cases = ['diff_outliers', 'diff2_outliers', 'constructed2_3gaussians', 'constructed_3gaussians']
-	cases = ['diff_outliers','diff2_outliers']
+	cases = ['diff2_outliers']
 	for CASE in cases: # , 'constructed_3gaussians', 'diff2_outliers', 'diff_outliers', 'mixed_clusters']: # ['diff_outliers', 'mixed_clusters', 'constructed_3gaussians']:  # , 'mixed_clusters'
 		for init_method in ['random', 'kmeans++', 'omniscient',]: #['random', 'kmeans++', 'omniscient',]:
 			try:
-				main(N_REPEATS=100, OVERWRITE=True, IS_DEBUG=True, VERBOSE=1, CASE=CASE, init_method=init_method)
+				main(N_REPEATS=20, OVERWRITE=True, IS_DEBUG=True, VERBOSE=2, CASE=CASE, init_method=init_method)
 			except Exception as e:
 				traceback.print_exc()

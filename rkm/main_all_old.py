@@ -138,7 +138,7 @@ def get_datasets_config_lst(dataset_names=['3GAUSSIANS', '10GAUSSIANS'], case=''
 				  
 				"""
 				n_clusters = 2
-				for mu in [2, 2.5, 3, 3.5, 4, 4.5, 5]: # -100, -200]:
+				for mu in [5]: #[2, 2.5, 3, 3.5, 4, 4.5, 5]: # -100, -200]:
 					detail = f'r:0.1|mu:{mu},0|cov:1.0,1.0|diff_outliers'
 					datasets.append({'name': dataset_name, 'detail': detail, 'n_clusters': n_clusters})
 			elif case == 'diff2_outliers':
@@ -251,7 +251,7 @@ def get_algorithms_config_lst(py_names, n_clusters=2):
 				algorithms.append({'py_name': py_name, 'name': name, 'n_clusters': n_clusters,
 				                   'init_method': init_method})
 		elif py_name == 'kmedian_l1':
-			for init_method in ['random', 'kmeans++', 'omniscient']:#, 'kmeans++', 'omniscient']:  # ('random', None), ('kmeans++', None)
+			for init_method in ['omniscient', 'random', 'kmeans++']:  # ('random', None), ('kmeans++', None)
 				algorithms.append({'py_name': py_name, 'name': name, 'n_clusters': n_clusters,
 				                   'init_method': init_method})
 		elif py_name == 'kmedian_tukey':
@@ -278,9 +278,9 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 	tot_cnt = 0
 	dataset_names = ['3GAUSSIANS'] #['NBAIOT']  #  '3GAUSSIANS'
 	py_names = [
-		# 'kmeans',
+		'kmeans',
 		'kmedian_l1',
-		# 'kmedian',  # our method
+		'kmedian',  # our method
 		# 'kmedian_tukey',
 	]
 
@@ -291,51 +291,47 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 			if VERBOSE > 0: print(f'\n*** {tot_cnt}th experiment ***:', dataset['name'], algorithm['py_name'])
 			args_lst = []
 			for i_repeat in range(N_REPEATS):
-				seed_step = 1000
-				seed = i_repeat * seed_step  # data seed
-				seed_step2 = seed_step//2        # repeats 100 times in the inner loop
-				for seed2 in range(seed, seed+seed_step, seed_step2):
-					if VERBOSE > 1: print('***', dataset['name'], i_repeat, seed, seed2)
-					args1 = copy.deepcopy(args)
-					args1['SEED_1'] = seed
-					args1['SEED_DATA'] = seed2
-					args1['DATASET']['name'] = dataset['name']
-					args1['DATASET']['detail'] = dataset['detail']
-					args1['N_CLUSTERS'] = dataset['n_clusters']
-					N_REPEATS = args1['N_REPEATS']
-					N_CLUSTERS = args1['N_CLUSTERS']
-					NORMALIZE_METHOD = args1['NORMALIZE_METHOD']
-					args1['DATASET']['detail'] = os.path.join(f'{SEPERTOR}'.join([args1['DATASET']['detail'],
-					                                                              NORMALIZE_METHOD, f'K_{N_CLUSTERS}']),
-					                                          f'SEED_{seed}', f'SEED2_{seed2}')
-					dataset_detail = args1['DATASET']['detail']
-					args1['ALGORITHM']['py_name'] = algorithm['py_name']
-					args1['ALGORITHM']['init_method'] = algorithm['init_method']
-					init_method = args1['ALGORITHM']['init_method']
-					NORMALIZE_METHOD = args1['NORMALIZE_METHOD']
-					args1['ALGORITHM']['detail'] = f'{SEPERTOR}'.join([f'R_{N_REPEATS}',
-					                                                   f'{init_method}',
-					                                                   f'{NORMALIZE_METHOD}'])
-					args1['OUT_DIR'] = os.path.join(OUT_DIR, args1['DATASET']['name'], f'{dataset_detail}',
-					                                args1['ALGORITHM']['py_name'], args1['ALGORITHM']['detail'])
-					if os.path.exists(args1['OUT_DIR']):
-						shutil.rmtree(args1['OUT_DIR'])
-					# shutil.rmtree(os.path.join(OUT_DIR, args2['DATASET']['name'], f'{dataset_detail}'))
-					else:
-						os.makedirs(args1['OUT_DIR'])
-					new_config_file = os.path.join(args1['OUT_DIR'], 'config_file.yaml')
-					if VERBOSE >= 2: pprint(new_config_file)
-					config.dump(new_config_file, args1)
-					args1['config_file'] = new_config_file
-					if VERBOSE >= 5: pprint(args1, sort_dicts=False)
+				seed_data = i_repeat * 10  # data seed
+				if VERBOSE > 1: print('***', dataset['name'], i_repeat, seed_data)
+				args1 = copy.deepcopy(args)
+				args1['SEED_DATA'] = seed_data
+				args1['DATASET']['name'] = dataset['name']
+				args1['DATASET']['detail'] = dataset['detail']
+				args1['N_CLUSTERS'] = dataset['n_clusters']
+				N_REPEATS = args1['N_REPEATS']
+				N_CLUSTERS = args1['N_CLUSTERS']
+				NORMALIZE_METHOD = args1['NORMALIZE_METHOD']
+				args1['DATASET']['detail'] = os.path.join(f'{SEPERTOR}'.join([args1['DATASET']['detail'],
+				                                                              NORMALIZE_METHOD, f'K_{N_CLUSTERS}']),
+				                                          f'SEED_DATA_{seed_data}')
+				dataset_detail = args1['DATASET']['detail']
+				args1['ALGORITHM']['py_name'] = algorithm['py_name']
+				args1['ALGORITHM']['init_method'] = algorithm['init_method']
+				init_method = args1['ALGORITHM']['init_method']
+				NORMALIZE_METHOD = args1['NORMALIZE_METHOD']
+				args1['ALGORITHM']['detail'] = f'{SEPERTOR}'.join([f'R_{N_REPEATS}',
+				                                                   f'{init_method}',
+				                                                   f'{NORMALIZE_METHOD}'])
+				args1['OUT_DIR'] = os.path.join(OUT_DIR, args1['DATASET']['name'], f'{dataset_detail}',
+				                                args1['ALGORITHM']['py_name'], args1['ALGORITHM']['detail'])
+				if os.path.exists(args1['OUT_DIR']):
+					shutil.rmtree(args1['OUT_DIR'])
+				# shutil.rmtree(os.path.join(OUT_DIR, args2['DATASET']['name'], f'{dataset_detail}'))
+				else:
+					os.makedirs(args1['OUT_DIR'])
+				new_config_file = os.path.join(args1['OUT_DIR'], 'config_file.yaml')
+				if VERBOSE >= 2: pprint(new_config_file)
+				config.dump(new_config_file, args1)
+				args1['config_file'] = new_config_file
+				if VERBOSE >= 5: pprint(args1, sort_dicts=False)
 
-					if IS_DEBUG:
-						### run a single experiment for debugging the code
-						print(f'{dataset}, i_alg:{i_alg}, i_repeat:{i_repeat}, seed:{seed}, seed2:{seed2}')
-						main_single.main(new_config_file)
-					# return
+				if IS_DEBUG:
+					### run a single experiment for debugging the code
+					print(f'{dataset}, i_alg:{i_alg}, i_repeat:{i_repeat}, seed:{seed_data}')
+					main_single.main(new_config_file)
+				# return
 
-					args_lst.append(copy.deepcopy(args1))
+				args_lst.append(copy.deepcopy(args1))
 
 			tot_cnt += 1
 			if not IS_GEN_DATA:
@@ -347,14 +343,14 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 
 if __name__ == '__main__':
 	# For debugging.
-	main(N_REPEATS=3, OVERWRITE=True, IS_DEBUG=True, VERBOSE=100, CASE='diff_outliers')
+	main(N_REPEATS=2, OVERWRITE=True, IS_DEBUG=True, VERBOSE=1, CASE='diff_outliers')
 	# Call collect_results.sh to get the plot
 	#./collect_results.sh
 	exit(0)
 
 	st = time.time()
 	# cases = ['diff_outliers', 'diff2_outliers', 'constructed_3gaussians', 'constructed2_3gaussians']
-	cases = ['diff2_outliers']
+	cases = ['diff_outliers', 'diff2_outliers']
 	for CASE in cases:  # , 'mixed_clusters', 'diff_outliers', 'constructed_3gaussians', 'constructed2_3gaussians
 		try:
 			main(N_REPEATS=20, OVERWRITE=True, IS_DEBUG=True, VERBOSE=1, CASE=CASE)

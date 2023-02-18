@@ -6,6 +6,7 @@ import os.path
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 from rkm.utils.common import fmt_np
 
@@ -29,65 +30,85 @@ def plot_misclustered_errors(resutls, out_file='.png', title='', error_method = 
 		'kmedian',  # our method
 		# 'kmedian_tukey',
 	]
+	df = pd.DataFrame()
 	for i_alg, alg_name in enumerate(py_names): # enumerate(resutls.keys()): algorithm
 		X = []
 		Y = []
 		Y_errs = []
-		for data_name, diff_outliers in resutls[alg_name].items(): # coviance matrix
+		for data_name, diff_outliers in resutls[alg_name].items(): # different datasets
 			n_training_iterations = []
-			for i_delta, delta_vs in enumerate(diff_outliers): # covirance matrix
-				_tmp = [repeat['delta_X'] for repeat in delta_vs]  # for different repeats, the delta is the same.
-				X.append(_tmp[0])
-				# # show the errors at the n_th iteration
-				# n_th = min(raw_n_th, min(repeat['n_training_iterations'] for repeat in repeat_vs))   # index starts from 0 # index starts from 0)   # index starts from 0
-				# _tmp = [repeat['history'][n_th-1]['scores'][error_method] for repeat in repeat_vs]
-				_tmp = []
-				n_ths = []
-				p = delta_vs[0]['delta_X']
-				acd_metrics = []
-				for r_idx, repeat in enumerate(delta_vs): # repeatations
-					# if raw_n_th > the total iterations, then use the final results.
-					n_th = min(raw_n_th, repeat['n_training_iterations'])
-					_tmp.append(repeat['history'][n_th - 1]['scores'][error_method])    # ACD
-					n_ths.append(n_th)
-					if verbose >=10 and raw_n_th == np.inf:
-						print(f'{r_idx}th final centroids:', repeat['history'][- 1]['centroids'], ' initial:', repeat['history'][0]['centroids'])
-				if verbose >= 10:
-					print('p:',p, ' iterations: ', n_th, n_ths, raw_n_th)
-				acd_metrics.extend(_tmp)
+			_df = pd.DataFrame()
+			for i_detail, (detail_name, delta_X_vs) in enumerate(diff_outliers.items()): # for each delta_X or param
+				p = delta_X_vs['Seed_0']['Seed2_0']['delta_X']  # delta_X is alias of p
+				X.append(p)
 
+				n_ths = []
+				acd_metrics = []
+				seed1s = []
+				for i_seed1, (seed1, seed1_vs) in enumerate(delta_X_vs.items()): # for seed1 (outloop seed)
+					seed1s.append(seed1)
+					_n_ths = []
+					_acds = []
+					for i_seed2, (seed2, seed2_vs) in enumerate(seed1_vs.items()): # for seed2 (innerloop seed)
+						# if raw_n_th > the total iterations, then use the final results.
+						n_th = min(raw_n_th, seed2_vs['n_training_iterations'])
+						_n_ths.append(n_th)
+						_acds.append(seed2_vs['history'][n_th - 1]['scores'][error_method])
+					n_ths.append([np.mean(_n_ths), np.std(_n_ths), _n_ths])
+					acd_metrics.append([np.mean(_acds), np.std(_acds), _acds])
+
+				# print(alg_name, data_name, detail_name, seed1s, acd_metrics, n_ths)
+				if verbose >= 2: print(alg_name, data_name, detail_name)
+				# df = pd.DataFrame(zip(seed1s, acd_metrics, n_ths), columns=['seed1s', 'ACD(mu+/-std)', 'n_ths(mu+/-std)'])
+				_df2 = pd.DataFrame({'seed1s': seed1s,
+				                   'ACD(mu+/-std, ACDs)': acd_metrics,
+				                   'n_ths(mu+/-std, n_ths)':n_ths}
+				                 )
+				if verbose >= 2: print(_df2)
+				_df['alg_name'] = alg_name
+				_df['data_name'] = data_name
+				_df['init_method'] = init_method
+				_df[[f'{p}:{_c}' for _c in _df2.columns]] = _df2
+				# plot the mu+/-std results
+				_tmp = [_mu for _mu, _std, _ in acd_metrics]
 				mu = float(f'{np.mean(_tmp):.{precision}f}')
 				std = float(f'{np.std(_tmp):.{precision}f}')
 				Y.append(mu)
 				Y_errs.append(std)
 
-				_tmp = [repeat['n_training_iterations'] for repeat in delta_vs]
+				_tmp = [_mu for _mu, _std, _ in n_ths]
 				_n_training_iterations = (
 					float(f'{np.mean(_tmp):.{precision}f}'), float(f'{np.std(_tmp):.{precision}f}'))
 				n_training_iterations.append(_n_training_iterations)
 
-				if i_delta < 7:
-					# plot all in one
-					# p = delta_vs[0]['delta_X']
-					# axes2[0, i_repeat].hist(acd_metrics, color=colors[i_alg], label=f'{alg_name}: {data_name}: {p}')
-					axes2[0, i_delta].hist(acd_metrics, color=colors[i_alg], label=f'{alg_name}:{mu}+/-{std}', alpha=0.5, density=False)
-					# if i_delta == 0:
-					axes2[0, i_delta].legend(loc='upper right', fontsize=6)
-					axes2[0, i_delta].set_title(f'X_noise:{p}')
-					axes2[0, i_delta].set_xlabel('ACD')
-					axes2[0, i_delta].set_ylabel('Frequency')
-
-					# plot each algorithm's result
-					# p = delta_vs[0]['delta_X']
-					# axes2[i_repeat].hist(acd_metrics, color=colors[i_alg], label=f'{alg_name}: {data_name}: {p}')
-					axes2[i_alg+1, i_delta].hist(acd_metrics, color=colors[i_alg], label=f'{alg_name}:{mu}+/-{std}', alpha=0.5, density=False)
-					# if i_delta == 0:
-					axes2[i_alg+1, i_delta].legend(loc='upper right', fontsize=6)
-					axes2[i_alg+1,i_delta].set_title(f'X_noise:{p}')
-					axes2[i_alg+1, i_delta].set_xlabel(f'ACD') #:{mu}+/-{std}
-					axes2[i_alg+1, i_delta].set_ylabel('Frequency')
+				# if i_detail < 7:
+				# 	# plot all in one
+				# 	# p = delta_vs[0]['delta_X']
+				# 	# axes2[0, i_repeat].hist(acd_metrics, color=colors[i_alg], label=f'{alg_name}: {data_name}: {p}')
+				# 	axes2[0, i_detail].hist(acd_metrics, color=colors[i_alg], label=f'{alg_name}:{mu}+/-{std}', alpha=0.5, density=False)
+				# 	# if i_delta == 0:
+				# 	axes2[0, i_detail].legend(loc='upper right', fontsize=6)
+				# 	axes2[0, i_detail].set_title(f'X_noise:{p}')
+				# 	axes2[0, i_detail].set_xlabel('ACD')
+				# 	axes2[0, i_detail].set_ylabel('Frequency')
+				#
+				# 	# plot each algorithm's result
+				# 	# p = delta_vs[0]['delta_X']
+				# 	# axes2[i_repeat].hist(acd_metrics, color=colors[i_alg], label=f'{alg_name}: {data_name}: {p}')
+				# 	axes2[i_alg+1, i_detail].hist(acd_metrics, color=colors[i_alg], label=f'{alg_name}:{mu}+/-{std}', alpha=0.5, density=False)
+				# 	# if i_delta == 0:
+				# 	axes2[i_alg+1, i_detail].legend(loc='upper right', fontsize=6)
+				# 	axes2[i_alg+1,i_detail].set_title(f'X_noise:{p}')
+				# 	axes2[i_alg+1, i_detail].set_xlabel(f'ACD') #:{mu}+/-{std}
+				# 	axes2[i_alg+1, i_detail].set_ylabel('Frequency')
 
 				# print(f'{alg_name}: X: {X}, Y:{Y}, Y_errs: {Y_errs}, n_training_iterations: {n_training_iterations}')
+			if df.size==0:
+				df = _df.copy(deep=True)
+			else:
+				empty = pd.DataFrame([[None] * df.shape[1]])
+				df = pd.concat([df, empty, _df], axis=0)
+			df.to_csv(out_file + '.csv')
 		vs = [f'{_mu:.3f}+/-{_std:.3f}' for _mu, _std in zip(Y, Y_errs)]
 		print(f'{alg_name}: X: {X}, Y:{vs}, n_training_iterations: {n_training_iterations}')
 		# plt.errorbar(X, Y, Y_errs)
@@ -160,17 +181,18 @@ def plot_misclustered_errors(resutls, out_file='.png', title='', error_method = 
 	# plt.clf()
 	plt.close(fig)
 
-	if raw_n_th == -1 or raw_n_th == np.inf:
-		title = '$ACD_{' + '*' + '}$'
-	else:
-		title = '$ACD_{' + f'{raw_n_th}' + '}$'
-	fig2.suptitle(title)
-	fig2.tight_layout()
-	with open(out_file[:-4]+'_hist.png', 'wb') as f:
-		fig2.savefig(f, dpi=600, bbox_inches='tight')
-	if is_show:
-		fig2.show()
-	plt.close(fig2)
+	df.to_csv(out_file + '.csv')
+	# if raw_n_th == -1 or raw_n_th == np.inf:
+	# 	title = '$ACD_{' + '*' + '}$'
+	# else:
+	# 	title = '$ACD_{' + f'{raw_n_th}' + '}$'
+	# fig2.suptitle(title)
+	# fig2.tight_layout()
+	# with open(out_file[:-4]+'_hist.png', 'wb') as f:
+	# 	fig2.savefig(f, dpi=600, bbox_inches='tight')
+	# if is_show:
+	# 	fig2.show()
+	# plt.close(fig2)
 
 
 def plot_mixed_clusters(resutls, out_file='.png', raw_n_th = 5, title='', error_method='misclustered_error',

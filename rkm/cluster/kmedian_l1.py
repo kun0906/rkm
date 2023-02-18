@@ -104,8 +104,8 @@ class KMedian_L1(KMBase):
 					if self.median_method == 'tukey_median':
 						new_centroids[i], depth_, max_index_ = tukey_median(X[mask], random_state=self.random_state)
 					else:
-						new_centroids[i] = np.median(X[mask], axis=0)
-					# new_centroids[i, :] = np.mean(X[mask], axis=0)
+						new_centroids[i] = np.median(X[mask], axis=0)    # time complexity: O(nlogn)
+						# new_centroids[i, :] = np.mean(X[mask], axis=0)
 				else:
 					_i = r.choice(range(0, X.shape[0]), size=1, replace=False)  # without replacement and random
 					new_centroids[i, :] = X[_i]  # random choose a point as centroid

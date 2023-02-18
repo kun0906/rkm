@@ -1,3 +1,10 @@
+V0.0.8: Compute E[E[ACD]] instead of E[ACD] for plotting
+
+1. Compute E[E[ACD]] instead of E[ACD] for plotting
+2. Update plot_misclustered_errors for E[E[ACD]]
+3. Update the corresponding functions 
+
+
 V0.0.7: Implement K-Median_L1
 
 1. Add a new dataset (diff2_outliers)
