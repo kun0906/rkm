@@ -11,6 +11,7 @@ IS_SHOW: False
 SHOW_TITLE: False
 SEPERTOR: '|'
 OVERWRITE: True
+is_gen_data: True
 
 N_REPEATS: 50
 NORMALIZE_METHOD: NONE   # std (default), min-max, None
@@ -32,3 +33,4 @@ ALGORITHM:
 n_consecutive: 5
 
 MAX_ITERATION: 100
+

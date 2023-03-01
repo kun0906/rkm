@@ -25,6 +25,7 @@ class Framework:
 	def run(self):
 		# Generate different data and initial centroids based the given DATA_SEED.
 		data_file = generate_dataset(self.args)
+		if self.args['is_gen_data']: return
 		self.data = load(data_file)
 		X, y, init_centroids, true_centroids = self.data['X'], self.data['y'], \
 		                                       self.data['init_centroids'], self.data['true_centroids']
@@ -76,12 +77,14 @@ class Framework:
 		self.model.fit(X, y)
 
 		scores = self.model.eval(X, y)
-		self.history = {'scores': scores, 'delta_X': delta_X, 'history': self.model.history, 'data': self.data}
+		self.history = {'scores': scores, 'delta_X': delta_X, 'history': self.model.history, 'data': None}
 
-		# save results
-		out_file = os.path.join(self.args['OUT_DIR'], 'history.dat')
-		dump(self.history, out_file)
-
+		# # save results
+		# out_file = os.path.join(self.args['OUT_DIR'], 'history.dat')
+		# dump(self.history, out_file)
+		_dir = self.args['OUT_DIR']
+		if len(os.listdir(_dir)) == 0:
+			os.rmdir(_dir)
 	def vis(self):
 		pass
 
@@ -115,6 +118,7 @@ def main(config_file='config.yaml'):
 	# return history
 
 	args = config.parser(config_file)
+	if os.path.exists(config_file): os.remove(config_file)
 	fw = Framework(args)
 	fw.run()
 

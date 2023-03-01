@@ -3,6 +3,7 @@
 """
 # Email: kun.bj@outllok.com
 import os.path
+import traceback
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,9 +14,9 @@ from rkm.utils.common import fmt_np
 precision = 3
 
 
-def plot_misclustered_errors(resutls, out_file='.png', title='', error_method = 'misclustered_error',
+def plot_misclustered_errors(resutls, fig_kwargs, out_file='.png', title='', error_method = 'misclustered_error',
                              is_show=True, raw_n_th=5, verbose=10, case = None, init_method='random'):
-	fig, axes = plt.subplots()  #  figsize=(8, 6) (width, height)
+	fig, axes, idx_axes = fig_kwargs['fig'], fig_kwargs['axes'], fig_kwargs['idx_axes']
 	fig2, axes2 = plt.subplots(nrows=4, ncols=7, sharex=False,
 	                         sharey=False, figsize=(15, 13))  # figsize=(8, 6) (width, height)
 	# fig.suptitle(title  + ', centroids update')
@@ -39,7 +40,10 @@ def plot_misclustered_errors(resutls, out_file='.png', title='', error_method = 
 			n_training_iterations = []
 			_df = pd.DataFrame()
 			for i_detail, (detail_name, delta_X_vs) in enumerate(diff_outliers.items()): # for each delta_X or param
-				p = delta_X_vs['Seed_0']['Seed2_0']['delta_X']  # delta_X is alias of p
+				try:
+					p = delta_X_vs['SEED_0']['SEED2_0']['delta_X']  # delta_X is alias of p
+				except Exception as e:
+					p = delta_X_vs['Seed_0']['Seed2_0']['delta_X']
 				X.append(p)
 
 				n_ths = []
@@ -51,9 +55,43 @@ def plot_misclustered_errors(resutls, out_file='.png', title='', error_method = 
 					_acds = []
 					for i_seed2, (seed2, seed2_vs) in enumerate(seed1_vs.items()): # for seed2 (innerloop seed)
 						# if raw_n_th > the total iterations, then use the final results.
-						n_th = min(raw_n_th, seed2_vs['n_training_iterations'])
+						_n_th = len(seed2_vs['history'])
+						n_th = min(raw_n_th, _n_th)
 						_n_ths.append(n_th)
-						_acds.append(seed2_vs['history'][n_th - 1]['scores'][error_method])
+						_acd = seed2_vs['history'][n_th - 1]['scores'][error_method]
+						_acds.append(_acd)
+						if verbose>=10:
+							_final = seed2_vs['history'][n_th - 1]['centroids']
+							_initial = seed2_vs['history'][0]['centroids']
+							if _acd >= 0.0:
+								print(f'{alg_name},{data_name},{detail_name},p:{p},{seed1},{seed2}, final:{fmt_np(_final)}, initial:{fmt_np(_initial)},ACD:{_acd:.3f}')
+
+					# plot each seed's results (100 repeats per seed)
+					# only plot the first seed1
+					_mu, _std = np.mean(_acds), np.std(_acds)
+					_acds_fmt = [ f'{_v:.2f}' for _v in _acds]
+					print(f'***{alg_name},p:{p},seed1:{seed1},# of seeds2:{i_seed2 + 1}, _mu:{_mu:.2f}, _std:{_std:.2f}, _acds: {_acds_fmt}, _n_ths: {_n_ths}')
+					if verbose>=50 and seed1 == 'SEED_0' and i_detail < 7:  # seed1 == 'SEED_11000'
+						# plot all in one
+						# p = delta_vs[0]['delta_X']
+						# axes2[0, i_repeat].hist(acd_metrics, color=colors[i_alg], label=f'{alg_name}: {data_name}: {p}')
+						axes2[0, i_detail].hist(_acds, color=colors[i_alg], label=f'{alg_name}:{_mu:.2f}+/-{_std:.2f}', alpha=0.5, density=False)
+						# if i_delta == 0:
+						axes2[0, i_detail].legend(loc='upper right', fontsize=6)
+						axes2[0, i_detail].set_title(f'X_noise:{p}\nseed1:{seed1}\n# of seeds2:{i_seed2+1}')
+						axes2[0, i_detail].set_xlabel('ACD')
+						axes2[0, i_detail].set_ylabel('Frequency')
+
+						# plot each algorithm's result
+						# p = delta_vs[0]['delta_X']
+						# axes2[i_repeat].hist(acd_metrics, color=colors[i_alg], label=f'{alg_name}: {data_name}: {p}')
+						axes2[i_alg+1, i_detail].hist(_acds, color=colors[i_alg], label=f'{alg_name}:{_mu:.2f}+/-{_std:.2f}', alpha=0.5, density=False)
+						# if i_delta == 0:
+						axes2[i_alg+1, i_detail].legend(loc='upper right', fontsize=6)
+						axes2[i_alg+1,i_detail].set_title(f'X_noise:{p}')
+						axes2[i_alg+1, i_detail].set_xlabel(f'ACD') #:{mu}+/-{std}
+						axes2[i_alg+1, i_detail].set_ylabel('Frequency')
+
 					n_ths.append([np.mean(_n_ths), np.std(_n_ths), _n_ths])
 					acd_metrics.append([np.mean(_acds), np.std(_acds), _acds])
 
@@ -72,7 +110,8 @@ def plot_misclustered_errors(resutls, out_file='.png', title='', error_method = 
 				# plot the mu+/-std results
 				_tmp = [_mu for _mu, _std, _ in acd_metrics]
 				mu = float(f'{np.mean(_tmp):.{precision}f}')
-				std = float(f'{np.std(_tmp):.{precision}f}')
+				# std = float(f'{np.std(_tmp):.{precision}f}')
+				std = float(f'{np.std(_tmp):.{precision}f}') / np.sqrt(len(_tmp))	# standard error
 				Y.append(mu)
 				Y_errs.append(std)
 
@@ -81,34 +120,17 @@ def plot_misclustered_errors(resutls, out_file='.png', title='', error_method = 
 					float(f'{np.mean(_tmp):.{precision}f}'), float(f'{np.std(_tmp):.{precision}f}'))
 				n_training_iterations.append(_n_training_iterations)
 
-				# if i_detail < 7:
-				# 	# plot all in one
-				# 	# p = delta_vs[0]['delta_X']
-				# 	# axes2[0, i_repeat].hist(acd_metrics, color=colors[i_alg], label=f'{alg_name}: {data_name}: {p}')
-				# 	axes2[0, i_detail].hist(acd_metrics, color=colors[i_alg], label=f'{alg_name}:{mu}+/-{std}', alpha=0.5, density=False)
-				# 	# if i_delta == 0:
-				# 	axes2[0, i_detail].legend(loc='upper right', fontsize=6)
-				# 	axes2[0, i_detail].set_title(f'X_noise:{p}')
-				# 	axes2[0, i_detail].set_xlabel('ACD')
-				# 	axes2[0, i_detail].set_ylabel('Frequency')
-				#
-				# 	# plot each algorithm's result
-				# 	# p = delta_vs[0]['delta_X']
-				# 	# axes2[i_repeat].hist(acd_metrics, color=colors[i_alg], label=f'{alg_name}: {data_name}: {p}')
-				# 	axes2[i_alg+1, i_detail].hist(acd_metrics, color=colors[i_alg], label=f'{alg_name}:{mu}+/-{std}', alpha=0.5, density=False)
-				# 	# if i_delta == 0:
-				# 	axes2[i_alg+1, i_detail].legend(loc='upper right', fontsize=6)
-				# 	axes2[i_alg+1,i_detail].set_title(f'X_noise:{p}')
-				# 	axes2[i_alg+1, i_detail].set_xlabel(f'ACD') #:{mu}+/-{std}
-				# 	axes2[i_alg+1, i_detail].set_ylabel('Frequency')
-
-				# print(f'{alg_name}: X: {X}, Y:{Y}, Y_errs: {Y_errs}, n_training_iterations: {n_training_iterations}')
 			if df.size==0:
 				df = _df.copy(deep=True)
 			else:
 				empty = pd.DataFrame([[None] * df.shape[1]])
 				df = pd.concat([df, empty, _df], axis=0)
-			df.to_csv(out_file + '.csv')
+			# df.to_csv(out_file + '.csv')
+			try:
+				df.to_csv(out_file + '.csv')
+			except Exception as e:
+				print(e)
+				traceback.print_exc()
 		vs = [f'{_mu:.3f}+/-{_std:.3f}' for _mu, _std in zip(Y, Y_errs)]
 		print(f'{alg_name}: X: {X}, Y:{vs}, n_training_iterations: {n_training_iterations}')
 		# plt.errorbar(X, Y, Y_errs)
@@ -141,14 +163,23 @@ def plot_misclustered_errors(resutls, out_file='.png', title='', error_method = 
 			label = 'K-Median(Tukey)'
 			# color = 'm'
 			# ecolor = 'tab:cyan'
-		axes.errorbar(X, Y, Y_errs, fmt=markers_fmt[i_alg],
+		if idx_axes < 2: label = ''		# for the first two plots, we don't have legends
+		h = axes.errorbar(X, Y, Y_errs, fmt=markers_fmt[i_alg],
 		             capsize=3, color=color, ecolor=ecolor,
 		             markersize=8, markerfacecolor='black',
 		             label=label, alpha=1)
 
 	print('\n'.join(table_res))
 	font_size = 15
-	axes.legend(loc='upper left', fontsize=font_size - 2)  # bbox_to_anchor=(0.5, 0.3, 0.5, 0.5),
+	# # axes.legend(loc='upper left', fontsize=font_size - 2)  # bbox_to_anchor=(0.5, 0.3, 0.5, 0.5),
+	# # Shrink current axis's height by 10% on the bottom
+	# box = axes.get_position()
+	# axes.set_position([box.x0, box.y0 + box.height * 0.01,
+	# 				 box.width, box.height * 0.99])
+	# # Put a legend below current axis
+	# axes.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), frameon=False,
+	# 		  fancybox=False, shadow=False, ncol=3, fontsize=font_size-2)
+
 	# if error_method in ['centroid_diff', 'centroid_diff2']:
 	# 	ylabel = '$\\left||\mu-\mu^{*}\\right||$' + f'$ACD_{n_th-1}$'
 	# else:
@@ -158,7 +189,7 @@ def plot_misclustered_errors(resutls, out_file='.png', title='', error_method = 
 		# ylabel = f'{ylabel}: ' + '$\\left||\mu-\mu^{*}\\right||$' + ': $ACD_{' + f'{n_th-1}' + '}$'
 		# ylabel = '$ACD_{' + f'{n_th}' + 'th}$'   # start from index 1
 		if raw_n_th==np.inf:
-			ylabel = '$ACD^{*}$'  # converged results
+			ylabel = '$ACD:\mu\pm\\frac{\sigma}{\sqrt{n}}$'  # converged results
 		else:
 			ylabel = '$ACD_{' + f'{n_th}' + 'th}$'  # start from index 1
 
@@ -166,33 +197,50 @@ def plot_misclustered_errors(resutls, out_file='.png', title='', error_method = 
 	else:
 		ylabel = 'Average Misclustered Error' + ': $ACD_{' + f'{n_th}' + '}$'   # start from index 1
 		xlabel = '$x_{noise}$'
-	axes.set_ylabel(f'{ylabel}', fontsize=font_size)
+	if idx_axes == 0: axes.set_ylabel(f'{ylabel}', fontsize=font_size)
 	axes.set_xlabel(xlabel, fontsize=font_size)  # the distance between outlier and origin.
 	# X = [_v for _i, _v in enumerate(X) if _i != 1]
 	axes.set_xticks(X)
 	axes.tick_params(axis='both', which='major', labelsize=font_size-2)
 	# axes.xticks(fontsize=font_size-2)
+	idx2title = {0:'(a) Random', 1: '(b) K-Means++', 2:'(c) Omniscient'}
+	axes.set_title(idx2title[idx_axes], fontsize=font_size-2)
 
-	fig.tight_layout()
-	with open(out_file, 'wb') as f:
-		fig.savefig(f, dpi=600, bbox_inches='tight')
-	if is_show:
-		fig.show()
-	# plt.clf()
-	plt.close(fig)
+	if idx_axes == 2:
+		# # Shrink current axis's height by 10% on the bottom
+		# box = fig.get_position()
+		# fig.set_position([box.x0, box.y0 + box.height * 0.01,
+		# 				 box.width, box.height * 0.99])
+		# # # Put a legend below current axis
+		# fig.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), frameon=False,
+		# 		  fancybox=False, shadow=False, ncol=3, fontsize=font_size-2)
 
-	df.to_csv(out_file + '.csv')
-	# if raw_n_th == -1 or raw_n_th == np.inf:
-	# 	title = '$ACD_{' + '*' + '}$'
-	# else:
-	# 	title = '$ACD_{' + f'{raw_n_th}' + '}$'
+		fig.legend(handles=axes.get_legend(), loc="upper center", bbox_to_anchor=[0.5, 1.01],
+				   ncol=3, shadow=False, title="", fancybox=False, frameon=False)
+		fig.tight_layout(rect=[0, 0, 1, 0.95])		# (left, bottom, right, top)
+		with open(out_file, 'wb') as f:
+			fig.savefig(f, dpi=600, bbox_inches='tight')
+		if is_show:
+			fig.show()
+		# plt.clf()
+		plt.close(fig)
+
+	try:
+		df.to_csv(out_file + '.csv')
+	except Exception as e:
+		print(e)
+		traceback.print_exc()
+	if raw_n_th == -1 or raw_n_th == np.inf:
+		title = '$ACD_{' + '*' + '}$'
+	else:
+		title = '$ACD_{' + f'{raw_n_th}' + '}$'
 	# fig2.suptitle(title)
 	# fig2.tight_layout()
 	# with open(out_file[:-4]+'_hist.png', 'wb') as f:
 	# 	fig2.savefig(f, dpi=600, bbox_inches='tight')
 	# if is_show:
 	# 	fig2.show()
-	# plt.close(fig2)
+	plt.close(fig2)
 
 
 def plot_mixed_clusters(resutls, out_file='.png', raw_n_th = 5, title='', error_method='misclustered_error',

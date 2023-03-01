@@ -91,9 +91,10 @@ def gaussian3_diff_outliers(args, random_state=42, **kwargs):
         # colors = ["#4EACC5", "#FF9C34", "#4E9A06", "m"]
         colors = ["r", "g", "b", "m", 'black']
         label2color= {'c1':'b', 'c2':'g', 'noise': 'r'}
-        for l, name in [('c1', '$G_{11}$'), ('c2', '$G_{12}$'), ('noise', '$G_{13}$')]:
+        markers = ['o', '.', ',', 'x', '+', 'v', '^', '<', '>', 's', 'd']
+        for l, name, _marker in [('c1', '$G_{11}$', 'o'), ('c2', '$G_{12}$', '^'), ('noise', '$G_{13}$', 'x')]:
             mask = y==l
-            ax.scatter(X[mask, 0], X[mask, 1], c=[label2color[l] for l in y[mask]], marker="x", s=10, alpha=0.3, label=name)
+            ax.scatter(X[mask, 0], X[mask, 1], c=[label2color[l] for l in y[mask]], marker=_marker, s=10, alpha=0.3, label=name)
         # ax.scatter(X[:, 0], X[:, 1], c = [label2color[l] for l in y], marker="x", s=10, alpha=0.3, label='')
         p = np.mean(X, axis=0)
         # ax.scatter(p[0], p[1], marker="x", s=150, linewidths=3, color="w", zorder=10)
@@ -224,9 +225,9 @@ def gaussian3_diff2_outliers(args, random_state=42, **kwargs):
         # colors = ["#4EACC5", "#FF9C34", "#4E9A06", "m"]
         colors = ["r", "g", "b", "m", 'black']
         label2color= {'c1':'b', 'c2':'g', 'noise': 'r'}
-        for l, name in [('c1', '$G_{21}$'), ('c2', '$G_{22}$'), ('noise', '$G_{23}$')]:
+        for l, name, _marker in [('c1', '$G_{21}$', 'o'), ('c2', '$G_{22}$', '^'), ('noise', '$G_{23}$', 'x')]:
             mask = y==l
-            ax.scatter(X[mask, 0], X[mask, 1], c=[label2color[l] for l in y[mask]], marker="x", s=10, alpha=0.3, label=name)
+            ax.scatter(X[mask, 0], X[mask, 1], c=[label2color[l] for l in y[mask]], marker=_marker, s=10, alpha=0.3, label=name)
         # ax.scatter(X[:, 0], X[:, 1], c = [label2color[l] for l in y], marker="x", s=10, alpha=0.3, label='')
         p = np.mean(X, axis=0)
         # ax.scatter(p[0], p[1], marker="x", s=150, linewidths=3, color="w", zorder=10)
@@ -270,6 +271,146 @@ def gaussian3_diff2_outliers(args, random_state=42, **kwargs):
 
 
     return {'X':X, 'y': y, 'true_centroids': true_centroids, 'init_centroids': init_centroids, 'delta_X': delta_X}
+
+
+
+def gaussian3_diff3_outliers(args, random_state=42, **kwargs):
+    """
+    # two clusters ((-3,0), (3, 0)) with same covariance matrix and size in R^2, i.e., n1 = n2 = 500
+    # 10% of outliers, i.e., (n1+n2)*0.1.
+    # Move the outliers away from n1 over time.
+    # e.g., 'r:0.1|mu:10,0|cov:0.1,0.1', which means we draw 10% outliers from a Gaussian with mu=(10, 0) and cov=(0.1, 0.1)
+
+    params['p1'] == 'diff_outliers':
+    Parameters
+    ----------
+    params
+    random_state
+
+    Returns
+    -------
+
+    """
+    # r:0.1|mu:-3,0|cov:0.1,0.1|diff_outliers
+    dataset_detail = args['DATASET']['detail']
+    tmp = dataset_detail.split('|')
+    ratio = float(tmp[0].split(':')[1])
+
+    mu = tmp[1].split(':')[1].split(',')
+    mu = np.asarray([float(mu[0]), float(mu[1])])
+
+    cov = tmp[2].split(':')[1].split(',')
+    cov = np.asarray([[float(cov[0]), 0], [0,float(cov[1])]])
+
+    r = np.random.RandomState(random_state)
+    def get_xy(ratio, mu, cov):
+
+        ############
+        # cluster 1
+        n1 = 500
+        mu1 = np.asarray([-1, 0])
+        sigma = 1.0
+        cov1 = np.asarray([[sigma, 0], [0, sigma]])
+        X1 = r.multivariate_normal(mu1, cov1, size=n1)
+        y1 = np.asarray(['c1'] * n1)
+
+        ############
+        # cluster 2
+        n2 = 500
+        mu2 = np.asarray([1, 0])
+        cov2 = np.asarray([[sigma, 0], [0, sigma]])
+        X2 = r.multivariate_normal(mu2, cov2, size=n2)
+        y2 = np.asarray(['c2'] * n2)
+
+        ############
+        # cluster 3
+        n3 = 500
+        mu3 = mu
+        # cov3 = np.asarray([[sigma, 0], [0, sigma]])
+        cov3 = cov
+        X3 = r.multivariate_normal(mu3, cov3, size=n3)
+        y3 = np.asarray(['c3'] * n3)
+
+        # obtain ground truth centroids
+        true_centroids = np.zeros((3, 2))
+        # true_centroids[0] = np.mean(X1, axis=0)
+        # true_centroids[1] = np.mean(X2, axis=0)
+
+        true_centroids[0] = mu1 # ground-truth
+        true_centroids[1] = mu2 # ground-truth
+        true_centroids[2] = mu3  # ground-truth
+
+        # # obtain initial centroids, i.e., random select 2 data points from cluster 1
+        # indices = r.choice(range(0, n1), size=2, replace=False)  # without replacement and random
+        # init_centroids = X1[indices]
+        init_centroids = tuple([copy.deepcopy(X1), copy.deepcopy(X2), copy.deepcopy(X3)])
+
+
+        # Combine them togather
+        X = np.concatenate([X1, X2, X3], axis=0)
+        y = np.concatenate([y1, y2, y3], axis=0)
+
+        delta_X = abs(mu[0])
+        return X, y, true_centroids, init_centroids, delta_X
+
+    X,y, true_centroids, init_centroids, delta_X= get_xy(ratio, mu, cov)
+
+    is_show = args['IS_SHOW']
+    # is_show=True
+    if is_show:
+        # Plot init seeds along side sample data
+        fig, ax = plt.subplots()
+        # colors = ["#4EACC5", "#FF9C34", "#4E9A06", "m"]
+        colors = ["r", "g", "b", "m", 'black']
+        label2color= {'c1':'b', 'c2':'g', 'c3': 'r'}
+        markers = ['o', '.', ',', 'x', '+', 'v', '^', '<', '>', 's', 'd']
+        for l, name, _marker in [('c1', '$G_{31}$', 'o'), ('c2', '$G_{32}$', '^'), ('c3', '$G_{33}$', 'x')]:
+            mask = y==l
+            ax.scatter(X[mask, 0], X[mask, 1], c=[label2color[l] for l in y[mask]], marker=_marker, s=10, alpha=0.3, label=name)
+        # ax.scatter(X[:, 0], X[:, 1], c = [label2color[l] for l in y], marker="x", s=10, alpha=0.3, label='')
+        p = np.mean(X, axis=0)
+        # ax.scatter(p[0], p[1], marker="x", s=150, linewidths=3, color="w", zorder=10)
+        offset = 0.3
+        # xytext = (p[0] + (offset / 2 if p[0] >= 0 else -offset), p[1] + (offset / 2 if p[1] >= 0 else -offset))
+        # xytext = (p[0] - offset, p[1] - offset)
+        # # print(xytext)
+        # ax.annotate(f'({p[0]:.1f}, {p[1]:.1f})', xy=(p[0], p[1]), xytext=xytext, fontsize=15, color='b',
+        #             ha='center', va='center',  # textcoords='offset points',
+        #             bbox=dict(facecolor='none', edgecolor='b', pad=1),
+        #             arrowprops=dict(arrowstyle="->", color='b', shrinkA=1, lw=2,
+        #                             connectionstyle="angle3, angleA=90,angleB=0"))
+
+        ax.axvline(x=0, color='k', linestyle='--')
+        ax.axhline(y=0, color='k', linestyle='--')
+        ax.legend(loc='upper right', fontsize = 13)
+        if args['SHOW_TITLE']:
+            plt.title(dataset_detail.replace(':', ':'))
+
+        if 'xlim' in kwargs:
+            plt.xlim(kwargs['xlim'])
+        else:
+            plt.xlim([-5, 8])
+        if 'ylim' in kwargs:
+            plt.ylim(kwargs['ylim'])
+        else:
+            plt.ylim([-4, 4])
+
+        fontsize = 13
+        plt.xticks(fontsize=fontsize)
+        plt.yticks(fontsize=fontsize)
+
+        plt.tight_layout()
+        # if not os.path.exists(params['OUT_DIR']):
+        #     os.makedirs(params['OUT_DIR'])
+        # f = os.path.join(args['OUT_DIR'], dataset_detail+'.png')
+        f = args['data_file'] + '.png'
+        print(f)
+        plt.savefig(f, dpi=600, bbox_inches='tight')
+        if not args['IS_SHOW']: plt.show()
+
+
+    return {'X':X, 'y': y, 'true_centroids': true_centroids, 'init_centroids': init_centroids, 'delta_X': delta_X}
+
 
 
 def gaussian3_mixed_clusters(args, random_state=42, **kwargs):
@@ -355,7 +496,7 @@ def gaussian3_constructed_clusters(args, random_state=42, **kwargs):
         3 Gaussians:
             the first Gaussian with mu= [-1, 0] and covariance = [1, 1], n1=1000;
             the second Gaussian with mu= [1, 0] and covariance = [1, 1], n2=1000; and
-            the last Gaussian with mu= [10, 0] and covariance = [3, 3], n3=2000;
+            the last Gaussian with mu= [10, 0] and covariance = [3, 3], n3=5000;
 
             # For the initialization,
             The first cluster with the mean of Gaussian 1 as its centroid;
@@ -453,7 +594,7 @@ def gaussian3_constructed_clusters(args, random_state=42, **kwargs):
     X, y, true_centroids, init_centroids, delta_X = get_xy(p)
 
     is_show =  args['IS_SHOW']
-    # is_show = True
+    is_show = True
     if is_show:
         # Plot init seeds along side sample data
         fig, ax = plt.subplots()
@@ -516,7 +657,7 @@ def gaussian3_constructed2_clusters(args, random_state=42, **kwargs):
         3 Gaussians:
             the first Gaussian with mu= [-1, 0] and covariance = [1, 1], n1=1000;
             the second Gaussian with mu= [1, 0] and covariance = [1, 1], n2=1000; and
-            the last Gaussian with mu= [np.sqrt(3), 0] and covariance = [1, 1], n3=2000;
+            the last Gaussian with mu= [np.sqrt(3), 0] and covariance = [1, 1], n3=5000;
 
             # For the initialization,
             The first cluster with the mean of Gaussian 1 as its centroid;
@@ -544,7 +685,7 @@ def gaussian3_constructed2_clusters(args, random_state=42, **kwargs):
         ############
         # cluster 1
         n0 = 500
-        mu0 = np.asarray([-3, 0])
+        mu0 = np.asarray([-1.5, 0])
         sigma = 1.0
         cov0 = np.asarray([[sigma, 0], [0, sigma]])
         X0 = r.multivariate_normal(mu0, cov0, size=n0)
@@ -553,7 +694,7 @@ def gaussian3_constructed2_clusters(args, random_state=42, **kwargs):
         ############
         # cluster 2
         n1 = 500
-        mu1 = np.asarray([3, 0])
+        mu1 = np.asarray([1.5, 0])
         cov1 = np.asarray([[sigma, 0], [0, sigma]])
         X1 = r.multivariate_normal(mu1, cov1, size=n1)
         y1 = np.asarray(['c2'] * n1)
@@ -561,7 +702,7 @@ def gaussian3_constructed2_clusters(args, random_state=42, **kwargs):
         ############
         # cluster 3
         n2 = 500
-        mu2 = np.asarray([0,3*np.sqrt(3)])
+        mu2 = np.asarray([0,np.sqrt(3**2-1.5**2)])
         cov2 = np.asarray([[sigma, 0], [0, sigma]])
         X2 = r.multivariate_normal(mu2, cov2, size=n2)
         y2 = np.asarray(['c3'] * n2)
@@ -609,7 +750,7 @@ def gaussian3_constructed2_clusters(args, random_state=42, **kwargs):
     X, y, true_centroids, init_centroids, delta_X = get_xy(p)
 
     is_show =  args['IS_SHOW']
-    # is_show = True
+    is_show = True
     if is_show:
         # Plot init seeds along side sample data
         fig, ax = plt.subplots()
@@ -645,7 +786,7 @@ def gaussian3_constructed2_clusters(args, random_state=42, **kwargs):
         if 'ylim' in kwargs:
             plt.ylim(kwargs['ylim'])
         else:
-            plt.ylim([-4, 8])
+            plt.ylim([-4, 6])
 
         fontsize = 13
         plt.xticks(fontsize=fontsize)

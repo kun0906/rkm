@@ -53,5 +53,5 @@ def check_path(file):
 
 
 def fmt_np(X, precision=3, max_line_width=1000):
-	return np.array_str(X, max_line_width=max_line_width, precision=precision, suppress_small=True)
+	return np.array_str(X, max_line_width=max_line_width, precision=precision, suppress_small=True).replace('\n', ',')
 

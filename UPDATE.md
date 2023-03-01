@@ -1,3 +1,11 @@
+V0.0.9: Add multiprocessing and recompute E[ACD] for plotting
+
+1. reCompute E[ACD] instead of E[E[ACD]]  for plotting
+   Using std error instead of std
+2. Add multiprocessing in main_all.py 
+3. Add a new dataset: diff3_outliers
+
+
 V0.0.8: Compute E[E[ACD]] instead of E[ACD] for plotting
 
 1. Compute E[E[ACD]] instead of E[ACD] for plotting
