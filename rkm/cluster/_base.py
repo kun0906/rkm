@@ -112,7 +112,10 @@ class KMBase:
 		n_misclustered = 0
 		_X = []
 		_y = []
-		label2int = {'c1':0, 'c2':1, 'c3':2, 'noise': 10}
+		label2int = {'c1':0, 'c2':1, 'c3':2, 'c4':3, 'c5':4, 'c6':5, 'c7':6, 'c8':7, 'c9':8, 'c10':9,
+					 'noise1': 20, 'noise2': 21, 'noise3': 22, 'noise4': 23, 'noise5': 24, 'noise6': 25,
+					 'noise7': 26, 'noise8': 27, 'noise9': 28, 'noise10': 29,
+					 'noise': 10}
 		misclustered= {}
 		n_noise = 0
 		for i, (y_p, y_t) in enumerate(zip(y_pred, y_true)):
@@ -148,7 +151,8 @@ class KMBase:
 		# we should align the centroids to the order of true_centroids first.
 		# average difference
 		centroid_diff = np.sum(np.sum(np.square(self.centroids - self.true_centroids), axis=1), axis=0)/self.n_clusters
-
+		# max centroid difference
+		max_centroid_diff = max(np.sum(np.square(self.centroids - self.true_centroids), axis=1))
 		classes = set(y_true)
 		n_clusters = len(classes)
 		if 'noise' in classes:
@@ -169,6 +173,8 @@ class KMBase:
 					centroids[i] = np.median(X[mask], axis=0)
 				elif self.params['ALGORITHM']['py_name'] == 'kmedian_l1':
 					centroids[i] = np.median(X[mask], axis=0)
+				elif self.params['ALGORITHM']['py_name'] == 'my_spectralclustering':
+					centroids[i] = np.mean(X[mask], axis=0)
 				else:
 					raise ValueError(self.params['ALGORITHM']['py_name'])
 			elif sum(mask) == 1:
@@ -187,6 +193,7 @@ class KMBase:
 			print(f'centroid_diff: {centroid_diff}')
 		scores = {'misclustered_error': misclustered_error, 'misclustered': misclustered,
 		          'centroid_diff': centroid_diff,   'centroid_diff2': centroid_diff2,
+				  'max_centroid_diff': max_centroid_diff,
 		          'cm':cm,
 		          }
 

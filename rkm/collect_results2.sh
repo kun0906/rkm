@@ -2,8 +2,9 @@
 
 #SBATCH --job-name=out/sh         # create a short name for your job
 #SBATCH --time=48:00:00          # total run time limit (HH:MM:SS)
-#SBATCH --output=out/sh/out.txt
-#SBATCH --error=out/sh/err.txt
+#SBATCH --output=out/sh/out2.txt
+#SBATCH --error=out/sh/err2.txt
+#SBATCH --mem=40G
 ### SBATCH --mail-type=end          # send email when job ends
 ###SBATCH --mail-user=ky8517@princeton.edu     # which will cause too much email notification.
 ## SBATCH --mem-per-cpu=8G         # memory per cpu-core (4G is default)
@@ -27,8 +28,12 @@ module load anaconda3/2021.11
 pwd
 python3 -V
 
+# https://stackoverflow.com/questions/24020420/find-out-the-cpu-time-and-memory-usage-of-a-slurm-job
+# check memory: sacct --format="CPUTime,MaxRSS,ReqMem,node" -j 9918974
+
 # sshfs ky8517@tiger.princeton.edu:/scratch/gpfs/ky8517/rkm tiger
-PYTHONPATH='..' PYTHONUNBUFFERED=TRUE python3 main_all.py > 'out/sh/log.txt' 2>&1
+#PYTHONPATH='..' PYTHONUNBUFFERED=TRUE python3 vis/collect_results2.py > plot.log
+PYTHONPATH='..' PYTHONUNBUFFERED=TRUE python3 vis/collect_results2.py > 'out/sh/collect_results2_log.txt' 2>&1
 #### sbatch ./sbatch.sh
 #PYTHONPATH='..' PYTHONUNBUFFERED=TRUE python3 main_all.py > 'out/sh/log.txt' 2>&1  &
 # if you use & at the end of your command, your job cannot be seen by 'squeue -u'

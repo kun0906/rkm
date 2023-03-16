@@ -9,6 +9,7 @@
 import os.path
 from pprint import pprint
 
+from rkm.cluster.spectral_clustering import My_SpectralClustering
 from rkm.datasets.dataset import generate_dataset
 from rkm import config
 from rkm.cluster.kmeans import KMeans
@@ -37,12 +38,15 @@ class Framework:
 			init_centroids = 'kmeans++'
 		elif self.args['ALGORITHM']['init_method'] == 'omniscient':
 			init_centroids = init_centroids     # use the omniscient centroids
+		elif self.args['ALGORITHM']['init_method'] == None:
+			init_centroids = None     # use the omniscient centroids
 		else:
 			raise NotImplementedError(self.args['ALGORITHM']['py_name'])
 		ALG2PY = {'kmeans': KMeans,
 		          'kmedian': KMedian,
 		          'kmedian_l1': KMedian_L1,
 		          'kmedian_tukey': KMedian,
+				  'my_spectralclustering': My_SpectralClustering,
 		          }
 		if self.args['ALGORITHM']['py_name'] == 'kmeans':
 			self.model = ALG2PY[self.args['ALGORITHM']['py_name']](n_clusters=self.args['N_CLUSTERS'],
@@ -61,6 +65,8 @@ class Framework:
 				median_method = 'median_l1'
 			elif self.args['ALGORITHM']['py_name'] == 'kmedian_tukey':
 				median_method = 'tukey_median'
+			elif self.args['ALGORITHM']['py_name'] == 'my_spectralclustering':
+				median_method = None
 			else:
 				raise NotImplementedError(self.args)
 			self.model = ALG2PY[self.args['ALGORITHM']['py_name']](n_clusters=self.args['N_CLUSTERS'],
@@ -83,8 +89,8 @@ class Framework:
 		# out_file = os.path.join(self.args['OUT_DIR'], 'history.dat')
 		# dump(self.history, out_file)
 		_dir = self.args['OUT_DIR']
-		if len(os.listdir(_dir)) == 0:
-			os.rmdir(_dir)
+		# if len(os.listdir(_dir)) == 0:
+		# 	os.rmdir(_dir)
 	def vis(self):
 		pass
 

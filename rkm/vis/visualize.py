@@ -17,18 +17,19 @@ precision = 3
 def plot_misclustered_errors(resutls, fig_kwargs, out_file='.png', title='', error_method = 'misclustered_error',
                              is_show=True, raw_n_th=5, verbose=10, case = None, init_method='random'):
 	fig, axes, idx_axes = fig_kwargs['fig'], fig_kwargs['axes'], fig_kwargs['idx_axes']
-	fig2, axes2 = plt.subplots(nrows=4, ncols=7, sharex=False,
+	fig2, axes2 = plt.subplots(nrows=5, ncols=7, sharex=False,
 	                         sharey=False, figsize=(15, 13))  # figsize=(8, 6) (width, height)
 	# fig.suptitle(title  + ', centroids update')
 	colors = ['blue', 'green', 'm', 'b', 'r', 'tab:brown', 'tab:green', 'orange', ]
 	if raw_n_th==-1:
 		raw_n_th = np.inf
-	markers_fmt = ['*-', 'o-', '^-', 'V-']
+	markers_fmt = ['*-', 'o-', '^-', 'v-', 'v+']
 	table_res = []
 	py_names = [
 		'kmeans',
 		'kmedian_l1',
 		'kmedian',  # our method
+		'my_spectralclustering',
 		# 'kmedian_tukey',
 	]
 	df = pd.DataFrame()
@@ -49,6 +50,9 @@ def plot_misclustered_errors(resutls, fig_kwargs, out_file='.png', title='', err
 				n_ths = []
 				acd_metrics = []
 				seed1s = []
+				true_centroids = []
+				initial_centroids = []
+				final_centroids = []
 				for i_seed1, (seed1, seed1_vs) in enumerate(delta_X_vs.items()): # for seed1 (outloop seed)
 					seed1s.append(seed1)
 					_n_ths = []
@@ -58,19 +62,33 @@ def plot_misclustered_errors(resutls, fig_kwargs, out_file='.png', title='', err
 						_n_th = len(seed2_vs['history'])
 						n_th = min(raw_n_th, _n_th)
 						_n_ths.append(n_th)
-						_acd = seed2_vs['history'][n_th - 1]['scores'][error_method]
+
+						if error_method == 'max_centroid_diff':
+							_centroids = seed2_vs['history'][n_th - 1]['centroids']
+							_true_centroids = seed2_vs['data']['true_centroids']
+							_acd = max(np.sum(np.square(_centroids - _true_centroids), axis=1))
+						else:
+							if error_method == 'average_centroid_diff':
+								_acd = seed2_vs['history'][n_th - 1]['scores']['centroid_diff']
+							else:
+								raise NotImplementedError(error_method)
+
+						_true_centroids = seed2_vs['data']['true_centroids']
+						_initial = seed2_vs['history'][0]['centroids']
+						_final = seed2_vs['history'][n_th - 1]['centroids']
+						true_centroids.append(_true_centroids.tolist())
+						initial_centroids.append(_initial.tolist())
+						final_centroids.append(_final.tolist())
 						_acds.append(_acd)
 						if verbose>=10:
-							_final = seed2_vs['history'][n_th - 1]['centroids']
-							_initial = seed2_vs['history'][0]['centroids']
 							if _acd >= 0.0:
-								print(f'{alg_name},{data_name},{detail_name},p:{p},{seed1},{seed2}, final:{fmt_np(_final)}, initial:{fmt_np(_initial)},ACD:{_acd:.3f}')
+								print(f'{alg_name},{init_method}, {data_name},{detail_name},p:{p},{seed1},{seed2}, final:{fmt_np(_final)}, initial:{fmt_np(_initial)},ACD:{_acd:.3f}')
 
 					# plot each seed's results (100 repeats per seed)
 					# only plot the first seed1
 					_mu, _std = np.mean(_acds), np.std(_acds)
 					_acds_fmt = [ f'{_v:.2f}' for _v in _acds]
-					print(f'***{alg_name},p:{p},seed1:{seed1},# of seeds2:{i_seed2 + 1}, _mu:{_mu:.2f}, _std:{_std:.2f}, _acds: {_acds_fmt}, _n_ths: {_n_ths}')
+					print(f'***{alg_name},{init_method},p:{p},seed1:{seed1},# of seeds2:{i_seed2 + 1}, _mu:{_mu:.2f}, _std:{_std:.2f}, _acds: {_acds_fmt}, _n_ths: {_n_ths}')
 					if verbose>=50 and seed1 == 'SEED_0' and i_detail < 7:  # seed1 == 'SEED_11000'
 						# plot all in one
 						# p = delta_vs[0]['delta_X']
@@ -100,7 +118,10 @@ def plot_misclustered_errors(resutls, fig_kwargs, out_file='.png', title='', err
 				# df = pd.DataFrame(zip(seed1s, acd_metrics, n_ths), columns=['seed1s', 'ACD(mu+/-std)', 'n_ths(mu+/-std)'])
 				_df2 = pd.DataFrame({'seed1s': seed1s,
 				                   'ACD(mu+/-std, ACDs)': acd_metrics,
-				                   'n_ths(mu+/-std, n_ths)':n_ths}
+				                   'n_th(mu+/-std, n_ths)':n_ths,
+									 'true': true_centroids,
+									 'initial':initial_centroids,
+									'final': final_centroids}
 				                 )
 				if verbose >= 2: print(_df2)
 				_df['alg_name'] = alg_name
@@ -159,10 +180,18 @@ def plot_misclustered_errors(resutls, fig_kwargs, out_file='.png', title='', err
 				label = f'K-Median_L1({init_method},p_{p}):{mu:.2f}+/-{std:.2f}'
 			color = 'm'
 			ecolor = 'tab:cyan'
+		elif alg_name =='my_spectralclustering':
+			if raw_n_th == np.inf:
+				label = f'SpectralClustering'
+			else:
+				# label = f'K-Median_L1({init_method}): {np.mean(n_ths):.2f}+/-{np.std(n_ths):.2f}'
+				label = f'SpectralClustering(Discretize,p_{p}):{mu:.2f}+/-{std:.2f}'
+			color = 'brown'
+			ecolor = 'tab:cyan'
 		else:
-			label = 'K-Median(Tukey)'
-			# color = 'm'
-			# ecolor = 'tab:cyan'
+			label = f'{alg_name}'
+			color = 'm'
+			ecolor = 'tab:cyan'
 		if idx_axes < 2: label = ''		# for the first two plots, we don't have legends
 		h = axes.errorbar(X, Y, Y_errs, fmt=markers_fmt[i_alg],
 		             capsize=3, color=color, ecolor=ecolor,
@@ -184,14 +213,24 @@ def plot_misclustered_errors(resutls, fig_kwargs, out_file='.png', title='', err
 	# 	ylabel = '$\\left||\mu-\mu^{*}\\right||$' + f'$ACD_{n_th-1}$'
 	# else:
 	# 	ylabel = 'Average Misclassified Error (AME)'
-	if error_method in ['centroid_diff', 'centroid_diff2']:
-		ylabel = 'Diff' if error_method == 'centroid_diff' else 'Diff2'
+	if error_method in ['average_centroid_diff', 'centroid_diff2']:
+		# ylabel = 'Diff' if error_method == 'centroid_diff' else 'Diff2'
 		# ylabel = f'{ylabel}: ' + '$\\left||\mu-\mu^{*}\\right||$' + ': $ACD_{' + f'{n_th-1}' + '}$'
 		# ylabel = '$ACD_{' + f'{n_th}' + 'th}$'   # start from index 1
 		if raw_n_th==np.inf:
-			ylabel = '$ACD:\mu\pm\\frac{\sigma}{\sqrt{n}}$'  # converged results
+			ylabel = '$ACD:\mu\pm\\frac{\sigma}{\sqrt{m}}$'  # converged results
 		else:
 			ylabel = '$ACD_{' + f'{n_th}' + 'th}$'  # start from index 1
+
+		xlabel = '$x_{noise}$'
+	elif error_method in ['max_centroid_diff']:
+		# ylabel = 'Diff' if error_method == 'centroid_diff' else 'Diff2'
+		# ylabel = f'{ylabel}: ' + '$\\left||\mu-\mu^{*}\\right||$' + ': $ACD_{' + f'{n_th-1}' + '}$'
+		# ylabel = '$ACD_{' + f'{n_th}' + 'th}$'   # start from index 1
+		if raw_n_th==np.inf:
+			ylabel = '$MCD:\mu\pm\\frac{\sigma}{\sqrt{m}}$'  # converged results
+		else:
+			ylabel = '$MCD_{' + f'{n_th}' + 'th}$'  # start from index 1
 
 		xlabel = '$x_{noise}$'
 	else:
@@ -203,6 +242,9 @@ def plot_misclustered_errors(resutls, fig_kwargs, out_file='.png', title='', err
 	axes.set_xticks(X)
 	axes.tick_params(axis='both', which='major', labelsize=font_size-2)
 	# axes.xticks(fontsize=font_size-2)
+	# if alg_name == 'my_spectralclustering':
+	# 	axes.set_title('None', fontsize=font_size - 2)
+	# else:
 	idx2title = {0:'(a) Random', 1: '(b) K-Means++', 2:'(c) Omniscient'}
 	axes.set_title(idx2title[idx_axes], fontsize=font_size-2)
 
@@ -216,20 +258,20 @@ def plot_misclustered_errors(resutls, fig_kwargs, out_file='.png', title='', err
 		# 		  fancybox=False, shadow=False, ncol=3, fontsize=font_size-2)
 
 		fig.legend(handles=axes.get_legend(), loc="upper center", bbox_to_anchor=[0.5, 1.01],
-				   ncol=3, shadow=False, title="", fancybox=False, frameon=False)
+				   ncol=4, shadow=False, title="", fancybox=False, frameon=False)
 		fig.tight_layout(rect=[0, 0, 1, 0.95])		# (left, bottom, right, top)
-		with open(out_file, 'wb') as f:
+		with open(out_file+'.png', 'wb') as f:
 			fig.savefig(f, dpi=600, bbox_inches='tight')
 		if is_show:
 			fig.show()
 		# plt.clf()
 		plt.close(fig)
 
-	try:
-		df.to_csv(out_file + '.csv')
-	except Exception as e:
-		print(e)
-		traceback.print_exc()
+	# try:
+	# 	df.to_csv(out_file + '.csv')
+	# except Exception as e:
+	# 	print(e)
+	# 	traceback.print_exc()
 	if raw_n_th == -1 or raw_n_th == np.inf:
 		title = '$ACD_{' + '*' + '}$'
 	else:
@@ -389,6 +431,7 @@ def plot_centroids(X, y_pred, initial_centroids, centroids, is_show=True, params
 	out_file = os.path.join(params['OUT_DIR'], f'{self.n_training_iterations}th_iteration.png')
 	with open(out_file, 'wb') as f:
 		fig.savefig(f, dpi=600, bbox_inches='tight')
+	is_show = False
 	if is_show: plt.show()
 	# plt.clf()
 	plt.close(fig)

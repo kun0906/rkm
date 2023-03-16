@@ -11,7 +11,9 @@
 cd /scratch/gpfs/ky8517/rkm/rkm
 module load anaconda3/2021.11
 
-srun --time=20:00:00 --pty bash -i
+srun --time=20:00:00 --mem=40G --pty bash -i
+
+# # check memory: sacct --format="CPUTime,MaxRSS,ReqMem" -j 9918974
 #srun --nodes=1  --mem=128G --ntasks-per-node=1 --time=20:00:00 --pty bash -i
 #srun --nodes=1 --gres=gpu:1 --mem=128G --ntasks-per-node=1 --time=20:00:00 --pty bash -i
 #cd /scratch/gpfs/ky8517/rkm/rkm

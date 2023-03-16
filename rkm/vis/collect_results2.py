@@ -2,7 +2,7 @@
     run:
         module load anaconda3/2021.5
         cd /scratch/gpfs/ky8517/rkm/rkm
-        PYTHONPATH='..' PYTHONUNBUFFERED=TRUE python3 vis/collect_results2.py
+        PYTHONPATH='..' PYTHONUNBUFFERED=TRUE python3 vis/collect_results2.py > plot.log
 """
 # Email: kun.bj@outllok.com
 import collections
@@ -12,7 +12,7 @@ import traceback
 
 from rkm import config
 from rkm.main_all import get_datasets_config_lst, get_algorithms_config_lst
-from rkm.utils.common import load, check_path
+from rkm.utils.common import load, check_path, dump
 from rkm.vis.visualize import plot_misclustered_errors, plot_mixed_clusters
 
 n_precision = 3
@@ -202,7 +202,7 @@ def save2xls(workbook, worksheet, column_idx, args, results_avg, metric_names):
 
 
 def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=5, CASE='',
-		 init_method='random', fig_kwargs={}):
+		 init_method='random', fig_kwargs={}, error_method=''):
 	# get default config.yaml
 	config_file = 'config.yaml'
 	args = config.load(config_file)
@@ -213,11 +213,12 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 	args['VERBOSE'] = VERBOSE
 
 	tot_cnt = 0
-	dataset_names = ['3GAUSSIANS']  #  '3GAUSSIANS'
+	dataset_names = ['3GAUSSIANS', '10GAUSSIANS']  #  '3GAUSSIANS'
 	py_names = [
 		'kmeans',
 		'kmedian_l1',
 		'kmedian',
+		'my_spectralclustering',
 		# 'kmedian_tukey',
 	]
 
@@ -226,40 +227,44 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 	for dataset in datasets:
 		algorithms = get_algorithms_config_lst(py_names, dataset['n_clusters'])
 		for i_alg, algorithm in enumerate(algorithms):
-			if algorithm['init_method'] != init_method: continue
-			if VERBOSE > 10: print(f'\n*** {tot_cnt}th experiment ***:', dataset, algorithm)
+			print(i_alg, algorithm.items(), flush=True)
+			if algorithm['py_name'] == 'my_spectralclustering':
+				pass
+			elif algorithm['py_name'] != 'my_spectralclustering' and algorithm['init_method'] != init_method:
+				continue
+			else:
+				pass
+			if VERBOSE > 10: print(f'\n*** {tot_cnt}th experiment ***:', dataset, algorithm, init_method)
 			for i_repeat in range(N_REPEATS):
 				seed_step = 1000
 				seed = i_repeat * seed_step  # data seed
-
-				# args_dict = {}
-				if VERBOSE >=50: print('***', dataset['name'], i_repeat, seed)
-				args1 = copy.deepcopy(args)
-				args1['SEED_1'] = seed
-				args1['SEED_DATA'] = seed
-				args1['DATASET']['name'] = dataset['name']
-				args1['DATASET']['detail'] = dataset['detail']
-				args1['N_CLUSTERS'] = dataset['n_clusters']
-				N_REPEATS = args1['N_REPEATS']
-				N_CLUSTERS = args1['N_CLUSTERS']
-				NORMALIZE_METHOD = args1['NORMALIZE_METHOD']
-				args1['DATASET']['detail'] = os.path.join(f'{SEPERTOR}'.join([args1['DATASET']['detail'],
-																			  NORMALIZE_METHOD, f'K_{N_CLUSTERS}']),
-														   f'SEED_{seed}')
-				dataset_name = args1['DATASET']['name']
-				dataset_detail = args1['DATASET']['detail']
-				args1['data_file'] = os.path.join(args1['IN_DIR'], dataset_name, f'{dataset_detail}.dat')
-				if VERBOSE >= 50: print(f'arg1.data_file:', args1['data_file'])
-				args1['ALGORITHM']['py_name'] = algorithm['py_name']
-				args1['ALGORITHM']['init_method'] = algorithm['init_method']
-				init_method = args1['ALGORITHM']['init_method']
-				NORMALIZE_METHOD = args1['NORMALIZE_METHOD']
-				args1['ALGORITHM']['detail'] = f'{SEPERTOR}'.join([f'R_{N_REPEATS}',
-																   f'{init_method}',
-																   f'{NORMALIZE_METHOD}'])
-				args1['OUT_DIR'] = os.path.join(OUT_DIR, f'R_{N_REPEATS}', args1['DATASET']['name'], f'{dataset_detail}',
-												args1['ALGORITHM']['py_name'], args1['ALGORITHM']['detail'])
-				# args_dict[f'Seed2_{seed2}'] = copy.deepcopy(args1)
+				seed_step2 = seed_step//1       # repeats 100 times in the inner loop
+				seeds2_results = {}
+				for seed2 in range(seed, seed+seed_step, seed_step2):
+					if VERBOSE > 1: print('***', dataset['name'], i_repeat, seed, seed2)
+					args1 = copy.deepcopy(args)
+					args1['SEED_1'] = seed
+					args1['SEED_DATA'] = seed2
+					args1['DATASET']['name'] = dataset['name']
+					args1['DATASET']['detail'] = dataset['detail']
+					args1['N_CLUSTERS'] = dataset['n_clusters']
+					N_REPEATS = args1['N_REPEATS']
+					N_CLUSTERS = args1['N_CLUSTERS']
+					NORMALIZE_METHOD = args1['NORMALIZE_METHOD']
+					args1['DATASET']['detail'] = os.path.join(f'{SEPERTOR}'.join([args1['DATASET']['detail'],
+					                                                              NORMALIZE_METHOD, f'K_{N_CLUSTERS}']),
+					                                          f'SEED_{seed}') # f'SEED2_{seed2}'
+					dataset_detail = args1['DATASET']['detail']
+					args1['ALGORITHM']['py_name'] = algorithm['py_name']
+					args1['ALGORITHM']['init_method'] = algorithm['init_method']
+					# init_method = args1['ALGORITHM']['init_method']
+					NORMALIZE_METHOD = args1['NORMALIZE_METHOD']
+					args1['ALGORITHM']['detail'] = f'{SEPERTOR}'.join([f'R_{N_REPEATS}',
+					                                                   str(args1['ALGORITHM']['init_method']),
+					                                                   f'{NORMALIZE_METHOD}'])
+					args1['OUT_DIR'] = os.path.join(OUT_DIR, f'R_{N_REPEATS}', args1['DATASET']['name'], f'{dataset_detail}',
+					                                args1['ALGORITHM']['py_name'], args1['ALGORITHM']['detail'])
+					break
 				try:
 					# results_detail = parser_history(copy.deepcopy(args1))
 					out_dat = os.path.join(args1['OUT_DIR'], 'seeds2.dat')
@@ -280,6 +285,57 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 
 				results[alg_key][data_key][detail][f'SEED_{seed}'] = results_detail
 
+			# for i_repeat in range(N_REPEATS):
+			# 	seed_step = 1000
+			# 	seed = i_repeat * seed_step  # data seed
+			# 	# args_dict = {}
+			# 	if VERBOSE >=50: print('***', dataset['name'], i_repeat, seed)
+			# 	args1 = copy.deepcopy(args)
+			# 	args1['SEED_1'] = seed
+			# 	args1['SEED_DATA'] = seed
+			# 	args1['DATASET']['name'] = dataset['name']
+			# 	args1['DATASET']['detail'] = dataset['detail']
+			# 	args1['N_CLUSTERS'] = dataset['n_clusters']
+			# 	N_REPEATS = args1['N_REPEATS']
+			# 	N_CLUSTERS = args1['N_CLUSTERS']
+			# 	NORMALIZE_METHOD = args1['NORMALIZE_METHOD']
+			# 	args1['DATASET']['detail'] = os.path.join(f'{SEPERTOR}'.join([args1['DATASET']['detail'],
+			# 																  NORMALIZE_METHOD, f'K_{N_CLUSTERS}']),
+			# 											   f'SEED_{seed}')
+			# 	dataset_name = args1['DATASET']['name']
+			# 	dataset_detail = args1['DATASET']['detail']
+			# 	args1['data_file'] = os.path.join(args1['IN_DIR'], dataset_name, f'{dataset_detail}.dat')
+			# 	if VERBOSE >= 50: print(f'arg1.data_file:', args1['data_file'])
+			# 	args1['ALGORITHM']['py_name'] = algorithm['py_name']
+			# 	args1['ALGORITHM']['init_method'] = algorithm['init_method']
+			# 	init_method = args1['ALGORITHM']['init_method']
+			# 	NORMALIZE_METHOD = args1['NORMALIZE_METHOD']
+			# 	args1['ALGORITHM']['detail'] = f'{SEPERTOR}'.join([f'R_{N_REPEATS}',
+			# 													   f'{init_method}',
+			# 													   f'{NORMALIZE_METHOD}'])
+			# 	args1['OUT_DIR'] = os.path.join(OUT_DIR, f'R_{N_REPEATS}', args1['DATASET']['name'], f'{dataset_detail}',
+			# 									args1['ALGORITHM']['py_name'], args1['ALGORITHM']['detail'])
+			# 	# args_dict[f'Seed2_{seed2}'] = copy.deepcopy(args1)
+			# 	try:
+			# 		# results_detail = parser_history(copy.deepcopy(args1))
+			# 		out_dat = os.path.join(args1['OUT_DIR'], 'seeds2.dat')
+			# 		results_detail = load(out_dat)
+			# 	except Exception as e:
+			# 		traceback.print_exc()
+			# 	tot_cnt += 1
+			#
+			# 	alg_key = algorithm['py_name']
+			# 	data_key = dataset['name']
+			# 	detail = dataset['detail']
+			# 	if alg_key not in results.keys():
+			# 		results[alg_key] = {}
+			# 	if data_key not in results[alg_key].keys():
+			# 		results[alg_key][data_key] = {}
+			# 	if detail not in results[alg_key][data_key].keys():
+			# 		results[alg_key][data_key][detail] = {f'SEED_{seed}': results_detail}
+			#
+			# 	results[alg_key][data_key][detail][f'SEED_{seed}'] = results_detail
+
 	# print(results.items())
 	print(f'*** Total cases: {tot_cnt}')
 
@@ -287,7 +343,7 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 		# show  error at the n_th iteration
 		# 'centroid_diff2' is the next round iteration of centroid_diff,
 		# e.g., the ith differences of centroid_diff2 is the (i+1)th differences of centroid_diff.
-		for error_method in ['centroid_diff']: #  'misclustered_error'
+		# for error_method in ['centroid_diff']: #  'misclustered_error', 'max_centroid_diff',
 			# if CASE in ['diff_outliers', 'diff2_outliers']:
 			# 	out_file = os.path.join(OUT_DIR, 'xlsx', args1['DATASET']['name'],
 			# 	                        f'{os.path.dirname(dataset_detail)}',
@@ -304,42 +360,54 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 			# 	plot_mixed_clusters(results, out_file, error_method=error_method, is_show=True, raw_n_th=n_th,
 			# 	                    verbose=10, case = CASE, init_method=init_method)  # show misclustered error at the n_th iteration
 			# 	print(out_file)
-			if error_method == 'centroid_diff':
-				metric = 'ACD'
-			else:
-				raise NotImplementedError(error_method)
-			if CASE == 'diff_outliers':
-				f = f'Case1_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th.png'
-			elif CASE=='diff2_outliers':
-				f = f'Case2_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th.png'
-			elif CASE == 'constructed2_3gaussians':
-				f = f'Case3_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th.png'
-			elif CASE=='constructed_3gaussians':
-				f = f'Case4_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th.png'
-			else:
-				raise NotImplementedError(CASE)
-			f = f.replace('|','_')
-			out_file = os.path.join(OUT_DIR, 'xlsx', args1['DATASET']['name'],
-			                        f'{os.path.dirname(os.path.dirname(dataset_detail))}', f)
-			check_path(out_file)
-			plot_misclustered_errors(results, fig_kwargs, out_file, error_method=error_method, is_show=True,
-									 raw_n_th=n_th,
-			                         verbose=VERBOSE, case=CASE, init_method=init_method)
-			print(out_file)
+		if error_method == 'average_centroid_diff':
+			metric = 'ACD'
+		elif error_method == 'max_centroid_diff':
+			metric = 'MCD'	# Max centroid difference
+		else:
+			raise NotImplementedError(error_method)
+		if CASE == 'diff_outliers':
+			f = f'Case1_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th'
+		elif CASE=='diff2_outliers':
+			f = f'Case2_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th'
+		elif CASE=='diff3_outliers':
+			f = f'Case5_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th'
+		elif CASE == 'constructed2_3gaussians':
+			f = f'Case3_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th'
+		elif CASE=='constructed_3gaussians':
+			f = f'Case4_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th'
+		elif CASE=='gaussians10_snr':
+			f = f'Case5_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th'
+		elif CASE=='gaussians10_ks':
+			f = f'Case6_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th'
+		else:
+			raise NotImplementedError(CASE)
+		f = f.replace('|','_')
+		out_file = os.path.join(OUT_DIR, 'xlsx', args1['DATASET']['name'],
+								f'{os.path.dirname(os.path.dirname(dataset_detail))}',
+								f+f'_{N_REPEATS}_{init_method}_{CASE}_{len(py_names)}')
+		check_path(out_file)
+		# dump(results, out_file + f'.dat')
+		plot_misclustered_errors(results, fig_kwargs, out_file, error_method=error_method, is_show=True,
+								 raw_n_th=n_th,
+								 verbose=VERBOSE, case=CASE, init_method=init_method)
+		print(out_file)
 
 if __name__ == '__main__':
 	import matplotlib.pyplot as plt
 	cases = ['diff_outliers', 'diff2_outliers', 'constructed2_3gaussians', 'constructed_3gaussians']
-	# cases = ['diff_outliers', 'diff2_outliers']
+	# cases = ['gaussians10_snr']
 	for CASE in cases: # , 'constructed_3gaussians', 'diff2_outliers', 'diff_outliers', 'mixed_clusters']: # ['diff_outliers', 'mixed_clusters', 'constructed_3gaussians']:  # , 'mixed_clusters'
-		fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(16, 4))  # figsize=(8, 6) (width, height)
-		fig_kwargs = {'fig':fig}
-		for j, init_method in enumerate(['random', 'kmeans++', 'omniscient',]): #['random', 'kmeans++', 'omniscient',]:
-			fig_kwargs['axes'] = axes[j]
-			fig_kwargs['idx_axes'] = j
-			try:
-				print(f'\n\nCASE:{CASE}, init_method:{init_method}')
-				main(N_REPEATS=2, OVERWRITE=True, IS_DEBUG=True, VERBOSE=20, CASE=CASE,
-					 init_method=init_method, fig_kwargs=fig_kwargs)
-			except Exception as e:
-				traceback.print_exc()
+		for error_method in ['max_centroid_diff', 'average_centroid_diff']:
+			fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(16, 4))  # figsize=(8, 6) (width, height)
+			fig_kwargs = {'fig':fig}
+			for j, init_method in enumerate(['random', 'kmeans++', 'omniscient']): #['random', 'kmeans++', 'omniscient',], [None] for my_spectralclustering
+				fig_kwargs['axes'] = axes[j]
+				fig_kwargs['idx_axes'] = j
+				try:
+					print(f'\n\nCASE:{CASE}, init_method:{init_method}')
+					main(N_REPEATS=1000, OVERWRITE=True, IS_DEBUG=True, VERBOSE=1, CASE=CASE,
+						 init_method=init_method, fig_kwargs=fig_kwargs, error_method=error_method)
+				except Exception as e:
+					traceback.print_exc()
+			plt.show()

@@ -151,7 +151,7 @@ def get_datasets_config_lst(dataset_names=['3GAUSSIANS', '10GAUSSIANS'], case=''
 
 				"""
 				n_clusters = 2
-				for cov in [0.5, 1, 2, 3, 4]: #[0.5, 1, 2, 4, 8]:
+				for cov in [0.5, 1.0, 2.0, 3.0, 4.0]: #[0.5, 1, 2, 4, 8]:
 					detail = f'r:0.1|mu:0,0|cov:{cov},{cov}|diff2_outliers'
 					datasets.append({'name': dataset_name, 'detail': detail, 'n_clusters': n_clusters})
 			elif case == 'diff3_outliers':
@@ -215,14 +215,38 @@ def get_datasets_config_lst(dataset_names=['3GAUSSIANS', '10GAUSSIANS'], case=''
 				n_clusters = 3
 				# ps = [0.01, 0.05, 0.10, 0.25, 0.30, 0.40, 0.45, 0.49]
 				ps = [0.05, 0.10, 0.20, 0.35, 0.49]
+				ps =[0.49]
 				# ps = [v * 0.01 for v in range(1, 50 + 1, 5)]
 				print(ps)
 				for p in ps:
 					detail = f'p:{p:.2f}|constructed2_3gaussians'
 					datasets.append({'name': dataset_name, 'detail': detail, 'n_clusters': n_clusters})
 			else:
-				raise NotImplementedError
-
+				# raise NotImplementedError
+				continue
+		elif dataset_name == '10GAUSSIANS':
+			if case == 'gaussians10_snr':
+				"""
+					10 gaussians10_snr
+				"""
+				n_clusters = 10
+				SNRs = [6, 7, 8, 9]
+				print(SNRs)
+				for SNR in SNRs:
+					detail = f'p:{SNR:.2f}|gaussians10_snr'
+					datasets.append({'name': dataset_name, 'detail': detail, 'n_clusters': n_clusters})
+			elif case == 'gaussians10_ks':
+				"""
+					10 gaussians10_ks
+				"""
+				n_clusters_lst = [5, 10, 25, 50]
+				print(n_clusters_lst)
+				for n_clusters in n_clusters_lst:
+					detail = f'p:{n_clusters:.2f}|gaussians10_ks'
+					datasets.append({'name': dataset_name, 'detail': detail, 'n_clusters': n_clusters})
+			else:
+				# raise NotImplementedError
+				continue
 		elif dataset_name == 'NBAIOT':
 			n_clusters = 2
 			# case = 'mixed_clusters'  # 'mixed_clusters'
@@ -242,8 +266,6 @@ def get_datasets_config_lst(dataset_names=['3GAUSSIANS', '10GAUSSIANS'], case=''
 					datasets.append({'name': dataset_name, 'detail': detail, 'n_clusters': n_clusters})
 			else:
 				raise NotImplementedError
-
-
 		else:
 			msg = f'{dataset_name}'
 			raise NotImplementedError(msg)
@@ -257,7 +279,7 @@ def get_algorithms_config_lst(py_names, n_clusters=2):
 		cnt = 0
 		name = None
 		if py_name == 'kmeans':
-			for init_method in ['omniscient', 'random', 'kmeans++']:  # ('random', None), ('kmeans++', None)
+			for init_method in ['omniscient', 'random', 'kmeans++']: #['omniscient', 'random', 'kmeans++']:  # ('random', None), ('kmeans++', None)
 				algorithms.append({'py_name': py_name, 'name': name, 'n_clusters': n_clusters,
 				                   'init_method': init_method})
 		elif py_name == 'kmedian':
@@ -265,7 +287,11 @@ def get_algorithms_config_lst(py_names, n_clusters=2):
 				algorithms.append({'py_name': py_name, 'name': name, 'n_clusters': n_clusters,
 				                   'init_method': init_method})
 		elif py_name == 'kmedian_l1':
-			for init_method in ['random', 'kmeans++', 'omniscient']:#, 'kmeans++', 'omniscient']:  # ('random', None), ('kmeans++', None)
+			for init_method in ['omniscient', 'random', 'kmeans++']:#, 'kmeans++', 'omniscient']:  # ('random', None), ('kmeans++', None)
+				algorithms.append({'py_name': py_name, 'name': name, 'n_clusters': n_clusters,
+				                   'init_method': init_method})
+		elif py_name == 'my_spectralclustering':
+			for init_method in [None]:#, 'kmeans++', 'omniscient']:  # ('random', None), ('kmeans++', None)
 				algorithms.append({'py_name': py_name, 'name': name, 'n_clusters': n_clusters,
 				                   'init_method': init_method})
 		elif py_name == 'kmedian_tukey':
@@ -291,7 +317,7 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 	args['VERBOSE'] = VERBOSE
 
 	tot_cnt = 0
-	dataset_names = ['3GAUSSIANS'] #['NBAIOT']  #  '3GAUSSIANS'
+	dataset_names = ['3GAUSSIANS', '10GAUSSIANS'] #['NBAIOT']  #  '3GAUSSIANS'
 	# py_names = [
 	# 	'kmeans',
 	# 	'kmedian_l1',
@@ -303,11 +329,13 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 	for dataset in datasets:
 		algorithms = get_algorithms_config_lst(py_names, dataset['n_clusters'])
 		for i_alg, algorithm in enumerate(algorithms):
+			# if algorithm['init_method'] != 'omniscient':continue
 			if i_alg>0 and is_gen_data: continue
 			if VERBOSE > 0: print(f'\n*** {tot_cnt}th experiment ***:', dataset['name'], algorithm['py_name'])
 			args_lst = []
 			for i_repeat in range(N_REPEATS):
 				seed_step = 1000
+				seed_step = 40000 # for testing
 				seed = i_repeat * seed_step  # data seed
 				seed_step2 = seed_step//1       # repeats 100 times in the inner loop
 				seeds2_results = {}
@@ -377,28 +405,33 @@ def main_call0(kwargs):
 
 def main_call(kwargs):
 	try:
-		main(N_REPEATS=kwargs['N_REPEATS'], OVERWRITE=False, IS_DEBUG=True, VERBOSE=1, CASE=kwargs["CASE"],
+		main(N_REPEATS=kwargs['N_REPEATS'], OVERWRITE=False, IS_DEBUG=True, VERBOSE=100, CASE=kwargs["CASE"],
 		 py_names=kwargs["py_names"],is_gen_data=False)
 	except Exception as e:
 		traceback.print_exc()
 
 if __name__ == '__main__':
 	# For debugging.
-	# main(N_REPEATS=2, OVERWRITE=True, IS_DEBUG=True, VERBOSE=1, CASE='diff3_outliers', is_gen_data=True)
-	# main(N_REPEATS=2, OVERWRITE=False, IS_DEBUG=True, VERBOSE=1, CASE='diff3_outliers', is_gen_data=False)
+	# main(N_REPEATS=2, OVERWRITE=True, IS_DEBUG=True, VERBOSE=1, CASE='diff3_outliers',
+	# is_gen_data=True, py_names=['my_spectralclustering'])
+	# main(N_REPEATS=2, OVERWRITE=False, IS_DEBUG=True, VERBOSE=100, CASE='diff2_outliers',
+	# 	 is_gen_data=False, py_names=['kmedian'])
 	# # Call collect_results.sh to get the plot
 	# #./collect_results.sh
 	# exit(0)
 
 	from multiprocessing import Pool
 	st = time.time()
-	N_REPEATS = 1000
+	N_REPEATS = 2
 	in_dir = 'datasets/3GAUSSIANS'
 	if os.path.exists(in_dir):
 		shutil.rmtree(in_dir)
 	# 1. recreate all the datasets
-	# cases = ['diff_outliers', 'diff2_outliers', 'diff3_outliers', 'constructed_3gaussians', 'constructed2_3gaussians']
-	cases = ['diff3_outliers']
+	cases = ['diff_outliers', 'diff2_outliers', 'diff3_outliers',
+			 'constructed_3gaussians', 'constructed2_3gaussians',
+			 # 'gaussians10_snr', 'gaussians10_ks'
+			 ]
+	cases = ['constructed2_3gaussians']
 	list_ranges = []
 	for CASE in cases:  # , 'mixed_clusters', 'diff_outliers', 'constructed_3gaussians', 'constructed2_3gaussians
 		list_ranges.append({'CASE': CASE, 'py_names': ['kmeans'], 'N_REPEATS': N_REPEATS})
@@ -415,7 +448,8 @@ if __name__ == '__main__':
 		'kmeans',
 		'kmedian_l1',
 		'kmedian',  # our method
-		# 'kmedian_tukey',
+		# # 'kmedian_tukey',
+		'my_spectralclustering',
 	]
 	list_ranges = []
 	for CASE in cases:  # , 'mixed_clusters', 'diff_outliers', 'constructed_3gaussians', 'constructed2_3gaussians

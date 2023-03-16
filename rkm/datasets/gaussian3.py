@@ -594,7 +594,7 @@ def gaussian3_constructed_clusters(args, random_state=42, **kwargs):
     X, y, true_centroids, init_centroids, delta_X = get_xy(p)
 
     is_show =  args['IS_SHOW']
-    is_show = True
+    # is_show = True
     if is_show:
         # Plot init seeds along side sample data
         fig, ax = plt.subplots()
@@ -719,7 +719,7 @@ def gaussian3_constructed2_clusters(args, random_state=42, **kwargs):
         X = np.concatenate([X0, X1, X2], axis=0)
         y = np.concatenate([y0, y1, y2], axis=0)
 
-        # obtain initial centroids after mixing the data
+        # obtain initial centroids after mixing the data, p = 0.1, 10%
         X0, X00, y0, y00 = train_test_split(X0, y0, test_size=p, shuffle=True, random_state=random_state)
         X1, X11, y1, y11 = train_test_split(X1, y1, test_size=p, shuffle=True, random_state=random_state)
         X2, X22, y2, y22 = train_test_split(X2, y2, test_size=p, shuffle=True, random_state=random_state)
@@ -750,7 +750,7 @@ def gaussian3_constructed2_clusters(args, random_state=42, **kwargs):
     X, y, true_centroids, init_centroids, delta_X = get_xy(p)
 
     is_show =  args['IS_SHOW']
-    is_show = True
+    # is_show = True
     if is_show:
         # Plot init seeds along side sample data
         fig, ax = plt.subplots()
@@ -802,3 +802,142 @@ def gaussian3_constructed2_clusters(args, random_state=42, **kwargs):
         plt.show()
 
     return {'X': X, 'y': y, 'true_centroids': true_centroids, 'init_centroids': init_centroids, 'delta_X': delta_X}
+
+
+
+
+def gaussian10_snr(args, random_state=42, **kwargs):
+    """
+       Statistical and Computational Guarantees of Lloyd’s Algorithm and Its Variants
+
+    Parameters
+    ----------
+    params
+    random_state
+
+    Returns
+    -------
+
+    """
+    # p:0.4|constructed_3gaussians
+    dataset_detail = args['DATASET']['detail']
+    tmp = dataset_detail.split('|')
+
+    SNR = float(tmp[0].split(':')[1])
+
+    r = np.random.RandomState(random_state)
+    def get_xy(p):
+        # n = 1000 samples from a mixture of k = 10 spherical Gaussians. Each cluster has 100 data points.
+        # The centers of those 10 gaussians are orthogonal unit vectors in R dwith d = 100.
+
+        # https://stackoverflow.com/questions/38426349/how-to-create-random-orthonormal-matrix-in-python-numpy
+        ## from scipy.stats import ortho_group  # Requires version 0.18 of scipy
+        # m = ortho_group.rvs(dim=3)
+
+        X = []
+        y = []
+        # obtain  ground truth centroids
+        n_clusters = 10
+        d = 100
+        true_centroids = np.zeros((n_clusters, d))
+        init_centroids = []
+        for i in range(n_clusters):
+            m = 100
+            mu = np.asarray([0]*d)
+            mu[i] = 1
+            sigma = 2/SNR
+            cov = np.zeros((d, d))
+            np.fill_diagonal(cov, sigma)
+            _X = r.multivariate_normal(mu, cov, size= m)
+            _y = np.asarray([f'c{i+1}'] * m)
+            if i == 0:
+                X = _X
+                y = _y
+            else:
+                X = np.concatenate([_X, X], axis=0)
+                y = np.concatenate([_y, y])
+            true_centroids[i] = mu  # ground-truth
+
+            init_centroids.append(copy.deepcopy(_X))
+
+        delta_X = SNR
+
+        return X, y, true_centroids, init_centroids, delta_X
+
+    X, y, true_centroids, init_centroids, delta_X = get_xy(SNR)
+
+    return {'X': X, 'y': y, 'true_centroids': true_centroids, 'init_centroids': init_centroids, 'delta_X': delta_X}
+
+
+
+def gaussian10_ks(args, random_state=42, **kwargs):
+    """
+       Statistical and Computational Guarantees of Lloyd’s Algorithm and Its Variants
+
+    Parameters
+    ----------
+    params
+    random_state
+
+    Returns
+    -------
+
+    """
+    # p:0.4|constructed_3gaussians
+    dataset_detail = args['DATASET']['detail']
+    tmp = dataset_detail.split('|')
+
+    n_clusters = float(tmp[0].split(':')[1])
+
+    r = np.random.RandomState(random_state)
+    def get_xy(n_clusters):
+        # n = 1000 samples from a mixture of k = 10 spherical Gaussians.
+        X = []
+        y = []
+        # obtain  ground truth centroids
+        d = 100
+        centroids = np.zeros((d, d))
+        np.fill_diagonal(centroids, 1)
+        # random select n_clusters centroids
+        indices = r.randint(0, d, n_clusters)
+        true_centroids = centroids[indices, :]
+        init_centroids = []
+        for i in range(n_clusters):
+            _N = 1000//n_clusters
+            m_noise = int(0.1 * _N)     # 10% noise
+            m = _N - m_noise
+            _mu = true_centroids[i]
+            _sigma = 2/n_clusters
+            _cov = np.zeros((d, d))
+            np.fill_diagonal(_cov, _sigma)
+            _X = r.multivariate_normal(_mu, _cov, size= m)
+            _y = np.asarray([f'c{i+1}'] * m)
+
+            init_centroids.append(copy.deepcopy(_X))    # without noise when compute initial centroids.
+
+            # noise
+            _mu_noise = _mu
+            j = [_j for _j in _mu if _j == 1][0]
+            _cov_noise = np.zeros((d, d))
+            # np.fill_diagonal(_cov_noise, 0.25 ** 2)
+            _cov_noise[j][j] = 0.25**2
+            _X_noise = r.multivariate_normal(_mu_noise, _cov_noise, size=m_noise)
+            _y_noise = np.asarray([f'noise{i + 1}'] * m_noise)
+
+            _X = np.concatenate([_X, _X_noise], axis=0)
+            _y = np.concatenate([_y, _y_noise])
+            if i == 0:
+                X = _X
+                y = _y
+            else:
+                X = np.concatenate([_X, X], axis=0)
+                y = np.concatenate([_y, y])
+
+        delta_X = n_clusters
+
+        return X, y, true_centroids, init_centroids, delta_X
+
+    X, y, true_centroids, init_centroids, delta_X = get_xy(n_clusters)
+
+    return {'X': X, 'y': y, 'true_centroids': true_centroids, 'init_centroids': init_centroids, 'delta_X': delta_X}
+
