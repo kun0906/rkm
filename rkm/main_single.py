@@ -38,6 +38,8 @@ class Framework:
 			init_centroids = 'kmeans++'
 		elif self.args['ALGORITHM']['init_method'] == 'omniscient':
 			init_centroids = init_centroids     # use the omniscient centroids
+		elif self.args['ALGORITHM']['init_method'] == 'noise':
+			init_centroids = 'noise'
 		elif self.args['ALGORITHM']['init_method'] == None:
 			init_centroids = None     # use the omniscient centroids
 		else:

@@ -13,6 +13,18 @@ from rkm.utils.common import fmt_np
 
 precision = 3
 
+import copy, itertools
+
+def align_centroids(centroids, true_centroids):
+	c1 = copy.deepcopy(true_centroids)
+	# check which point is close to which true centroids.
+	min_d = np.inf
+	for c in list(itertools.permutations(centroids)):
+		d = np.sum(np.sum(np.square(c - c1), axis=1), axis=0)
+		if d < min_d:
+			min_d = d
+			best_centroids = np.asarray(copy.deepcopy(c))
+	return best_centroids
 
 def plot_misclustered_errors(resutls, fig_kwargs, out_file='.png', title='', error_method = 'misclustered_error',
                              is_show=True, raw_n_th=5, verbose=10, case = None, init_method='random'):
@@ -29,7 +41,7 @@ def plot_misclustered_errors(resutls, fig_kwargs, out_file='.png', title='', err
 		'kmeans',
 		'kmedian_l1',
 		'kmedian',  # our method
-		'my_spectralclustering',
+		# 'my_spectralclustering',
 		# 'kmedian_tukey',
 	]
 	df = pd.DataFrame()
@@ -63,13 +75,17 @@ def plot_misclustered_errors(resutls, fig_kwargs, out_file='.png', title='', err
 						n_th = min(raw_n_th, _n_th)
 						_n_ths.append(n_th)
 
+						_centroids = seed2_vs['history'][n_th - 1]['centroids']
+						_true_centroids = seed2_vs['data']['true_centroids']
+						_centroids = align_centroids(_centroids,
+													 _true_centroids)  # align the centroids with ground truth
 						if error_method == 'max_centroid_diff':
-							_centroids = seed2_vs['history'][n_th - 1]['centroids']
-							_true_centroids = seed2_vs['data']['true_centroids']
 							_acd = max(np.sum(np.square(_centroids - _true_centroids), axis=1))
 						else:
 							if error_method == 'average_centroid_diff':
-								_acd = seed2_vs['history'][n_th - 1]['scores']['centroid_diff']
+								# not align
+								# _acd = seed2_vs['history'][n_th - 1]['scores']['centroid_diff']
+								_acd = np.mean(np.sum(np.square(_centroids - _true_centroids), axis=1))
 							else:
 								raise NotImplementedError(error_method)
 
@@ -192,7 +208,7 @@ def plot_misclustered_errors(resutls, fig_kwargs, out_file='.png', title='', err
 			label = f'{alg_name}'
 			color = 'm'
 			ecolor = 'tab:cyan'
-		if idx_axes < 2: label = ''		# for the first two plots, we don't have legends
+		if idx_axes < len(fig.axes)-1: label = ''		# for the first two plots, we don't have legends
 		h = axes.errorbar(X, Y, Y_errs, fmt=markers_fmt[i_alg],
 		             capsize=3, color=color, ecolor=ecolor,
 		             markersize=8, markerfacecolor='black',
@@ -222,7 +238,7 @@ def plot_misclustered_errors(resutls, fig_kwargs, out_file='.png', title='', err
 		else:
 			ylabel = '$ACD_{' + f'{n_th}' + 'th}$'  # start from index 1
 
-		xlabel = '$x_{noise}$'
+		# xlabel = '$x_{noise}$'
 	elif error_method in ['max_centroid_diff']:
 		# ylabel = 'Diff' if error_method == 'centroid_diff' else 'Diff2'
 		# ylabel = f'{ylabel}: ' + '$\\left||\mu-\mu^{*}\\right||$' + ': $ACD_{' + f'{n_th-1}' + '}$'
@@ -232,10 +248,11 @@ def plot_misclustered_errors(resutls, fig_kwargs, out_file='.png', title='', err
 		else:
 			ylabel = '$MCD_{' + f'{n_th}' + 'th}$'  # start from index 1
 
-		xlabel = '$x_{noise}$'
+		# xlabel = '$x_{noise}$'
 	else:
 		ylabel = 'Average Misclustered Error' + ': $ACD_{' + f'{n_th}' + '}$'   # start from index 1
-		xlabel = '$x_{noise}$'
+		# xlabel = '$x_{noise}$'
+	xlabel = fig_kwargs['xlabel']
 	if idx_axes == 0: axes.set_ylabel(f'{ylabel}', fontsize=font_size)
 	axes.set_xlabel(xlabel, fontsize=font_size)  # the distance between outlier and origin.
 	# X = [_v for _i, _v in enumerate(X) if _i != 1]
@@ -248,7 +265,7 @@ def plot_misclustered_errors(resutls, fig_kwargs, out_file='.png', title='', err
 	idx2title = {0:'(a) Random', 1: '(b) K-Means++', 2:'(c) Omniscient'}
 	axes.set_title(idx2title[idx_axes], fontsize=font_size-2)
 
-	if idx_axes == 2:
+	if idx_axes == len(fig.axes)-1:
 		# # Shrink current axis's height by 10% on the bottom
 		# box = fig.get_position()
 		# fig.set_position([box.x0, box.y0 + box.height * 0.01,

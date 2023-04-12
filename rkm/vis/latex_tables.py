@@ -75,28 +75,28 @@ def _main(in_files, ps, py_names, precision=3, verbose=0):
         print('\n')
 
 
-def main(diff_type='ACD'):
+def main(diff_type='MCD'):
     # diff_type = 'MCD'
     py_names = [
         'kmeans',
         'kmedian_l1',
         'kmedian',  # our method
         # # 'kmedian_tukey',
-        'my_spectralclustering',
+        # 'my_spectralclustering',
     ]
     init_methods = ['random', 'kmeans++', 'omniscient']
-    in_dir = '/Users/kun/Downloads/rkm/20230312/4algorithms'
-    if '4algorithms' in in_dir:
+    in_dir = '/Users/kun/Downloads/rkm/20230321/3algorithms'
+    if '3algorithms' in in_dir:
         cases = [
              # case 1: diff_outliers, mu+\- std/np.sqrt(n_repeats)
-             # ([os.path.join(in_dir, f'Case1_R_1000_None_NONE_{diff_type}_-1th_1000_{init_method}_diff_outliers.csv')
+             # ([os.path.join(in_dir, f'Case1_R_1000_{init_method}_NONE_{diff_type}_-1th_1000_{init_method}_diff_outliers_3.csv')
              #   for init_method in init_methods],
              #  [2.0, 3.0, 4.0, 5.0, 6.0]),
 
             # case 2: diff2_outliers
-            # ([os.path.join(in_dir, f'Case2_R_1000_None_NONE_{diff_type}_-1th_1000_{init_method}_diff2_outliers.csv')
-            #   for init_method in init_methods],
-            #  [0.5, 1.0, 2.0, 3.0, 4.0]),
+            ([os.path.join(in_dir, f'Case2_R_1000_{init_method}_NONE_{diff_type}_-1th_1000_{init_method}_diff2_outliers_3.csv')
+              for init_method in init_methods],
+             [0.5, 1.0, 2.0, 3.0, 4.0]),
 
             # # case 3: constructed2_3gaussians
             # ([os.path.join(in_dir, f'Case3_R_1000_None_NONE_{diff_type}_-1th_1000_{init_method}_constructed2_3gaussians.csv')
@@ -104,10 +104,10 @@ def main(diff_type='ACD'):
             #  [0.05, 0.10, 0.20, 0.35, 0.49]),
 
             # case 4: constructed_3gaussians
-            # Case4_R_1000_None_NONE_MCD_- 1th_1000_random_constructed_3gaussians_4.csv
-            ([os.path.join(in_dir, f'Case4_R_1000_None_NONE_{diff_type}_-1th_1000_{init_method}_constructed_3gaussians_4.csv')
-              for init_method in init_methods],
-             [0.05, 0.10, 0.20, 0.35, 0.49]),
+            # # Case4_R_1000_None_NONE_MCD_- 1th_1000_random_constructed_3gaussians_4.csv
+            # ([os.path.join(in_dir, f'Case4_R_1000_None_NONE_{diff_type}_-1th_1000_{init_method}_constructed_3gaussians_4.csv')
+            #   for init_method in init_methods],
+            #  [0.05, 0.10, 0.20, 0.35, 0.49]),
         ]
     else:
         cases = [

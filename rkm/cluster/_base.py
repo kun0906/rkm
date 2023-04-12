@@ -55,6 +55,13 @@ class KMBase:
 					centroids, _ = kmeans_plusplus(X1, n_clusters=self.n_clusters, random_state=self.random_state)
 			elif self.init_centroids == 'true':
 				centroids = self.true_centroids
+			elif self.init_centroids == 'noise':
+				r = np.random.RandomState(seed=self.random_state)
+				mask = y == 'noise'
+				data = X[mask]
+				n = data.shape[0]
+				indices = r.choice(range(n), self.n_clusters, replace=False)
+				centroids = data[indices, :]
 			else:
 				raise NotImplementedError
 		# elif self.init_centroids.shape == (self.n_clusters, self.dim):
@@ -74,6 +81,7 @@ class KMBase:
 			raise NotImplementedError
 		return centroids
 
+	@timer
 	def align_centroids(self, centroids, true_centroids):
 		c1 = copy.deepcopy(true_centroids)
 		# check which point is close to which true centroids.
@@ -116,6 +124,7 @@ class KMBase:
 					 'noise1': 20, 'noise2': 21, 'noise3': 22, 'noise4': 23, 'noise5': 24, 'noise6': 25,
 					 'noise7': 26, 'noise8': 27, 'noise9': 28, 'noise10': 29,
 					 'noise': 10}
+
 		misclustered= {}
 		n_noise = 0
 		for i, (y_p, y_t) in enumerate(zip(y_pred, y_true)):
@@ -141,18 +150,22 @@ class KMBase:
 		for key in misclustered.keys():
 			misclustered[key] = np.asarray(misclustered[key])
 
+		# Average: 100%
+		# centroids = self.align_centroids(self.centroids, self.true_centroids)
+		centroids = copy.deepcopy(self.centroids)  # when you plot the difference between it with ground-truth, you need to align the centroids.
+
 		cm = confusion_matrix([label2int[v] for v in y_true], y_pred)
-		if self.verbose >= 3:
+		if self.verbose >= 200:
 			s = [f'{key}:{len(vs)}' for key, vs in misclustered.items()]
 			print(f'misclustered_error: {misclustered_error}, n (excluded noise): {(n - n_noise)}, misclusterd: {s}')
-			print(f'centroids: {self.centroids}, \ntrue: {self.true_centroids}')
+			print(f'centroids: {centroids}, \ntrue: {self.true_centroids}')
 			print(f'confusion_matrix: \n{cm}')
 
 		# we should align the centroids to the order of true_centroids first.
 		# average difference
-		centroid_diff = np.sum(np.sum(np.square(self.centroids - self.true_centroids), axis=1), axis=0)/self.n_clusters
+		centroid_diff = np.sum(np.sum(np.square(centroids - self.true_centroids), axis=1), axis=0)/self.n_clusters
 		# max centroid difference
-		max_centroid_diff = max(np.sum(np.square(self.centroids - self.true_centroids), axis=1))
+		max_centroid_diff = max(np.sum(np.square(centroids - self.true_centroids), axis=1))
 		classes = set(y_true)
 		n_clusters = len(classes)
 		if 'noise' in classes:
@@ -162,7 +175,7 @@ class KMBase:
 		if self.verbose >= 5:
 			print(f'self.n_clusters ({self.n_clusters}) == n_clusters ({n_clusters}): {self.n_clusters==self.n_clusters}')
 		# centroids = np.zeros((n_clusters, d))
-		centroids = copy.deepcopy(self.centroids)
+		# centroids = copy.deepcopy(self.centroids)
 		for i, l in enumerate(sorted(set(y_true))):
 			mask = list(y_pred == label2int[l])
 			if sum(mask) > 1:
@@ -185,16 +198,16 @@ class KMBase:
 		if self.verbose >=10:
 			print(centroids, collections.Counter(y_pred))
 
-		centroids = self.align_centroids(centroids, self.true_centroids)
 		centroid_diff2 = np.sum(np.sum(np.square(centroids - self.true_centroids), axis=1),
 		                        axis=0) / self.n_clusters
 
 		if self.verbose >=3:
 			print(f'centroid_diff: {centroid_diff}')
-		scores = {'misclustered_error': misclustered_error, 'misclustered': misclustered,
+		scores = {'misclustered_error': misclustered_error,
+				  # 'misclustered': misclustered,
 		          'centroid_diff': centroid_diff,   'centroid_diff2': centroid_diff2,
 				  'max_centroid_diff': max_centroid_diff,
-		          'cm':cm,
+		          # 'cm':cm,
 		          }
 
 		return scores

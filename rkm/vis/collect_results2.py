@@ -2,7 +2,7 @@
     run:
         module load anaconda3/2021.5
         cd /scratch/gpfs/ky8517/rkm/rkm
-        PYTHONPATH='..' PYTHONUNBUFFERED=TRUE python3 vis/collect_results2.py > plot.log
+        PYTHONPATH='..' PYTHONUNBUFFERED=TRUE python3 vis/collect_results2.py > plot.log &
 """
 # Email: kun.bj@outllok.com
 import collections
@@ -213,12 +213,12 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 	args['VERBOSE'] = VERBOSE
 
 	tot_cnt = 0
-	dataset_names = ['3GAUSSIANS', '10GAUSSIANS']  #  '3GAUSSIANS'
+	dataset_names = ['10GAUSSIANS']  #  '3GAUSSIANS',  '10GAUSSIANS', 'GALAXY'
 	py_names = [
 		'kmeans',
 		'kmedian_l1',
 		'kmedian',
-		'my_spectralclustering',
+		# 'my_spectralclustering',
 		# 'kmedian_tukey',
 	]
 
@@ -368,20 +368,44 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 			raise NotImplementedError(error_method)
 		if CASE == 'diff_outliers':
 			f = f'Case1_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th'
+			xlabel = '$x_{noise}$'
 		elif CASE=='diff2_outliers':
 			f = f'Case2_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th'
+			xlabel = '$x_{noise}$'
 		elif CASE=='diff3_outliers':
 			f = f'Case5_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th'
+			xlabel = '$x_{noise}$'
 		elif CASE == 'constructed2_3gaussians':
 			f = f'Case3_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th'
+			xlabel = '$x_{noise}$'
 		elif CASE=='constructed_3gaussians':
 			f = f'Case4_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th'
+			xlabel = '$x_{noise}$'
 		elif CASE=='gaussians10_snr':
 			f = f'Case5_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th'
+			xlabel = '$x_{noise}$'
+		elif CASE=='gaussians10_covs':
+			f = f'Case51_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th'
+			xlabel = '$x_{noise}$'
+		elif CASE == 'gaussians10_ds':
+			# f = f'Case52_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th'
+			f = f'Case52_' + args1['ALGORITHM']['detail'] +'_'+ args1['DATASET']['detail'].split('gaussians10')[0] + f'{metric}_{n_th}th'
+			xlabel = '$Dimension$'
+		elif CASE == 'gaussians10_random_ds':
+			f = f'Case53_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th'
+			xlabel = '$x_{noise}$'
 		elif CASE=='gaussians10_ks':
 			f = f'Case6_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th'
+			xlabel = '$x_{noise}$'
+		elif CASE=='two_galaxy_clusters_n':
+			f = f'Case7_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th'
+			xlabel = '$x_{noise}$'
+		elif CASE=='two_galaxy_clusters_p':
+			f = f'Case8_' + args1['ALGORITHM']['detail'] + f'_{metric}_{n_th}th'
+			xlabel = '$x_{noise}$'
 		else:
 			raise NotImplementedError(CASE)
+		fig_kwargs['xlabel'] = xlabel
 		f = f.replace('|','_')
 		out_file = os.path.join(OUT_DIR, 'xlsx', args1['DATASET']['name'],
 								f'{os.path.dirname(os.path.dirname(dataset_detail))}',
@@ -395,18 +419,26 @@ def main(N_REPEATS=1, OVERWRITE=True, IS_DEBUG=False, IS_GEN_DATA=True, VERBOSE=
 
 if __name__ == '__main__':
 	import matplotlib.pyplot as plt
-	cases = ['diff_outliers', 'diff2_outliers', 'constructed2_3gaussians', 'constructed_3gaussians']
-	# cases = ['gaussians10_snr']
+	# cases = ['diff_outliers', 'diff2_outliers', 'constructed2_3gaussians', 'constructed_3gaussians']
+	# cases = ['two_galaxy_clusters_n', 'two_galaxy_clusters_p']
+	cases = [
+			'gaussians10_ds',  # fix the ratio or dimension first.
+		# 'gaussians10_random_ds',
+				 # 'gaussians10_covs'
+		]	#
 	for CASE in cases: # , 'constructed_3gaussians', 'diff2_outliers', 'diff_outliers', 'mixed_clusters']: # ['diff_outliers', 'mixed_clusters', 'constructed_3gaussians']:  # , 'mixed_clusters'
-		for error_method in ['max_centroid_diff', 'average_centroid_diff']:
+		for error_method in ['max_centroid_diff', 'average_centroid_diff']: #, 'average_centroid_diff']:
 			fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(16, 4))  # figsize=(8, 6) (width, height)
+			init_methods = ['random', 'kmeans++', 'omniscient',]
+			# fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(10, 4))  # figsize=(8, 6) (width, height)
+			# init_methods = ['random', 'kmeans++']
 			fig_kwargs = {'fig':fig}
-			for j, init_method in enumerate(['random', 'kmeans++', 'omniscient']): #['random', 'kmeans++', 'omniscient',], [None] for my_spectralclustering
+			for j, init_method in enumerate(init_methods): #['random', 'kmeans++', 'omniscient',], [None] for my_spectralclustering
 				fig_kwargs['axes'] = axes[j]
 				fig_kwargs['idx_axes'] = j
 				try:
 					print(f'\n\nCASE:{CASE}, init_method:{init_method}')
-					main(N_REPEATS=1000, OVERWRITE=True, IS_DEBUG=True, VERBOSE=1, CASE=CASE,
+					main(N_REPEATS=2, OVERWRITE=True, IS_DEBUG=True, VERBOSE=1, CASE=CASE,
 						 init_method=init_method, fig_kwargs=fig_kwargs, error_method=error_method)
 				except Exception as e:
 					traceback.print_exc()

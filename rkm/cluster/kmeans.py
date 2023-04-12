@@ -64,7 +64,7 @@ class KMeans(KMBase):
 			if iteration == 0:
 				# Use the init_centroids from __init__()
 				self.init_centroids = self.do_init_centroids(X=X, y=y)
-				self.init_centroids = self.align_centroids(self.init_centroids, self.true_centroids)
+				# self.init_centroids = self.align_centroids(self.init_centroids, self.true_centroids)
 				# print(f'initialization method: {self.init_centroids}, centers: {centroids}')
 				self.centroids = self.init_centroids
 				if self.verbose >= 2: print(f'init_centroids: \n{self.centroids}')
@@ -124,7 +124,7 @@ class KMeans(KMBase):
 				print(f'server\'s centroids_update: {centroids_update} and n_points per cluster: {counts}')
 				print(f'new centroids: {self.centroids}')
 
-			self.centroids = self.align_centroids(self.centroids, self.true_centroids)
+			# self.centroids = self.align_centroids(self.centroids, self.true_centroids)
 			# testing after each iteration
 			scores = self.eval(X, y)
 			centroids_diff = self.centroids - self.true_centroids

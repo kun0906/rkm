@@ -6,9 +6,11 @@ https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_plusplus.html#
 import os
 import pickle
 
+from rkm.datasets.image2dat import two_galaxy_clusters_n, two_galaxy_clusters_p
 from rkm.datasets.nbaiot import nbaiot_diff_outliers, nbaiot_mixed_clusters
 from rkm.datasets.gaussian3 import gaussian3_diff_outliers, gaussian3_mixed_clusters, gaussian3_constructed_clusters, \
-	gaussian3_constructed2_clusters, gaussian3_diff2_outliers, gaussian3_diff3_outliers, gaussian10_ks, gaussian10_snr
+	gaussian3_constructed2_clusters, gaussian3_diff2_outliers, gaussian3_diff3_outliers, gaussian10_ks, gaussian10_snr, \
+	gaussian10_covs, gaussian10_ds, gaussian10_random_ds
 from rkm.utils.common import timer, check_path
 
 
@@ -60,8 +62,22 @@ def generate_dataset(args):
 	elif dataset_name == '10GAUSSIANS':
 		if 'gaussians10_snr' in dataset_detail:
 			data = gaussian10_snr(args, random_state=SEED_DATA)
+		elif 'gaussians10_covs' in dataset_detail:
+			data = gaussian10_covs(args, random_state=SEED_DATA)
+		elif 'gaussians10_ds' in dataset_detail:
+			data = gaussian10_ds(args, random_state=SEED_DATA)
+		elif 'gaussians10_random_ds' in dataset_detail:
+			data = gaussian10_random_ds(args, random_state=SEED_DATA)
 		elif 'gaussian10_ks' in dataset_detail:
 			data = gaussian10_ks(args, random_state=SEED_DATA)
+		else:
+			msg = f'{dataset_name}, {dataset_detail}'
+			raise NotImplementedError(msg)
+	elif dataset_name == 'GALAXY':
+		if 'two_galaxy_clusters_n' in dataset_detail:
+			data = two_galaxy_clusters_n(args, random_state=SEED_DATA)
+		elif 'two_galaxy_clusters_p' in dataset_detail:
+			data = two_galaxy_clusters_p(args, random_state=SEED_DATA)
 		else:
 			msg = f'{dataset_name}, {dataset_detail}'
 			raise NotImplementedError(msg)

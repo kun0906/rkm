@@ -870,6 +870,240 @@ def gaussian10_snr(args, random_state=42, **kwargs):
 
 
 
+
+def gaussian10_covs(args, random_state=42, **kwargs):
+    """
+       Statistical and Computational Guarantees of Lloyd’s Algorithm and Its Variants
+
+    Parameters
+    ----------
+    params
+    random_state
+
+    Returns
+    -------
+
+    """
+    # r:0.1|mu:0,0|cov:0.1,0.1|diff_outliers
+    dataset_detail = args['DATASET']['detail']
+    tmp = dataset_detail.split('|')
+    ratio = float(tmp[0].split(':')[1])
+
+    mu = tmp[1].split(':')[1].split(',')
+    # mu = np.asarray([float(mu[0]), float(mu[1])])
+
+    cov = tmp[2].split(':')[1].split(',')
+    # cov_outliers = np.asarray([[float(cov[0]), 0], [0, float(cov[1])]])
+    cov_outliers=float(cov[0])
+
+    r = np.random.RandomState(random_state)
+    def get_xy(n_clusters=10):
+        # n = 1000 samples from a mixture of k = 10 spherical Gaussians.
+        X = []
+        y = []
+        # obtain  ground truth centroids
+        d = 10
+        centroids = np.zeros((d, d))
+        np.fill_diagonal(centroids, 1)
+        # random select n_clusters centroids
+        # indices = r.randint(0, d, n_clusters)
+        # indices = r.randint(0, d, n_clusters)  # will have duplicates
+        indices = r.choice(range(d), size=n_clusters, replace=False)
+        true_centroids = centroids[indices, :]
+        init_centroids = []
+        N = 1000
+        for i in range(n_clusters):
+            _m = N // n_clusters
+            _mu = true_centroids[i]
+            _sigma = 1.0
+            _cov = np.zeros((d, d))
+            np.fill_diagonal(_cov, _sigma)
+            _X = r.multivariate_normal(_mu, _cov, size=_m)
+            _y = np.asarray([f'c{i + 1}'] * _m)
+
+            init_centroids.append(copy.deepcopy(_X))  # without noise when compute initial centroids.
+            if i == 0:
+                X = _X
+                y = _y
+            else:
+                X = np.concatenate([_X, X], axis=0)
+                y = np.concatenate([_y, y])
+
+        # noise
+        _mu_noise = np.zeros((d, ))
+        _cov_noise = np.zeros((d, d))
+        np.fill_diagonal(_cov_noise, cov_outliers)
+        m_noise = int(N * 0.1)
+        _X_noise = r.multivariate_normal(_mu_noise, _cov_noise, size=m_noise)
+        _y_noise = np.asarray([f'noise1'] * m_noise)
+
+        X = np.concatenate([X, _X_noise], axis=0)
+        y = np.concatenate([y, _y_noise])
+
+        delta_X = cov_outliers
+
+        return X, y, true_centroids, init_centroids, delta_X
+
+    X, y, true_centroids, init_centroids, delta_X = get_xy(n_clusters=args['N_CLUSTERS'])
+
+    return {'X': X, 'y': y, 'true_centroids': true_centroids, 'init_centroids': init_centroids, 'delta_X': delta_X}
+
+
+
+
+def gaussian10_ds(args, random_state=42, **kwargs):
+    """
+       Statistical and Computational Guarantees of Lloyd’s Algorithm and Its Variants
+
+    Parameters
+    ----------
+    params
+    random_state
+
+    Returns
+    -------
+
+    """
+    # d:10|mu:0,0|cov:1,1|diff_outliers
+    dataset_detail = args['DATASET']['detail']
+    tmp = dataset_detail.split('|')
+    d_r = tmp[0].split('_')
+    dim = int(d_r[0].split(':')[1])
+    ratio = float(d_r[1].split(':')[1])
+
+    # mu = tmp[1].split(':')[1].split(',')
+    # # mu = np.asarray([float(mu[0]), float(mu[1])])
+    #
+    cov = tmp[2].split(':')[1].split(',')
+    # cov_outliers = np.asarray([[float(cov[0]), 0], [0, float(cov[1])]])
+    cov_outliers=float(cov[0])
+
+    r = np.random.RandomState(random_state)
+    def get_xy(d = 20):
+        n_clusters = args['N_CLUSTERS']
+        # n = 1000 samples from a mixture of k = 10 spherical Gaussians.
+        X = []
+        y = []
+        # obtain  ground truth centroids
+        centroids = np.zeros((d, d))
+        np.fill_diagonal(centroids, 1)
+        # random select n_clusters centroids
+        # indices = r.randint(0, d, n_clusters)  # will have duplicates
+        indices = r.choice(range(d), size=n_clusters, replace=False)
+        true_centroids = centroids[indices, :]
+        init_centroids = []
+        N = 1000
+        for i in range(n_clusters):
+            _m = N // n_clusters
+            _mu = true_centroids[i]
+            _sigma = 1.0
+            _cov = np.zeros((d, d))
+            np.fill_diagonal(_cov, _sigma)
+            _X = r.multivariate_normal(_mu, _cov, size=_m)
+            _y = np.asarray([f'c{i + 1}'] * _m)
+
+            init_centroids.append(copy.deepcopy(_X))  # without noise when compute initial centroids.
+            if i == 0:
+                X = _X
+                y = _y
+            else:
+                X = np.concatenate([_X, X], axis=0)
+                y = np.concatenate([_y, y])
+
+        # noise
+        _mu_noise = np.zeros((d, ))
+        _cov_noise = np.zeros((d, d))
+        np.fill_diagonal(_cov_noise,cov_outliers)
+        m_noise = int(N * ratio)
+        _X_noise = r.multivariate_normal(_mu_noise, _cov_noise, size=m_noise)
+        _y_noise = np.asarray([f'noise'] * m_noise)
+
+        X = np.concatenate([X, _X_noise], axis=0)
+        y = np.concatenate([y, _y_noise])
+
+        delta_X = dim
+
+        return X, y, true_centroids, init_centroids, delta_X
+
+    X, y, true_centroids, init_centroids, delta_X = get_xy(d=dim)
+
+    return {'X': X, 'y': y, 'true_centroids': true_centroids, 'init_centroids': init_centroids, 'delta_X': delta_X}
+
+
+
+def gaussian10_random_ds(args, random_state=42, **kwargs):
+    """
+       Statistical and Computational Guarantees of Lloyd’s Algorithm and Its Variants
+
+    Parameters
+    ----------
+    params
+    random_state
+
+    Returns
+    -------
+
+    """
+    # d:10|mu:0,0|cov:1,1|diff_outliers
+    dataset_detail = args['DATASET']['detail']
+    tmp = dataset_detail.split('|')
+    dim = int(tmp[0].split(':')[1])
+
+    # mu = tmp[1].split(':')[1].split(',')
+    # # mu = np.asarray([float(mu[0]), float(mu[1])])
+    #
+    cov = tmp[2].split(':')[1].split(',')
+    # cov_outliers = np.asarray([[float(cov[0]), 0], [0, float(cov[1])]])
+    cov_outliers=float(cov[0])
+
+    r = np.random.RandomState(random_state)
+    def get_xy(d = 20):
+        n_clusters = args['N_CLUSTERS']
+        # n = 1000 samples from a mixture of k = 10 spherical Gaussians.
+        X = []
+        y = []
+        # obtain  ground truth centroids
+        # random select n_clusters centroids
+        true_centroids = r.uniform(-1, 1, (n_clusters, dim)) # [low, high)
+        init_centroids = []
+        N = 1000
+        for i in range(n_clusters):
+            _m = N // n_clusters
+            _mu = true_centroids[i]
+            _sigma = 1.0
+            _cov = np.zeros((d, d))
+            np.fill_diagonal(_cov, _sigma)
+            _X = r.multivariate_normal(_mu, _cov, size=_m)
+            _y = np.asarray([f'c{i + 1}'] * _m)
+
+            init_centroids.append(copy.deepcopy(_X))  # without noise when compute initial centroids.
+            if i == 0:
+                X = _X
+                y = _y
+            else:
+                X = np.concatenate([_X, X], axis=0)
+                y = np.concatenate([_y, y])
+
+        # noise
+        _mu_noise = np.zeros((d, ))
+        _cov_noise = np.zeros((d, d))
+        np.fill_diagonal(_cov_noise,cov_outliers)
+        m_noise = int(N * 0.1)
+        _X_noise = r.multivariate_normal(_mu_noise, _cov_noise, size=m_noise)
+        _y_noise = np.asarray([f'noise'] * m_noise)
+
+        X = np.concatenate([X, _X_noise], axis=0)
+        y = np.concatenate([y, _y_noise])
+
+        delta_X = dim
+
+        return X, y, true_centroids, init_centroids, delta_X
+
+    X, y, true_centroids, init_centroids, delta_X = get_xy(d=dim)
+
+    return {'X': X, 'y': y, 'true_centroids': true_centroids, 'init_centroids': init_centroids, 'delta_X': delta_X}
+
+
 def gaussian10_ks(args, random_state=42, **kwargs):
     """
        Statistical and Computational Guarantees of Lloyd’s Algorithm and Its Variants
@@ -899,7 +1133,9 @@ def gaussian10_ks(args, random_state=42, **kwargs):
         centroids = np.zeros((d, d))
         np.fill_diagonal(centroids, 1)
         # random select n_clusters centroids
-        indices = r.randint(0, d, n_clusters)
+        # indices = r.randint(0, d, n_clusters)
+        # indices = r.randint(0, d, n_clusters)  # will have duplicates
+        indices = r.choice(range(d), size=n_clusters, replace=False)
         true_centroids = centroids[indices, :]
         init_centroids = []
         for i in range(n_clusters):

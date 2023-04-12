@@ -1,3 +1,14 @@
+V0.1.2: Change r.randint() to r.choice(replace=False)
+
+1. Change r.randint() to r.choice(replace=False)
+2. Update 10gaussians_ds (adding different noise ratios)
+3. Update collect_results2.py (only show random + kmeans++)
+4. Remove X and y in seed_res.dat to save disk space.
+5. Error: Pycharm Failed to transfer file. Could not close the output stream for file.
+   There is no disk space in the remote server, please remove "files" in "out" directory to address this issue. 
+
+
+
 V0.1.1: Add Latex_tables
 
 1. Add Latex_tables to convert the csv and print out the latex tables 
