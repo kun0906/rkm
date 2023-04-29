@@ -12,6 +12,12 @@
 
 	PYTHONPATH='..' PYTHONUNBUFFERED=TRUE python3 main_all.py
 
+	# delete all empty directories recursively
+	https://unix.stackexchange.com/questions/46322/how-can-i-recursively-delete-empty-directories-in-my-home-directory
+
+	find . -type d -empty -print
+	find . -type d -empty -delete
+
 """
 # Email: kun.bj@outllok.com
 import copy
@@ -245,7 +251,7 @@ def get_datasets_config_lst(dataset_names=['3GAUSSIANS', '10GAUSSIANS'], case=''
 
 								"""
 				n_clusters = 5
-				for cov in [0.5, 1.0, 2.0, 3.0, 4.0]:  # [0.5, 1, 2, 4, 8]:
+				for cov in [0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 10.0]:  # [0.5, 1, 2, 4, 8]:
 					detail = f'r:0.1|mu:0,0|cov:{cov},{cov}|gaussians10_covs'
 					datasets.append({'name': dataset_name, 'detail': detail, 'n_clusters': n_clusters})
 			elif case == 'gaussians10_ds':
@@ -254,9 +260,10 @@ def get_datasets_config_lst(dataset_names=['3GAUSSIANS', '10GAUSSIANS'], case=''
 				  d:20|mu:0,0|cov:5.0.,5.0|gaussians10_ds
 
 								"""
-				n_clusters = 5
-				for dim in [5, 6, 7, 8, 9]:  # [0.5, 1, 2, 4, 8]:
-					for r in [0.1, 0.2, 0.3]: #[0.05, 0.1, 0.15, 0.2, 0.25]:
+				n_clusters = 3
+				# [5, 6, 7, 8, 9, 10]: #
+				for dim in [5, 6, 7, 8, 9, 10, 20, 50, 100, 200]:  # [0.5, 1, 2, 4, 8]:
+					for r in [0.1, 0.3]: #[0.05, 0.1, 0.15, 0.2, 0.25]:
 						detail = f'd:{dim}_r:{r:.2f}|mu:0,0|cov:5.0,5.0|gaussians10_ds'
 						datasets.append({'name': dataset_name, 'detail': detail, 'n_clusters': n_clusters})
 			elif case == 'gaussians10_random_ds':
@@ -266,8 +273,9 @@ def get_datasets_config_lst(dataset_names=['3GAUSSIANS', '10GAUSSIANS'], case=''
 
 								"""
 				n_clusters = 5
-				for dim in [5, 6, 7, 8, 9]:  # [0.5, 1, 2, 4, 8]:
-					detail = f'd:{dim}|mu:0,0|cov:2.0,2.0|gaussians10_random_ds'
+				#
+				for dim in [5, 6, 7, 8, 9, 10, 20]: #[5, 6, 7, 8, 9, 10, 20, 50, 100, 200]:  # [0.5, 1, 2, 4, 8]:
+					detail = f'd:{dim}|mu:0,0|cov:5.0,5.0|gaussians10_random_ds'
 					datasets.append({'name': dataset_name, 'detail': detail, 'n_clusters': n_clusters})
 			elif case == 'gaussians10_ks':
 				"""
@@ -488,7 +496,7 @@ if __name__ == '__main__':
 
 	from multiprocessing import Pool
 	st = time.time()
-	N_REPEATS = 1000
+	N_REPEATS = 50
 	print(f'n_repeats: {N_REPEATS}')
 	in_dir = 'datasets/3GAUSSIANS'
 	if os.path.exists(in_dir):

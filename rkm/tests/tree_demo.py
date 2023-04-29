@@ -9,20 +9,26 @@ import matplotlib.pyplot as plt
 from sklearn.datasets import load_iris
 from sklearn import tree
 
-clf = tree.DecisionTreeClassifier(random_state=42)
+clf = tree.DecisionTreeClassifier(random_state=42, class_weight='balanced')
 iris = load_iris()
 print(iris.feature_names)
 print(iris.data[:5, :])
 print(iris.target_names)
 print(collections.Counter(iris.target))
 
-clf = clf.fit(iris.data, iris.target)       # tree is in preorder and stored in children_left and children_right
+X = np.concatenate([iris.data[20:50, :], iris.data[50+10:100, :], iris.data[100:150, :]])
+y = np.concatenate([iris.target[20:50], iris.target[50+10:100], iris.target[100:150]])
+clf = clf.fit(X, y)       # tree is in preorder and stored in children_left and children_right
+n_class = len(set(y))
+class_weights = len(X)/(n_class*np.bincount(y))
+print(f'class_weights: {class_weights}')
+print(collections.Counter(y))
 # out_file = 'a.png'
 # with open(out_file, 'w') as f:
 #     tree.export_graphviz(clf, out_file=f, feature_names=iris.feature_names, class_names=iris.target_names)
 #
 fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(10, 5), dpi=200)
-tree.plot_tree(clf, ax=axes, max_depth=None, fontsize=5, node_ids=True, filled=True, label='all',
+tree.plot_tree(clf, ax=axes, max_depth=None, fontsize=5, node_ids=True, filled=True, label='all', proportion=False,
                feature_names=iris.feature_names, class_names=iris.target_names)
 plt.show()
 

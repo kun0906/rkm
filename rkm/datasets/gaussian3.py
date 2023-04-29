@@ -897,7 +897,7 @@ def gaussian10_covs(args, random_state=42, **kwargs):
     cov_outliers=float(cov[0])
 
     r = np.random.RandomState(random_state)
-    def get_xy(n_clusters=10):
+    def get_xy(n_clusters=5):
         # n = 1000 samples from a mixture of k = 10 spherical Gaussians.
         X = []
         y = []
@@ -910,6 +910,13 @@ def gaussian10_covs(args, random_state=42, **kwargs):
         # indices = r.randint(0, d, n_clusters)  # will have duplicates
         indices = r.choice(range(d), size=n_clusters, replace=False)
         true_centroids = centroids[indices, :]
+
+        # true_centroids = np.zeros((n_clusters, d))
+        # for i in range(n_clusters):
+        #     # get 0 or 1 with 0.5 probability for each coordinate
+        #     true_centroids[i] = [0 if v < 0.5 else 1 for v in r.uniform(0, 1, size=d)]
+
+
         init_centroids = []
         N = 1000
         for i in range(n_clusters):
@@ -930,12 +937,21 @@ def gaussian10_covs(args, random_state=42, **kwargs):
                 y = np.concatenate([_y, y])
 
         # noise
-        _mu_noise = np.zeros((d, ))
-        _cov_noise = np.zeros((d, d))
-        np.fill_diagonal(_cov_noise, cov_outliers)
-        m_noise = int(N * 0.1)
-        _X_noise = r.multivariate_normal(_mu_noise, _cov_noise, size=m_noise)
-        _y_noise = np.asarray([f'noise1'] * m_noise)
+        # _mu_noise = np.zeros((d, ))
+        # _cov_noise = np.zeros((d, d))
+        # np.fill_diagonal(_cov_noise, cov_outliers)
+        # m_noise = int(N * 0.1)
+        # _X_noise = r.multivariate_normal(_mu_noise, _cov_noise, size=m_noise)
+        # _y_noise = np.asarray([f'noise1'] * m_noise)
+
+        # noise generated from a hyperball with fixed radius
+        # https://extremelearning.com.au/how-to-generate-uniformly-random-points-on-n-spheres-and-n-balls/
+        m_noise = int(N * ratio)
+        # radius = 2
+        radius = cov_outliers
+        _X_noise = sample_data_inside_hyperball(m_noise, loc = np.zeros((d, )), radius=radius, random_state=random_state)
+        _y_noise = np.asarray([f'noise'] * m_noise)
+
 
         X = np.concatenate([X, _X_noise], axis=0)
         y = np.concatenate([y, _y_noise])
@@ -950,6 +966,50 @@ def gaussian10_covs(args, random_state=42, **kwargs):
 
 
 
+def sample_data_inside_hyperball(n, loc = [], radius = 1, random_state=42):
+    """
+    https://extremelearning.com.au/how-to-generate-uniformly-random-points-on-n-spheres-and-n-balls/
+
+    Parameters
+    ----------
+    n: number of data points
+    loc: the center of the hyperball in R^d
+    radius: the radius of the hyperball in R^d
+
+    Returns
+    -------
+
+    """
+    d = len(loc)
+
+    X = np.zeros((n, d))
+    r = np.random.RandomState(seed= random_state)
+    for i in range(n):
+        u = r.normal(0, 1, d + 2)  # an array of (d+2) normally distributed random variables
+        norm = np.sum(u ** 2) ** (0.5)
+        u = u / norm
+        x = (u[0:d] * radius + loc)  # take the first d coordinates
+        X[i] = x
+
+    # Take d=2 as an example
+    # plt.scatter(X[:, 0], X[:, 1])
+    # plt.show()
+
+    return X
+
+def sample_hypersphere(n, d, random_state=42):
+    # method 19: https://extremelearning.com.au/how-to-generate-uniformly-random-points-on-n-spheres-and-n-balls/
+    # generate a unit sphere with radius = 1
+    # https://stackoverflow.com/questions/33976911/generate-a-random-sample-of-points-distributed-on-the-surface-of-a-unit-sphere
+
+    X = np.zeros((n, d))
+    r = np.random.RandomState(seed=random_state)
+    for i in range(n):
+        u = r.normal(0, 1, d)
+        ds = np.sum(u ** 2) ** (0.5)
+        X[i] = x / ds
+
+    return X
 
 def gaussian10_ds(args, random_state=42, **kwargs):
     """
@@ -984,13 +1044,22 @@ def gaussian10_ds(args, random_state=42, **kwargs):
         # n = 1000 samples from a mixture of k = 10 spherical Gaussians.
         X = []
         y = []
-        # obtain  ground truth centroids
-        centroids = np.zeros((d, d))
-        np.fill_diagonal(centroids, 1)
-        # random select n_clusters centroids
-        # indices = r.randint(0, d, n_clusters)  # will have duplicates
-        indices = r.choice(range(d), size=n_clusters, replace=False)
-        true_centroids = centroids[indices, :]
+        # # obtain  ground truth centroids
+        # centroids = np.zeros((d, d))
+        # np.fill_diagonal(centroids, 1)
+        # # random select n_clusters centroids
+        # # indices = r.randint(0, d, n_clusters)  # will have duplicates
+        # indices = r.choice(range(d), size=n_clusters, replace=False)
+        # true_centroids = centroids[indices, :]
+
+        # true_centroids = np.zeros((n_clusters, d))
+        # for i in range(n_clusters):
+        #     # get 0 or 1 with 0.5 probability for each coordinate
+        #     true_centroids[i] = [0 if v < 0.5 else 1 for v in r.uniform(0, 1, size=d)]
+
+        # random sample centroids from a hypersphere
+        true_centroids = sample_hypersphere(n_clusters, d, random_state=random_state)
+
         init_centroids = []
         N = 1000
         for i in range(n_clusters):
@@ -1017,6 +1086,13 @@ def gaussian10_ds(args, random_state=42, **kwargs):
         m_noise = int(N * ratio)
         _X_noise = r.multivariate_normal(_mu_noise, _cov_noise, size=m_noise)
         _y_noise = np.asarray([f'noise'] * m_noise)
+
+        # # noise generated from a hyperball with fixed radius
+        # # https://extremelearning.com.au/how-to-generate-uniformly-random-points-on-n-spheres-and-n-balls/
+        # m_noise = int(N * ratio)
+        # radius = 2
+        # _X_noise = sample_data_inside_hyperball(m_noise, loc = np.zeros((d, )), radius=radius, random_state=random_state)
+        # _y_noise = np.asarray([f'noise'] * m_noise)
 
         X = np.concatenate([X, _X_noise], axis=0)
         y = np.concatenate([y, _y_noise])
@@ -1084,12 +1160,21 @@ def gaussian10_random_ds(args, random_state=42, **kwargs):
                 X = np.concatenate([_X, X], axis=0)
                 y = np.concatenate([_y, y])
 
-        # noise
-        _mu_noise = np.zeros((d, ))
-        _cov_noise = np.zeros((d, d))
-        np.fill_diagonal(_cov_noise,cov_outliers)
-        m_noise = int(N * 0.1)
-        _X_noise = r.multivariate_normal(_mu_noise, _cov_noise, size=m_noise)
+        # # noise
+        # _mu_noise = np.zeros((d, ))
+        # _cov_noise = np.zeros((d, d))
+        # np.fill_diagonal(_cov_noise,cov_outliers)
+        # m_noise = int(N * 0.1)
+        # _X_noise = r.multivariate_normal(_mu_noise, _cov_noise, size=m_noise)
+        # _y_noise = np.asarray([f'noise'] * m_noise)
+
+        # noise generated from a hyperball with fixed radius
+        # https://extremelearning.com.au/how-to-generate-uniformly-random-points-on-n-spheres-and-n-balls/
+        ratio = 0.1
+        m_noise = int(N * ratio)
+        radius = 2
+        _X_noise = sample_data_inside_hyperball(m_noise, loc=np.zeros((d,)), radius=radius,
+                                                random_state=random_state)
         _y_noise = np.asarray([f'noise'] * m_noise)
 
         X = np.concatenate([X, _X_noise], axis=0)

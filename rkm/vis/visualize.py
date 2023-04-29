@@ -301,6 +301,9 @@ def plot_misclustered_errors(resutls, fig_kwargs, out_file='.png', title='', err
 	# 	fig2.show()
 	plt.close(fig2)
 
+	return df.values
+
+
 
 def plot_mixed_clusters(resutls, out_file='.png', raw_n_th = 5, title='', error_method='misclustered_error',
                         is_show=True, verbose=0, case = '', init_method='random'):

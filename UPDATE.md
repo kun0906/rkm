@@ -1,3 +1,10 @@
+V0.1.3: Random sample data for an unit sphere (as true centroids) 
+
+1. Random sample n_clusters=2, 3 data points from an unit sphere (used as true centroids)
+2. Add hypersphere 
+3. Add hyperball
+
+
 V0.1.2: Change r.randint() to r.choice(replace=False)
 
 1. Change r.randint() to r.choice(replace=False)
