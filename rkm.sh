@@ -20,3 +20,5 @@ srun --time=20:00:00 --mem=40G --pty bash -i
 #module load anaconda3/2021.11
 
 #sshfs ky8517@tiger.princeton.edu:/scratch/gpfs/ky8517/rkm tiger
+# scancel  {1000..1050}
+# sacct --format="JobID,JobName%30"

@@ -1,8 +1,20 @@
+V0.2.0: Rewrite the codes with seperated python scripts. 
+
+
+
+V0.1.4: Use ground-truth for omniscient initialization
+
+1. Use ground-truth for omniscient initialization
+2. Don't need to align centroids for omniscient case when we plot. 
+3. Add different noise variances in main_all.py (gaussians10_ds)
+
+
 V0.1.3: Random sample data for an unit sphere (as true centroids) 
 
 1. Random sample n_clusters=2, 3 data points from an unit sphere (used as true centroids)
 2. Add hypersphere 
-3. Add hyperball
+3. Add hyperball 
+4. Plotting takes too much time when n_clusters > 5 (because of align_centroids())
 
 
 V0.1.2: Change r.randint() to r.choice(replace=False)
