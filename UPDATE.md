@@ -1,6 +1,10 @@
+V0.3.1: Rewrite bash by python.
+1. Rewrite the bash with python3 
+   limit the number of spawned processes 
+2. Add for loop in the bash
+3. Generate results without outliers
+
 V0.2.0: Rewrite the codes with seperated python scripts. 
-
-
 
 V0.1.4: Use ground-truth for omniscient initialization
 

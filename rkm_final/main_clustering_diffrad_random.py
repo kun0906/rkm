@@ -31,16 +31,18 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--n_repeats", type=int, default=10)  #
 parser.add_argument("--true_cluster_size", type=int, default=200)
 parser.add_argument("--init_method", type=str, default='random')
+parser.add_argument("--with_outlier", type=str, default='True')
 parser.add_argument("--out_dir", type=str, default='out')
 args = parser.parse_args()
+args.with_outlier = False if args.with_outlier == 'False' else True
 print(args)
 
 num_repeat = args.n_repeats
 init_method = args.init_method
 true_cluster_size = args.true_cluster_size
-
-out_dir = f'{args.out_dir}/diffrad/{init_method}/R_{num_repeat}-S_{true_cluster_size}'
-print(out_dir)
+with_outlier=args.with_outlier
+# out_dir = f'{args.out_dir}/diffdim/{init_method}/R_{num_repeat}-S_{true_cluster_size}'
+out_dir = args.out_dir
 if not os.path.exists(out_dir):
     os.makedirs(out_dir)
 
@@ -125,21 +127,24 @@ for num_centroids in range(4, 10, 6):
                                                                     size=math.floor(true_cluster_size * prop))
 
             # Final points
-
-            points = np.concatenate((true_points, outliers), axis=0)
-
-            # Without outliers
-            # points = true_points
+            if with_outlier:
+                points = np.concatenate((true_points, outliers), axis=0)
+            else:
+                 # Without outliers
+                points = true_points
 
             # Perform k-means clustering with k clusters
             lloydL1_centroids, lloydL1_labels = lloydL1(points, centroids_input=init_centroids,
                                                         k=num_centroids,  true_centroids=centroids)
             kmed_centroids, kmed_labels = kmed(points, centroids_input=init_centroids, k=num_centroids,  true_centroids=centroids)
-            # kmeans_centroids, kmeans_labels = kmeans(points,centroids_input=init_centroids,k=num_centroids, true_centroids=centroids)
+            kmeans_centroids, kmeans_labels = kmeans(points,centroids_input=init_centroids,k=num_centroids, true_centroids=centroids)
 
-            lloydL1_acd.append(np.median((lloydL1_centroids - centroids) ** 2))
-            kmed_acd.append(np.median((kmed_centroids - centroids) ** 2))
+            # lloydL1_acd.append(np.median((lloydL1_centroids - centroids) ** 2))
+            # kmed_acd.append(np.median((kmed_centroids - centroids) ** 2))
             # kmeans_acd.append(np.sum((kmeans_centroids - centroids) ** 2) / num_centroids)
+            lloydL1_acd.append(np.sum((lloydL1_centroids - centroids) ** 2) / num_centroids)
+            kmed_acd.append(np.sum((kmed_centroids - centroids) ** 2) / num_centroids)
+            kmeans_acd.append(np.sum((kmeans_centroids - centroids) ** 2) / num_centroids)
 
             # Misclustering label estimation
 
@@ -149,7 +154,7 @@ for num_centroids in range(4, 10, 6):
             kmed_misc.append(
                 sum(kmed_labels[range(num_centroids * true_cluster_size)] != true_labels) / len(true_labels))
 
-            # kmeans_misc.append(sum(kmeans_labels[range(num_centroids*true_cluster_size)]!=true_labels)/len(true_labels))
+            kmeans_misc.append(sum(kmeans_labels[range(num_centroids*true_cluster_size)]!=true_labels)/len(true_labels))
 
             # acd average and error bar
 
@@ -170,9 +175,9 @@ for num_centroids in range(4, 10, 6):
         kmed_acd_err.append(1.96 * np.std(kmed_acd_temp) / np.sqrt(len(kmed_acd_temp)))
 
         # kmeans_acd_temp = remove_outliers(kmeans_acd,q)
-        # kmeans_acd_temp = kmeans_acd.copy()
-        # kmeans_acd_avg.append(np.mean(kmeans_acd_temp))
-        # kmeans_acd_err.append(1.96 * np.std(kmeans_acd_temp) / np.sqrt(len(kmeans_acd_temp)))
+        kmeans_acd_temp = kmeans_acd.copy()
+        kmeans_acd_avg.append(np.mean(kmeans_acd_temp))
+        kmeans_acd_err.append(1.96 * np.std(kmeans_acd_temp) / np.sqrt(len(kmeans_acd_temp)))
 
         # Misclustering proportion avg and error bar
 
@@ -187,9 +192,9 @@ for num_centroids in range(4, 10, 6):
         kmed_misc_err.append(1.96 * np.std(kmed_misc_temp) / np.sqrt(len(kmed_misc_temp)))
 
         # kmeans_misc_temp = remove_outliers(kmeans_misc,q)
-        # kmeans_misc_temp = kmeans_misc.copy()
-        # kmeans_misc_avg.append(np.mean(kmeans_misc_temp))
-        # kmeans_misc_err.append(1.96*np.std(kmeans_misc_temp)/np.sqrt(len(kmeans_misc_temp)))
+        kmeans_misc_temp = kmeans_misc.copy()
+        kmeans_misc_avg.append(np.mean(kmeans_misc_temp))
+        kmeans_misc_err.append(1.96*np.std(kmeans_misc_temp)/np.sqrt(len(kmeans_misc_temp)))
 
         # break
 
@@ -199,10 +204,10 @@ for num_centroids in range(4, 10, 6):
             'outlier rad':rad_out_vec,
             'lloydL1ians misc':lloydL1_misc_avg,'lloydL1ians misc err_bar':lloydL1_misc_err,
             'lloydL1ians-L1 misc':kmed_misc_avg,'lloydL1ians-L1 misc err_bar':kmed_misc_err,
-            # 'kmeans misc':kmeans_misc_avg,'kmeans missc err_bar':kmeans_misc_err,
+            'kmeans misc':kmeans_misc_avg,'kmeans missc err_bar':kmeans_misc_err,
             'lloydL1ians acd': lloydL1_acd_avg, 'lloydL1ians acd err_bar': lloydL1_acd_err,
             'lloydL1ians-L1 acd': kmed_acd_avg, 'lloydL1ians-L1 acd err_bar': kmed_acd_err,
-            # 'kmeans acd': kmeans_acd_avg, 'kmeans acd err_bar': kmeans_acd_err
+            'kmeans acd': kmeans_acd_avg, 'kmeans acd err_bar': kmeans_acd_err
             }
     df = pd.DataFrame(data)
 
@@ -221,8 +226,8 @@ for num_centroids in range(4, 10, 6):
     plt.plot(rad_out_vec, kmed_misc_avg, '--', label='k-median', color="purple")
     plt.errorbar(rad_out_vec, kmed_misc_avg, yerr=kmed_misc_err, fmt='none', ecolor='black', capsize=3)
 
-    # plt.plot(rad_out_vec, kmeans_misc_avg, '-', label='Llyod (k-means)',color="blue")
-    # plt.errorbar(rad_out_vec, kmeans_misc_avg, yerr=kmeans_misc_err, fmt='none', ecolor='black', capsize=3)
+    plt.plot(rad_out_vec, kmeans_misc_avg, '-', label='Llyod (k-means)',color="blue")
+    plt.errorbar(rad_out_vec, kmeans_misc_avg, yerr=kmeans_misc_err, fmt='none', ecolor='black', capsize=3)
 
     # plt.ylim(0,0.5)
     ax.set_xticks(rad_out_vec)
@@ -253,8 +258,8 @@ for num_centroids in range(4, 10, 6):
     plt.plot(rad_out_vec, kmed_acd_avg, '--', label='k-median', color="purple")
     plt.errorbar(rad_out_vec, kmed_acd_avg, yerr=kmed_acd_err, fmt='none', ecolor='black', capsize=3)
 
-    # plt.plot(rad_out_vec, kmeans_acd_avg, '-', label='Lloyd ($k$-means)', color="blue")
-    # plt.errorbar(rad_out_vec, kmeans_acd_avg, yerr=kmeans_acd_err, fmt='none', ecolor='black', capsize=3)
+    plt.plot(rad_out_vec, kmeans_acd_avg, '-', label='Lloyd ($k$-means)', color="blue")
+    plt.errorbar(rad_out_vec, kmeans_acd_avg, yerr=kmeans_acd_err, fmt='none', ecolor='black', capsize=3)
 
     # plt.ylim(0, max(np.array(kmeans_acd_avg,lloydL1_acd_avg,kmed_acd_avg))+0.3)
     ax.set_xticks(rad_out_vec)

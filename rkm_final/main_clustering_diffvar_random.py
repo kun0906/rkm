@@ -18,16 +18,18 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--n_repeats", type=int, default=10)  #
 parser.add_argument("--true_cluster_size", type=int, default=100)
 parser.add_argument("--init_method", type=str, default='random')
+parser.add_argument("--with_outlier", type=str, default='True')
 parser.add_argument("--out_dir", type=str, default='out')
 args = parser.parse_args()
+args.with_outlier = False if args.with_outlier == 'False' else True
 print(args)
 
 num_repeat = args.n_repeats
 init_method = args.init_method
 true_cluster_size = args.true_cluster_size
-
-out_dir = f'{args.out_dir}/diffvar/{init_method}/R_{num_repeat}-S_{true_cluster_size}'
-print(out_dir)
+with_outlier = args.with_outlier
+# out_dir = f'{args.out_dir}/diffdim/{init_method}/R_{num_repeat}-S_{true_cluster_size}'
+out_dir = args.out_dir
 if not os.path.exists(out_dir):
     os.makedirs(out_dir)
 
@@ -102,12 +104,12 @@ for num_centroids in range(4,9,6):
                                            np.eye(dim)*sigma_out**2, size = math.floor(true_cluster_size * prop))
 
 
-        # Final points
-
-            points = np.concatenate((true_points, outliers), axis=0)
-
-            ## Without outliers
-            # points = true_points
+            # Final points
+            if with_outlier:
+                points = np.concatenate((true_points, outliers), axis=0)
+            else:
+                # Without outliers
+                points = true_points
 
             # Perform k-means clustering with k clusters
             lloydL1_centroids, lloydL1_labels = lloydL1(points,centroids_input=init_centroids,k=num_centroids, true_centroids=centroids)

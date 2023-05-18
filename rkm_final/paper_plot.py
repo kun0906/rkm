@@ -182,11 +182,11 @@ def plot_diffrad(f, out_dir='', out_name='', fontsize=10):
 
     lloydL1_misc_avg, lloydL1_misc_err = df['lloydL1ians misc'], df['lloydL1ians misc err_bar']
     kmed_misc_avg, kmed_misc_err = df['lloydL1ians-L1 misc'], df['lloydL1ians-L1 misc err_bar']
-    # kmeans_misc_avg, kmeans_misc_err = df['kmeans misc'], df['kmeans missc err_bar']
+    kmeans_misc_avg, kmeans_misc_err = df['kmeans misc'], df['kmeans missc err_bar']
 
     lloydL1_acd_avg, lloydL1_acd_err = df['lloydL1ians acd'], df['lloydL1ians acd err_bar']
     kmed_acd_avg, kmed_acd_err = df['lloydL1ians-L1 acd'], df['lloydL1ians-L1 acd err_bar']
-    # kmeans_acd_avg, kmeans_acd_err = df['kmeans acd'], df['kmeans acd err_bar']
+    kmeans_acd_avg, kmeans_acd_err = df['kmeans acd'], df['kmeans acd err_bar']
 
     # Plot the line plot with error bars
 
@@ -200,8 +200,8 @@ def plot_diffrad(f, out_dir='', out_name='', fontsize=10):
     plt.plot(rad_out_vec, kmed_misc_avg, '--', label='k-median', color="purple")
     plt.errorbar(rad_out_vec, kmed_misc_avg, yerr=kmed_misc_err, fmt='none', ecolor='black', capsize=3)
 
-    # plt.plot(rad_out_vec, kmeans_misc_avg, '-', label='Llyod (k-means)',color="blue")
-    # plt.errorbar(rad_out_vec, kmeans_misc_avg, yerr=kmeans_misc_err, fmt='none', ecolor='black', capsize=3)
+    plt.plot(rad_out_vec, kmeans_misc_avg, '-', label='Llyod (k-means)',color="blue")
+    plt.errorbar(rad_out_vec, kmeans_misc_avg, yerr=kmeans_misc_err, fmt='none', ecolor='black', capsize=3)
 
     # plt.ylim(0,0.5)
     ax.set_xticks(rad_out_vec)
@@ -232,8 +232,8 @@ def plot_diffrad(f, out_dir='', out_name='', fontsize=10):
     plt.plot(rad_out_vec, kmed_acd_avg, '--', label='k-median', color="purple")
     plt.errorbar(rad_out_vec, kmed_acd_avg, yerr=kmed_acd_err, fmt='none', ecolor='black', capsize=3)
 
-    # plt.plot(rad_out_vec, kmeans_acd_avg, '-', label='Lloyd ($k$-means)', color="blue")
-    # plt.errorbar(rad_out_vec, kmeans_acd_avg, yerr=kmeans_acd_err, fmt='none', ecolor='black', capsize=3)
+    plt.plot(rad_out_vec, kmeans_acd_avg, '-', label='Lloyd ($k$-means)', color="blue")
+    plt.errorbar(rad_out_vec, kmeans_acd_avg, yerr=kmeans_acd_err, fmt='none', ecolor='black', capsize=3)
 
     # plt.ylim(0, max(np.array(kmeans_acd_avg,lloydL1_acd_avg,kmed_acd_avg))+0.3)
     ax.set_xticks(rad_out_vec)
@@ -265,7 +265,7 @@ if __name__ == '__main__':
     R = 5000 # 5000  # number of repeats
     S = 100
 
-    for alg_method in ['diffdim', 'diffrad', 'diffvar']:
+    for alg_method in ['diffrad']: #['diffdim', 'diffrad', 'diffvar']:
         for init_method in ['omniscient', 'random']:
             f = f'{in_dir}/{alg_method}/{init_method}/R_{R}-S_{S}/data_4_clusters.csv'
             print(f)
