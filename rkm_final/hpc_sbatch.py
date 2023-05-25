@@ -55,6 +55,7 @@ echo 'done'
             ret = subprocess.run(cmd, shell=True)
             print(cmd, ret)
 
+            #####################################################################################################
             init_method = 'random'
             cnt += 1
             name = f"R_{n_repeats}-S_{true_cluster_size}-Init_{init_method}"

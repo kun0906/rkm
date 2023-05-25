@@ -8,7 +8,7 @@ module load anaconda3/2021.11
 
 n_repeats=5000
 true_cluster_size=100
-with_outlier=False
+with_outlier=True
 name="R_${n_repeats}-S_${true_cluster_size}-O_${with_outlier}"
 out_dir="out_${name}"
 if [ ! -d $out_dir ]; then
@@ -19,11 +19,12 @@ pwd
 python3 -V
 uname -a 
 
-pys=("main_clustering_diffdim.py" "main_clustering_diffrad.py" "main_clustering_diffvar.py")
+#pys=("main_clustering_diffdim.py" "main_clustering_diffrad.py" "main_clustering_diffvar.py")
+pys=("main_clustering_diffprop.py")
 redirect="&>"
 init_method="omniscient"
 # The @ symbol in the square brackets indicates that you are looping through all of the elements in the array.
-for py in ${pys[@]}; do
+for py in "${pys[@]}"; do
   # https://stackoverflow.com/questions/45499606/how-to-redirect-python-script-cmd-output-to-a-file
   #    cmd="(python3 $py --n_repeats $n_repeats --true_cluster_size $true_cluster_size --init_method $init_method --with_outlier $with_outlier --out_dir $out_dir) &> \"${out_dir}/main_clustering_diffdim_${name}-Init_omniscient.txt\" "
   cmd="python3 $py --n_repeats $n_repeats --true_cluster_size $true_cluster_size --init_method $init_method --with_outlier $with_outlier --out_dir $out_dir"
@@ -32,10 +33,11 @@ for py in ${pys[@]}; do
 done
 
 
-pys=("main_clustering_diffdim_random.py" "main_clustering_diffrad_random.py" "main_clustering_diffvar_random.py")
+#pys=("main_clustering_diffdim_random.py" "main_clustering_diffrad_random.py" "main_clustering_diffvar_random.py")
+pys=("main_clustering_diffprop_random.py")
 init_method="random"
 # The @ symbol in the square brackets indicates that you are looping through all of the elements in the array.
-for py in ${pys[@]}; do
+for py in "${pys[@]}"; do
   # https://stackoverflow.com/questions/45499606/how-to-redirect-python-script-cmd-output-to-a-file
   cmd="python3 $py --n_repeats $n_repeats --true_cluster_size $true_cluster_size --init_method $init_method --with_outlier $with_outlier --out_dir $out_dir"
   echo $cmd

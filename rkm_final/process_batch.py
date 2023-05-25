@@ -32,16 +32,22 @@ def main():
     procs = set()
     for n_repeats in [5000]:
         for true_cluster_size in [100]:
-            for with_outlier in [True, False]:
+            for with_outlier in [True]: #[True, False]:
                 for init_method in ['omniscient', 'random']:
                     if init_method == 'random':
-                        pys = ["main_clustering_diffdim_random.py",
-                               "main_clustering_diffrad_random.py",
-                               "main_clustering_diffvar_random.py"]
+                        pys = [
+                               #  "main_clustering_diffdim_random.py",
+                               # "main_clustering_diffrad_random.py",
+                               # "main_clustering_diffvar_random.py",
+                               "main_clustering_diffprop_random.py",
+                               ]
                     else:
-                        pys = ["main_clustering_diffdim.py",
-                               "main_clustering_diffrad.py",
-                               "main_clustering_diffvar.py"]
+                        pys = [
+                               #  "main_clustering_diffdim.py",
+                               # "main_clustering_diffrad.py",
+                               # "main_clustering_diffvar.py",
+                                "main_clustering_diffprop.py",
+                               ]
                     for py in pys:
                         cnt += 1
                         _out_dir = f"{out_dir}/R_{n_repeats}-S_{true_cluster_size}-O_{with_outlier}/{init_method}/{py}".replace(

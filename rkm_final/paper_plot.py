@@ -95,6 +95,82 @@ def plot_diffdim(f, out_dir='', out_name='diffdim_random_mp', fontsize=10):
     # plt.pause(2)
     plt.close()
 
+
+def plot_diffprop(f, out_dir='', out_name='diffprop_random_mp', fontsize=10):
+    # Plot the line plot with error bars
+
+
+    df = pd.read_csv(f)
+
+    tot_props = [0, 0.2, 0.4, 0.6, 0.8]
+
+    lloydL1_misc_avg, lloydL1_misc_err = df['lloydL1ians misc'], df['lloydL1ians misc err_bar']
+    kmed_misc_avg, kmed_misc_err = df['lloydL1ians-L1 misc'], df['lloydL1ians-L1 misc err_bar']
+    kmeans_misc_avg, kmeans_misc_err = df['kmeans misc'], df['kmeans missc err_bar']
+
+    lloydL1_acd_avg, lloydL1_acd_err = df['lloydL1ians acd'], df['lloydL1ians acd err_bar']
+    kmed_acd_avg, kmed_acd_err = df['lloydL1ians-L1 acd'], df['lloydL1ians-L1 acd err_bar']
+    kmeans_acd_avg, kmeans_acd_err = df['kmeans acd'], df['kmeans acd err_bar']
+
+    figsize = (8, 6)
+    fig, ax = plt.subplots()
+
+    plt.plot(tot_props, lloydL1_misc_avg, '-.', label='Lloyd-$L_1$', color="green")
+    plt.errorbar(tot_props, lloydL1_misc_avg, yerr=lloydL1_misc_err, fmt='none', ecolor='black', capsize=3)
+
+    plt.plot(tot_props, kmed_misc_avg, '--', label='k-median', color="purple")
+    plt.errorbar(tot_props, kmed_misc_avg, yerr=kmed_misc_err, fmt='none', ecolor='black', capsize=3)
+
+    plt.plot(tot_props, kmeans_misc_avg, '-', label='Llyod (k-means)', color="blue")
+    plt.errorbar(tot_props, kmeans_misc_avg, yerr=kmeans_misc_err, fmt='none', ecolor='black', capsize=3)
+
+    # plt.ylim(0,0.5)
+    ax.set_xticks(tot_props)
+
+    plt.xlabel("Noise Proportion",fontdict={'fontsize':fontsize})
+    plt.ylabel("MP",fontdict={'fontsize':fontsize})
+    # plt.title(title+'_mp')
+    # Add a legend and show the plot
+    plt.legend()
+    plt.tight_layout()
+
+    # save the figure
+    temp = time.time()
+    temp = 0
+    plt.savefig(f"{out_dir}/{out_name}_mp.png", dpi=300)
+
+    plt.show(block=False)
+    # plt.pause(2)
+
+    # Plot the line plot with error bars
+    # figsize = (8, 6)
+    fig, ax = plt.subplots()
+
+    plt.plot(tot_props, lloydL1_acd_avg, '-.', label='Lloyd-$L_1$', color="green")
+    plt.errorbar(tot_props, lloydL1_acd_avg, yerr=lloydL1_acd_err, fmt='none', ecolor='black', capsize=3)
+
+    plt.plot(tot_props, kmed_acd_avg, '--', label='k-median', color="purple")
+    plt.errorbar(tot_props, kmed_acd_avg, yerr=kmed_acd_err, fmt='none', ecolor='black', capsize=3)
+
+    plt.plot(tot_props, kmeans_acd_avg, '-', label='Lloyd ($k$-means)', color="blue")
+    plt.errorbar(tot_props, kmeans_acd_avg, yerr=kmeans_acd_err, fmt='none', ecolor='black', capsize=3)
+
+    # plt.ylim(0, max(np.array(kmeans_acd_avg,lloydL1_acd_avg,kmed_acd_avg))+0.3)
+    ax.set_xticks(tot_props)
+
+    plt.xlabel("Noise Proportion", fontdict={'fontsize':fontsize})
+    plt.ylabel("ACD", fontdict={'fontsize':fontsize})
+    # plt.title("Plot of acd: %g_clusters_rad_%g_out_%g_sigma_%g" % (num_centroids, radius, prop, sigma))
+    # Add a legend and show the plot
+    plt.legend()
+    plt.tight_layout()
+    # save the figure
+
+    plt.savefig(f"{out_dir}/{out_name}_acd.png", dpi=300)
+    plt.show(block=False)
+    # plt.pause(2)
+    plt.close()
+
 def plot_diffvar(f, out_dir='', out_name='', fontsize=10):
     # Plot the line plot with error bars
 
@@ -125,7 +201,7 @@ def plot_diffvar(f, out_dir='', out_name='', fontsize=10):
     # plt.ylim(0,0.5)
     ax.set_xticks(sigma_out_vec)
 
-    plt.xlabel("Noise Variance",fontdict={'fontsize':fontsize})
+    plt.xlabel("Noise Standard Deviation",fontdict={'fontsize':fontsize})
     plt.ylabel("MP",fontdict={'fontsize':fontsize})
     # plt.title("Plot of misc_prop: %g_clusters_rad_%g_out_%g_dim_%g" % (num_centroids, radius, prop, dim))
 
@@ -157,7 +233,7 @@ def plot_diffvar(f, out_dir='', out_name='', fontsize=10):
     # plt.ylim(0, max(np.array(kmeans_acd_avg,lloydL1_acd_avg,kmed_acd_avg))+0.3)
     ax.set_xticks(sigma_out_vec)
 
-    plt.xlabel("Noise Variance",fontdict={'fontsize':fontsize})
+    plt.xlabel("Noise Standard Deviation",fontdict={'fontsize':fontsize})
     plt.ylabel("ACD",fontdict={'fontsize':fontsize})
     # plt.title("Plot of acd: %g_clusters_rad_%g_out_%g_dim_%g" % (num_centroids, radius, prop, dim))
 
@@ -257,7 +333,8 @@ def plot_diffrad(f, out_dir='', out_name='', fontsize=10):
 
 if __name__ == '__main__':
 
-    in_dir = 'out-R_5000-S_100-20230516'
+    # in_dir = 'out-R_5000-S_100-20230516'
+    in_dir = 'R_5000-S_100-O_True-20230525'
     out_dir = f'{in_dir}/paper_plot'
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
@@ -265,9 +342,13 @@ if __name__ == '__main__':
     R = 5000 # 5000  # number of repeats
     S = 100
 
-    for alg_method in ['diffrad']: #['diffdim', 'diffrad', 'diffvar']:
+    for alg_method in ['diffprop']: #['diffdim', 'diffrad', 'diffvar', 'diffprop']:
         for init_method in ['omniscient', 'random']:
-            f = f'{in_dir}/{alg_method}/{init_method}/R_{R}-S_{S}/data_4_clusters.csv'
+            if init_method == 'random':
+                py = f"main_clustering_{alg_method}_{init_method}_py"
+            else:
+                py = f"main_clustering_{alg_method}_py"
+            f = f'{in_dir}/{init_method}/{py}/data_4_clusters.csv'
             print(f)
             fontsize=12
             try:
@@ -277,6 +358,8 @@ if __name__ == '__main__':
                     plot_diffvar(f, out_dir=out_dir, out_name=f'{alg_method}_{init_method}', fontsize=fontsize)
                 elif alg_method == 'diffrad':
                     plot_diffrad(f, out_dir=out_dir, out_name=f'{alg_method}_{init_method}', fontsize=fontsize)
+                elif alg_method == 'diffprop':
+                    plot_diffprop(f, out_dir=out_dir, out_name=f'{alg_method}_{init_method}', fontsize=fontsize)
                 else:
                     raise NotImplementedError()
             except Exception as e:

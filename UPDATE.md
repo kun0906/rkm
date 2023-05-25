@@ -1,8 +1,17 @@
-V0.3.1: Rewrite bash by python.
+V0.3.2: Add different noise proportions 
+
+1. Add diffprop
+2. Update paper_plot.py 
+3. Update R_5000.sh 
+
+
+V0.3.1: Rewrite bash by python
+
 1. Rewrite the bash with python3 
    limit the number of spawned processes 
 2. Add for loop in the bash
 3. Generate results without outliers
+
 
 V0.2.0: Rewrite the codes with seperated python scripts. 
 
@@ -30,8 +39,7 @@ V0.1.2: Change r.randint() to r.choice(replace=False)
 5. Error: Pycharm Failed to transfer file. Could not close the output stream for file.
    There is no disk space in the remote server, please remove "files" in "out" directory to address this issue. 
 
-
-
+   
 V0.1.1: Add Latex_tables
 
 1. Add Latex_tables to convert the csv and print out the latex tables 
