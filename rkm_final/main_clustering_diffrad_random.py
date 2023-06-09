@@ -92,7 +92,8 @@ for num_centroids in range(4, 10, 6):
 
             radius = 5
 
-            sigma = 2
+            sigma = 1
+            # sigma = 2
 
             centroids *= radius
 

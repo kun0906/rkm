@@ -1,3 +1,8 @@
+V0.3.3: Reduce the standard deviations for different noise radius. 
+
+1. Reduce the std from 2 to 1 for normal clusters.
+
+
 V0.3.2: Add different noise proportions 
 
 1. Add diffprop

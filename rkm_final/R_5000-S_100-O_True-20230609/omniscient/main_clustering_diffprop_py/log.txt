@@ -1,0 +1,3 @@
+Namespace(n_repeats=5000, true_cluster_size=100, init_method='omniscient', with_outlier=True, out_dir='out/R_5000-S_100-O_True/omniscient/main_clustering_diffprop_py')
+out/R_5000-S_100-O_True/omniscient/main_clustering_diffprop_py
+  0%|          | 0/5 [00:00<?, ?it/s] 20%|██        | 1/5 [03:41<14:44, 221.13s/it] 40%|████      | 2/5 [07:51<11:55, 238.50s/it] 60%|██████    | 3/5 [12:41<08:44, 262.01s/it] 80%|████████  | 4/5 [18:17<04:51, 291.15s/it]100%|██████████| 5/5 [24:42<00:00, 324.97s/it]100%|██████████| 5/5 [24:42<00:00, 296.51s/it]

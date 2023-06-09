@@ -37,16 +37,16 @@ def main():
                     if init_method == 'random':
                         pys = [
                                #  "main_clustering_diffdim_random.py",
-                               # "main_clustering_diffrad_random.py",
+                               "main_clustering_diffrad_random.py",
                                # "main_clustering_diffvar_random.py",
-                               "main_clustering_diffprop_random.py",
+                               # "main_clustering_diffprop_random.py",
                                ]
                     else:
                         pys = [
                                #  "main_clustering_diffdim.py",
-                               # "main_clustering_diffrad.py",
+                               "main_clustering_diffrad.py",
                                # "main_clustering_diffvar.py",
-                                "main_clustering_diffprop.py",
+                               #  "main_clustering_diffprop.py",
                                ]
                     for py in pys:
                         cnt += 1

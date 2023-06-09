@@ -28,7 +28,7 @@ from clustering import *
 parser = argparse.ArgumentParser()
 # parser.add_argument('--force', default=False,   # whether overwrite the previous results or not?
 #                     action='store_true', help='force')
-parser.add_argument("--n_repeats", type=int, default=10)  #
+parser.add_argument("--n_repeats", type=int, default=5000)  #
 parser.add_argument("--true_cluster_size", type=int, default=100)
 parser.add_argument("--init_method", type=str, default='omniscient')
 parser.add_argument("--with_outlier", type=str, default='True')
@@ -92,7 +92,8 @@ for num_centroids in range(4, 10, 6):
 
             radius = 5
 
-            sigma = 2
+            sigma = 1
+            # sigma = 2
 
             centroids *= radius
 
