@@ -37,7 +37,7 @@
 
 ## Dataset:
 
-- GAUSSIAN3: _simulated 2 clusters from 2 Gaussian distributions._
+[//]: # (- GAUSSIAN3: _simulated 2 clusters from 2 Gaussian distributions._)
 
 [//]: # (- MNIST: _handwritten datasets: https://yann.lecun.com/exdb/mnist/ or https://web.archive.org/web/20160828233817/http://yann.lecun.com/exdb/mnist/index.html)
 
@@ -46,8 +46,9 @@
 ## Usage
 
 ```shell
-$cd rkm/rkm/
-$PYTHONPATH='..' python3 main_all.py
+$cd rkm/rkm_final/
+#$PYTHONPATH='..' python3 main_all.py
+./R_5000.sh
 ```
 
 ## Update
@@ -56,7 +57,7 @@ $PYTHONPATH='..' python3 main_all.py
 
 ## Contact
 
-- Email: kun.bj@outlook.com
+- Email: kun88.yang@gmail.com
 
 [//]: #
 [//]: #

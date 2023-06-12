@@ -163,7 +163,7 @@ for num_centroids in range(5,9,4):
     #
     # data = {'outlier std':sigma_out_vec,'lloydL1ians misc':lloydL1_misc_avg,'lloydL1ians misc err_bar':lloydL1_misc_err,
     #         'lloydL1ians-L1 misc':kmed_misc_avg,'lloydL1ians-L1 misc err_bar':kmed_misc_err,
-    #         'kmeans misc':kmeans_misc_avg,'kmeans missc err_bar':kmeans_misc_err,
+    #         'kmeans misc':kmeans_misc_avg,'kmeans misc err_bar':kmeans_misc_err,
     #         'lloydL1ians acd': lloydL1_acd_avg, 'lloydL1ians acd err_bar': lloydL1_acd_err,
     #         'lloydL1ians-L1 acd': kmed_acd_avg, 'lloydL1ians-L1 acd err_bar': kmed_acd_err,
     #         'kmeans acd': kmeans_acd_avg, 'kmeans acd err_bar': kmeans_acd_err

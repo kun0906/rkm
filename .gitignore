@@ -1,0 +1,16 @@
+.idea/
+/**/__pycache__/*
+
+*.dat
+*.png
+**/.DS_Store
+/**/.DS_Store
+.DS_Store
+
+.gitignore
+
+/rkm/datasets/3GAUSSIANS/
+/rkm_final/out/
+/rkm/datasets/NBAIOT/
+/legacy/
+

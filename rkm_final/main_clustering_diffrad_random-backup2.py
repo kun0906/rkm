@@ -33,7 +33,6 @@ parser.add_argument("--true_cluster_size", type=int, default=100)
 parser.add_argument("--init_method", type=str, default='random')
 parser.add_argument("--with_outlier", type=str, default='True')
 parser.add_argument("--out_dir", type=str, default='out')
-parser.add_argument("--std", type=float, default=1)
 args = parser.parse_args()
 args.with_outlier = False if args.with_outlier == 'False' else True
 print(args)
@@ -51,7 +50,7 @@ if not os.path.exists(out_dir):
 dim = 10
 rad_out_vec = np.trunc(np.linspace(0, 100, 11))
 
-for num_centroids in range(4, 10, 6):
+for num_centroids in [4]: #range(4, 10, 6):
     # True labels
 
     true_labels = np.concatenate([np.ones(true_cluster_size) * i for i in range(num_centroids)]).astype(int)
@@ -93,7 +92,11 @@ for num_centroids in range(4, 10, 6):
 
             radius = 5
 
-            sigma = args.std
+            # sigma = 1
+            # sigma = 2
+            # sigma = 0.5
+            # sigma = 0.25
+            sigma = 0.1
 
             centroids *= radius
 
@@ -103,11 +106,12 @@ for num_centroids in range(4, 10, 6):
                 [rng.multivariate_normal(mean, np.identity(dim) * sigma ** 2, size=true_cluster_size) for mean in
                  centroids])
 
-            # if init_method == 'random':
-            #     indices = rng.choice(range(len(true_points)), size=num_centroids, replace=False)
-            #     init_centroids = true_points[indices, :]
-            # else:
-            #     pass
+            if init_method == 'random':
+                indices = rng.choice(range(len(true_points)), size=num_centroids, replace=False)
+                init_centroids = true_points[indices, :]
+            else:
+                pass
+
             # Fraction of outliers
 
             prop = 0.6
@@ -133,11 +137,6 @@ for num_centroids in range(4, 10, 6):
                  # Without outliers
                 points = true_points
 
-            if init_method == 'random':
-                indices = rng.choice(range(len(points)), size=num_centroids, replace=False)
-                init_centroids = points[indices, :]
-            else:
-                pass
             # Perform k-means clustering with k clusters
             lloydL1_centroids, lloydL1_labels = lloydL1(points, centroids_input=init_centroids,
                                                         k=num_centroids,  true_centroids=centroids)

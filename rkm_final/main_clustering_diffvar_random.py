@@ -20,6 +20,7 @@ parser.add_argument("--true_cluster_size", type=int, default=100)
 parser.add_argument("--init_method", type=str, default='random')
 parser.add_argument("--with_outlier", type=str, default='True')
 parser.add_argument("--out_dir", type=str, default='out')
+parser.add_argument("--std", type=float, default=1)
 args = parser.parse_args()
 args.with_outlier = False if args.with_outlier == 'False' else True
 print(args)
@@ -79,7 +80,7 @@ for num_centroids in range(4,9,6):
 
             radius = 5
 
-            sigma = 2
+            sigma = args.std
 
             centroids *= radius
 
@@ -89,12 +90,12 @@ for num_centroids in range(4,9,6):
             true_points = np.concatenate(
                 [rng.multivariate_normal(mean,  cov*sigma**2, size=true_cluster_size) for mean in centroids])
 
-            if init_method == 'random':
-                indices = rng.choice(range(len(true_points)), size=num_centroids, replace=False)
-                init_centroids = true_points[indices, :]
-                # init_centroids = np.copy(centroids)
-            else:
-                pass
+            # if init_method == 'random':
+            #     indices = rng.choice(range(len(true_points)), size=num_centroids, replace=False)
+            #     init_centroids = true_points[indices, :]
+            #     # init_centroids = np.copy(centroids)
+            # else:
+            #     pass
 
             # Fraction of outliers
 
@@ -110,6 +111,13 @@ for num_centroids in range(4,9,6):
             else:
                 # Without outliers
                 points = true_points
+
+            if init_method == 'random':
+                indices = rng.choice(range(len(points)), size=num_centroids, replace=False)
+                init_centroids = points[indices, :]
+                # init_centroids = np.copy(centroids)
+            else:
+                pass
 
             # Perform k-means clustering with k clusters
             lloydL1_centroids, lloydL1_labels = lloydL1(points,centroids_input=init_centroids,k=num_centroids, true_centroids=centroids)
@@ -165,7 +173,7 @@ for num_centroids in range(4,9,6):
 
     data = {'outlier std':sigma_out_vec,'lloydL1ians misc':lloydL1_misc_avg,'lloydL1ians misc err_bar':lloydL1_misc_err,
             'lloydL1ians-L1 misc':kmed_misc_avg,'lloydL1ians-L1 misc err_bar':kmed_misc_err,
-            'kmeans misc':kmeans_misc_avg,'kmeans missc err_bar':kmeans_misc_err,
+            'kmeans misc':kmeans_misc_avg,'kmeans misc err_bar':kmeans_misc_err,
             'lloydL1ians acd': lloydL1_acd_avg, 'lloydL1ians acd err_bar': lloydL1_acd_err,
             'lloydL1ians-L1 acd': kmed_acd_avg, 'lloydL1ians-L1 acd err_bar': kmed_acd_err,
             'kmeans acd': kmeans_acd_avg, 'kmeans acd err_bar': kmeans_acd_err

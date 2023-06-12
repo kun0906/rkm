@@ -37,7 +37,7 @@ def align_centroids(centroids, true_centroids, method='name'):
     for _indices in list(itertools.permutations(indices)):
         c = centroids[_indices, :]
         d = np.sum(np.sum(np.square(c - c1), axis=1), axis=0)
-        if d <= min_d:
+        if d < min_d:
             # print(method, d, min_d)
             min_d = np.copy(d) # here is just a float, so there is no need to copy()
             best_centroids = np.asarray(copy.deepcopy(c))

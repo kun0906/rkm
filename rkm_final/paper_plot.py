@@ -18,7 +18,7 @@ def plot_diffdim(f, out_dir='', out_name='diffdim_random_mp', fontsize=10):
 
     # data = {'dimensions': tot_dims, 'lloydL1ians misc': lloydL1_misc_avg, 'lloydL1ians misc err_bar': lloydL1_misc_err,
     #         'lloydL1ians-L1 misc': kmed_misc_avg, 'lloydL1ians-L1 misc err_bar': kmed_misc_err,
-    #         'kmeans misc': kmeans_misc_avg, 'kmeans missc err_bar': kmeans_misc_err,
+    #         'kmeans misc': kmeans_misc_avg, 'kmeans misc err_bar': kmeans_misc_err,
     #         'lloydL1ians acd': lloydL1_acd_avg, 'lloydL1ians acd err_bar': lloydL1_acd_err,
     #         'lloydL1ians-L1 acd': kmed_acd_avg, 'lloydL1ians-L1 acd err_bar': kmed_acd_err,
     #         'kmeans acd': kmeans_acd_avg, 'kmeans acd err_bar': kmeans_acd_err
@@ -30,7 +30,7 @@ def plot_diffdim(f, out_dir='', out_name='diffdim_random_mp', fontsize=10):
 
     lloydL1_misc_avg, lloydL1_misc_err = df['lloydL1ians misc'], df['lloydL1ians misc err_bar']
     kmed_misc_avg, kmed_misc_err = df['lloydL1ians-L1 misc'], df['lloydL1ians-L1 misc err_bar']
-    kmeans_misc_avg, kmeans_misc_err = df['kmeans misc'], df['kmeans missc err_bar']
+    kmeans_misc_avg, kmeans_misc_err = df['kmeans misc'], df['kmeans misc err_bar']
 
     lloydL1_acd_avg, lloydL1_acd_err = df['lloydL1ians acd'], df['lloydL1ians acd err_bar']
     kmed_acd_avg, kmed_acd_err = df['lloydL1ians-L1 acd'], df['lloydL1ians-L1 acd err_bar']
@@ -106,7 +106,7 @@ def plot_diffprop(f, out_dir='', out_name='diffprop_random_mp', fontsize=10):
 
     lloydL1_misc_avg, lloydL1_misc_err = df['lloydL1ians misc'], df['lloydL1ians misc err_bar']
     kmed_misc_avg, kmed_misc_err = df['lloydL1ians-L1 misc'], df['lloydL1ians-L1 misc err_bar']
-    kmeans_misc_avg, kmeans_misc_err = df['kmeans misc'], df['kmeans missc err_bar']
+    kmeans_misc_avg, kmeans_misc_err = df['kmeans misc'], df['kmeans misc err_bar']
 
     lloydL1_acd_avg, lloydL1_acd_err = df['lloydL1ians acd'], df['lloydL1ians acd err_bar']
     kmed_acd_avg, kmed_acd_err = df['lloydL1ians-L1 acd'], df['lloydL1ians-L1 acd err_bar']
@@ -181,7 +181,7 @@ def plot_diffvar(f, out_dir='', out_name='', fontsize=10):
 
     lloydL1_misc_avg, lloydL1_misc_err = df['lloydL1ians misc'], df['lloydL1ians misc err_bar']
     kmed_misc_avg, kmed_misc_err = df['lloydL1ians-L1 misc'], df['lloydL1ians-L1 misc err_bar']
-    kmeans_misc_avg, kmeans_misc_err = df['kmeans misc'], df['kmeans missc err_bar']
+    kmeans_misc_avg, kmeans_misc_err = df['kmeans misc'], df['kmeans misc err_bar']
 
     lloydL1_acd_avg, lloydL1_acd_err = df['lloydL1ians acd'], df['lloydL1ians acd err_bar']
     kmed_acd_avg, kmed_acd_err = df['lloydL1ians-L1 acd'], df['lloydL1ians-L1 acd err_bar']
@@ -258,7 +258,7 @@ def plot_diffrad(f, out_dir='', out_name='', fontsize=10):
 
     lloydL1_misc_avg, lloydL1_misc_err = df['lloydL1ians misc'], df['lloydL1ians misc err_bar']
     kmed_misc_avg, kmed_misc_err = df['lloydL1ians-L1 misc'], df['lloydL1ians-L1 misc err_bar']
-    kmeans_misc_avg, kmeans_misc_err = df['kmeans misc'], df['kmeans missc err_bar']
+    kmeans_misc_avg, kmeans_misc_err = df['kmeans misc'], df['kmeans misc err_bar']
 
     lloydL1_acd_avg, lloydL1_acd_err = df['lloydL1ians acd'], df['lloydL1ians acd err_bar']
     kmed_acd_avg, kmed_acd_err = df['lloydL1ians-L1 acd'], df['lloydL1ians-L1 acd err_bar']
@@ -335,7 +335,8 @@ if __name__ == '__main__':
 
     # in_dir = 'out-R_5000-S_100-20230516'
     # in_dir = 'R_5000-S_100-O_True-20230525'
-    in_dir = 'R_5000-S_100-O_True-20230609'
+    in_dir = 'R_5000-S_100-O_True-20230610'
+    # in_dir = 'out/std_1/R_5000-S_100-O_True'
     out_dir = f'{in_dir}/paper_plot'
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
@@ -349,6 +350,8 @@ if __name__ == '__main__':
                 py = f"main_clustering_{alg_method}_{init_method}_py"
             else:
                 py = f"main_clustering_{alg_method}_py"
+            # if alg_method=='diffrad':
+            #     py = py + '-std_01'
             f = f'{in_dir}/{init_method}/{py}/data_4_clusters.csv'
             print(f)
             fontsize=12

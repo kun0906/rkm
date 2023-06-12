@@ -33,6 +33,7 @@ parser.add_argument("--true_cluster_size", type=int, default=100)
 parser.add_argument("--init_method", type=str, default='omniscient')
 parser.add_argument("--with_outlier", type=str, default='True')
 parser.add_argument("--out_dir", type=str, default='out')
+parser.add_argument("--std", type=float, default=1)
 args = parser.parse_args()
 args.with_outlier = False if args.with_outlier == 'False' else True
 print(args)
@@ -92,8 +93,7 @@ for num_centroids in range(4, 10, 6):
 
             radius = 5
 
-            sigma = 1
-            # sigma = 2
+            sigma = args.std
 
             centroids *= radius
 
@@ -108,7 +108,7 @@ for num_centroids in range(4, 10, 6):
 
             prop = 0.6
 
-            sigma_out = 2
+            sigma_out = 10
 
             # outliers = rad_out/np.sqrt(dim) + sigma_out * rng.multivariate_normal(np.zeros(dim), np.eye(dim),
             #                                                      size = math.floor(true_cluster_size * prop))
@@ -201,7 +201,7 @@ for num_centroids in range(4, 10, 6):
             'outlier rad':rad_out_vec,
             'lloydL1ians misc':lloydL1_misc_avg,'lloydL1ians misc err_bar':lloydL1_misc_err,
             'lloydL1ians-L1 misc':kmed_misc_avg,'lloydL1ians-L1 misc err_bar':kmed_misc_err,
-            'kmeans misc':kmeans_misc_avg,'kmeans missc err_bar':kmeans_misc_err,
+            'kmeans misc':kmeans_misc_avg,'kmeans misc err_bar':kmeans_misc_err,
             'lloydL1ians acd': lloydL1_acd_avg, 'lloydL1ians acd err_bar': lloydL1_acd_err,
             'lloydL1ians-L1 acd': kmed_acd_avg, 'lloydL1ians-L1 acd err_bar': kmed_acd_err,
             'kmeans acd': kmeans_acd_avg, 'kmeans acd err_bar': kmeans_acd_err

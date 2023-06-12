@@ -1,12 +1,9 @@
 import time
 
-import numpy as np
-import matplotlib.pyplot as plt
 import math
 from tqdm import tqdm
 import pandas as pd
 import copy
-import os
 from clustering import *
 
 
@@ -160,7 +157,7 @@ for num_centroids in [5]: #range(5,9,4):
 
     data = {'outlier std':sigma_out_vec,'kmedians misc':kmed_misc_avg,'kmedians misc err_bar':kmed_misc_err,
             'kmedians-L1 misc':kmedL1_misc_avg,'kmedians-L1 misc err_bar':kmedL1_misc_err,
-            'kmeans misc':kmeans_misc_avg,'kmeans missc err_bar':kmeans_misc_err,
+            'kmeans misc':kmeans_misc_avg,'kmeans misc err_bar':kmeans_misc_err,
             'kmedians acd': kmed_acd_avg, 'kmedians acd err_bar': kmed_acd_err,
             'kmedians-L1 acd': kmedL1_acd_avg, 'kmedians-L1 acd err_bar': kmedL1_acd_err,
             'kmeans acd': kmeans_acd_avg, 'kmeans acd err_bar': kmeans_acd_err
