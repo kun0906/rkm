@@ -335,8 +335,8 @@ if __name__ == '__main__':
 
     # in_dir = 'out-R_5000-S_100-20230516'
     # in_dir = 'R_5000-S_100-O_True-20230525'
-    in_dir = 'R_5000-S_100-O_True-20230610'
-    # in_dir = 'out/std_1/R_5000-S_100-O_True'
+    # in_dir = 'R_5000-S_100-O_True-20230610'
+    in_dir = 'out/std_2/R_5000-S_100-O_True'
     out_dir = f'{in_dir}/paper_plot'
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
@@ -344,7 +344,7 @@ if __name__ == '__main__':
     R = 5000 # 5000  # number of repeats
     S = 100
 
-    for alg_method in ['diffrad']: #['diffdim', 'diffrad', 'diffvar', 'diffprop']:
+    for alg_method in ['diffdim', 'diffrad', 'diffvar', 'diffprop']: #['diffdim', 'diffrad', 'diffvar', 'diffprop']:
         for init_method in ['omniscient', 'random']:
             if init_method == 'random':
                 py = f"main_clustering_{alg_method}_{init_method}_py"

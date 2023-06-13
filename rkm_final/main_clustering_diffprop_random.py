@@ -92,14 +92,6 @@ for num_centroids in range(4,9,9):
             true_points = np.concatenate(
                 [rng.multivariate_normal(mean, cov * (sigma**2), size=true_cluster_size) for mean in centroids])
 
-            if init_method == 'random':
-                indices = rng.choice(range(len(true_points)), size=num_centroids, replace=False)
-                init_centroids = true_points[indices, :]
-                # init_centroids = np.copy(centroids)
-            else:
-                pass
-
-
             # Fraction of outliers
             # prop = 0.60
 
@@ -115,6 +107,13 @@ for num_centroids in range(4,9,9):
             else:
                 # Without outliers
                 points = true_points
+
+            if init_method == 'random':
+                indices = rng.choice(range(len(points)), size=num_centroids, replace=False)
+                init_centroids = points[indices, :]
+                # init_centroids = np.copy(centroids)
+            else:
+                pass
 
             # Perform k-means clustering with k clusters
             lloydL1_centroids, lloydL1_labels = lloydL1(points,centroids_input=init_centroids,k=num_centroids, true_centroids=centroids)

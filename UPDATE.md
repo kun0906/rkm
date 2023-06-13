@@ -1,3 +1,10 @@
+v0.3.5: Rerun all the cases 
+
+1. Modify main_clustering_diffprop_random.py for random initialization. 
+2. Update proess_batch.py with more stds
+
+
+
 v0.3.4: Change the std of normal data from 2 to 1 for all cases 
 
 1. Change the std of normal data from 2 to 1 for all cases 

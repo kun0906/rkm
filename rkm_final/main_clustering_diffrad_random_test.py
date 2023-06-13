@@ -312,7 +312,10 @@ if not os.path.exists(out_dir):
 
 
 rad_out_vec = [0] # np.trunc(np.linspace(0, 100, 11))
-_std = str(args.std).replace('.', '')
+if args.std == 1.0:
+    _std = 1
+else:
+    _std = str(args.std).replace('.', '')
 out_dir = os.path.join(out_dir, f'D_{dim}-rp_{num_repeat}-std_{_std}')
 os.makedirs(out_dir, exist_ok=True)
 

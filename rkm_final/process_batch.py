@@ -36,9 +36,9 @@ def main():
     procs = set()
     for n_repeats in [5000]:
         for true_cluster_size in [100]:
-            for std in [1, 2, 0.5]: #[0.1, 0.25, 0.5, 1]:
+            for std in [0.1, 0.25, 0.5, 1, 2, 5]: #[0.1, 0.25, 0.5, 1]:
                 for with_outlier in [True]:  # [True, False]:
-                    for init_method in ['random']:  # ['omniscient', 'random']:
+                    for init_method in ['random', 'omniscient']:  # ['omniscient', 'random']:
                         if init_method == 'random':
                             pys = [
                                  "main_clustering_diffdim_random.py",
