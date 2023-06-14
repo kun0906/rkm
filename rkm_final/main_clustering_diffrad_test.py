@@ -22,15 +22,15 @@ def remove_outliers(lst, q):  # q is trimming percent
 
 
 import os
-from clustering_random import *
+from clustering import *
 
 
 parser = argparse.ArgumentParser()
 # parser.add_argument('--force', default=False,   # whether overwrite the previous results or not?
 #                     action='store_true', help='force')
-parser.add_argument("--n_repeats", type=int, default=10)  #
+parser.add_argument("--n_repeats", type=int, default=1)  #
 parser.add_argument("--true_cluster_size", type=int, default=100)
-parser.add_argument("--init_method", type=str, default='random')
+parser.add_argument("--init_method", type=str, default='omniscient')
 parser.add_argument("--with_outlier", type=str, default='True')
 parser.add_argument("--out_dir", type=str, default='out')
 parser.add_argument("--std", type=float, default=1)
@@ -41,7 +41,7 @@ print(args)
 num_repeat = args.n_repeats
 init_method = args.init_method
 true_cluster_size = args.true_cluster_size
-with_outlier=args.with_outlier
+with_outlier = args.with_outlier
 # out_dir = f'{args.out_dir}/diffdim/{init_method}/R_{num_repeat}-S_{true_cluster_size}'
 out_dir = args.out_dir
 if not os.path.exists(out_dir):
@@ -49,7 +49,7 @@ if not os.path.exists(out_dir):
 
 
 dim = 10
-rad_out_vec = np.trunc(np.linspace(0, 100, 11))
+rad_out_vec = [100] # np.trunc(np.linspace(0, 100, 11))
 
 for num_centroids in range(4, 10, 6):
     # True labels
@@ -93,7 +93,7 @@ for num_centroids in range(4, 10, 6):
 
             radius = 5
 
-            sigma = args.std
+            sigma = 2
 
             centroids *= radius
 
@@ -103,17 +103,13 @@ for num_centroids in range(4, 10, 6):
                 [rng.multivariate_normal(mean, np.identity(dim) * sigma ** 2, size=true_cluster_size) for mean in
                  centroids])
 
-            # if init_method == 'random':
-            #     indices = rng.choice(range(len(true_points)), size=num_centroids, replace=False)
-            #     init_centroids = true_points[indices, :]
-            # else:
-            #     pass
+
             # Fraction of outliers
 
-            prop = 0.6
-            sigma_out = 10
+            prop = 0.4
+            sigma_out = 1      # for testing
             # prop = 0.4
-            # sigma_out = 2     # for debugging
+            # sigma_out = 2
 
             # outliers = rad_out/np.sqrt(dim) + sigma_out * rng.multivariate_normal(np.zeros(dim), np.eye(dim),
             #                                                      size = math.floor(true_cluster_size * prop))
@@ -132,29 +128,39 @@ for num_centroids in range(4, 10, 6):
             if with_outlier:
                 points = np.concatenate((true_points, outliers), axis=0)
             else:
-                 # Without outliers
+                # Without outliers
                 points = true_points
 
-            if init_method == 'random':
-                indices = rng.choice(range(len(points)), size=num_centroids, replace=False)
-                init_centroids = points[indices, :]
-            else:
-                pass
             # Perform k-means clustering with k clusters
-            lloydL1_centroids, lloydL1_labels = lloydL1(points, centroids_input=init_centroids,
-                                                        k=num_centroids,  true_centroids=centroids)
-            kmed_centroids, kmed_labels = kmed(points, centroids_input=init_centroids, k=num_centroids,  true_centroids=centroids)
-            kmeans_centroids, kmeans_labels = kmeans(points,centroids_input=init_centroids,k=num_centroids, true_centroids=centroids)
+            lloydL1_centroids, lloydL1_labels = lloydL1(points, centroids_input=copy.deepcopy(centroids),
+                                                        k=num_centroids)
+            kmed_centroids, kmed_labels = kmed(points, centroids_input=copy.deepcopy(centroids), k=num_centroids)
+            kmeans_centroids, kmeans_labels = kmeans(points,centroids_input=copy.deepcopy(centroids),k=num_centroids)
 
             # lloydL1_acd.append(np.median((lloydL1_centroids - centroids) ** 2))
             # kmed_acd.append(np.median((kmed_centroids - centroids) ** 2))
             # kmeans_acd.append(np.sum((kmeans_centroids - centroids) ** 2) / num_centroids)
-            lloydL1_acd.append(np.sum((lloydL1_centroids - centroids) ** 2) / num_centroids)
-            kmed_acd.append(np.sum((kmed_centroids - centroids) ** 2) / num_centroids)
-            kmeans_acd.append(np.sum((kmeans_centroids - centroids) ** 2) / num_centroids)
 
+            lloydL1_acd.append(np.sum((lloydL1_centroids - centroids) ** 2) / num_centroids)
+            print('lloydL1 ...')
+            print(lloydL1_centroids)
+            print(centroids)
+            print(lloydL1_acd)
+            print(collections.Counter(lloydL1_labels))
+            kmed_acd.append(np.sum((kmed_centroids - centroids) ** 2) / num_centroids)
+            print('kmed ...')
+            print(kmed_centroids)
+            print(centroids)
+            print(kmed_acd)
+            print(collections.Counter(kmed_labels))
+            kmeans_acd.append(np.sum((kmeans_centroids - centroids) ** 2) / num_centroids)
+            print('kmeans ...')
+            print(kmeans_centroids)
+            print(centroids)
+            print(kmeans_acd)
+            print(collections.Counter(kmeans_labels))
             # Misclustering label estimation
-            # All the normal data are the first k*100 points.
+
             lloydL1_misc.append(
                 sum(lloydL1_labels[range(num_centroids * true_cluster_size)] != true_labels) / len(true_labels))
 

@@ -1,3 +1,5 @@
+import collections
+
 import numpy as np
 
 tot_iterate = 50
@@ -69,7 +71,7 @@ def lloydL1(points, k, centroids_input,max_iterations=tot_iterate):
                 # new_centroids[j] use the previous centroid
                 continue
             new_centroids[j] = np.median(points[labels == j], axis=0)
-
+        # print(i, collections.Counter(labels))
         if np.sum((new_centroids - pre_centroids) ** 2) / k < tolerance:
             break
 
