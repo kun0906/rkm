@@ -100,6 +100,7 @@ for num_centroids in range(4,9,5):
             prop = 0.60
 
             outlier_std = 10
+            # outlier_std = 2
 
             outliers = rng.multivariate_normal(np.ones(dim)*0,
                                            np.eye(dim)*outlier_std**2, size = math.floor(true_cluster_size * prop))

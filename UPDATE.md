@@ -1,3 +1,10 @@
+v0.3.6: Update diffrad 
+
+1. Choose the random centroids on all data (including normal and outliers)
+2. Fix outlier std to 10
+3. Rerun all the cases. 
+
+
 v0.3.5: Rerun all the cases 
 
 1. Modify main_clustering_diffprop_random.py for random initialization. 

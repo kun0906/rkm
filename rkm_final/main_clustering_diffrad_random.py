@@ -113,6 +113,7 @@ for num_centroids in range(4, 10, 6):
             prop = 0.6
 
             sigma_out = 10
+            # sigma_out = 2
 
             # outliers = rad_out/np.sqrt(dim) + sigma_out * rng.multivariate_normal(np.zeros(dim), np.eye(dim),
             #                                                      size = math.floor(true_cluster_size * prop))
@@ -121,7 +122,8 @@ for num_centroids in range(4, 10, 6):
 
             centroids_out_dir /= np.linalg.norm(centroids_out_dir, axis=1)[:, np.newaxis]
 
-            outlier_mean = rad_out / np.sqrt(dim) * centroids_out_dir[0]
+            # outlier_mean = rad_out / np.sqrt(dim) * centroids_out_dir[0]
+            outlier_mean = rad_out * centroids_out_dir[0]
 
             outliers = outlier_mean + rng.multivariate_normal(np.zeros(dim), np.eye(dim) * sigma_out ** 2,
                                                                     size=math.floor(true_cluster_size * prop))

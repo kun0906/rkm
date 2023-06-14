@@ -90,13 +90,6 @@ for num_centroids in range(4,9,6):
             true_points = np.concatenate(
                 [rng.multivariate_normal(mean,  cov*sigma**2, size=true_cluster_size) for mean in centroids])
 
-            # if init_method == 'random':
-            #     indices = rng.choice(range(len(true_points)), size=num_centroids, replace=False)
-            #     init_centroids = true_points[indices, :]
-            #     # init_centroids = np.copy(centroids)
-            # else:
-            #     pass
-
             # Fraction of outliers
 
             prop = 0.60
