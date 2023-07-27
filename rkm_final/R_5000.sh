@@ -11,11 +11,12 @@ python3 -V
 uname -a
 
 date
-cmd="python3 process_batch.py"
+#cmd="python3 process_batch.py"
+cmd="python3 process_batch_real.py"
 echo $cmd
-$cmd &> log.txt
+$cmd &> log.txt &
 date
 
 wait
 echo 'done'     
-    
+

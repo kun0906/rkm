@@ -106,10 +106,10 @@ for num_centroids in range(4, 10, 6):
 
             # Fraction of outliers
 
-            prop = 0.6
-            sigma_out = 10      # for testing
-            # prop = 0.4
-            # sigma_out = 2
+            # prop = 0.6
+            # sigma_out = 10      # for testing
+            prop = 0.4
+            sigma_out = 2
 
             # outliers = rad_out/np.sqrt(dim) + sigma_out * rng.multivariate_normal(np.zeros(dim), np.eye(dim),
             #                                                      size = math.floor(true_cluster_size * prop))

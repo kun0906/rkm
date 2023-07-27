@@ -39,13 +39,13 @@ def plot_diffdim(f, out_dir='', out_name='diffdim_random_mp', fontsize=10):
     figsize = (8, 6)
     fig, ax = plt.subplots()
 
-    plt.plot(tot_dims, lloydL1_misc_avg, '-.', label='Lloyd-$L_1$', color="green")
+    plt.plot(tot_dims, lloydL1_misc_avg, '-.', label='$k$-medians-hybrid', color="green")
     plt.errorbar(tot_dims, lloydL1_misc_avg, yerr=lloydL1_misc_err, fmt='none', ecolor='black', capsize=3)
 
-    plt.plot(tot_dims, kmed_misc_avg, '--', label='k-median', color="purple")
+    plt.plot(tot_dims, kmed_misc_avg, '--', label='$k$-medians-$\ell_1$', color="purple")
     plt.errorbar(tot_dims, kmed_misc_avg, yerr=kmed_misc_err, fmt='none', ecolor='black', capsize=3)
 
-    plt.plot(tot_dims, kmeans_misc_avg, '-', label='Llyod (k-means)', color="blue")
+    plt.plot(tot_dims, kmeans_misc_avg, '-', label='$k$-means', color="blue")
     plt.errorbar(tot_dims, kmeans_misc_avg, yerr=kmeans_misc_err, fmt='none', ecolor='black', capsize=3)
 
     # plt.ylim(0,0.5)
@@ -70,13 +70,13 @@ def plot_diffdim(f, out_dir='', out_name='diffdim_random_mp', fontsize=10):
     # figsize = (8, 6)
     fig, ax = plt.subplots()
 
-    plt.plot(tot_dims, lloydL1_acd_avg, '-.', label='Lloyd-$L_1$', color="green")
+    plt.plot(tot_dims, lloydL1_acd_avg, '-.', label='$k$-medians-hybrid', color="green")
     plt.errorbar(tot_dims, lloydL1_acd_avg, yerr=lloydL1_acd_err, fmt='none', ecolor='black', capsize=3)
 
-    plt.plot(tot_dims, kmed_acd_avg, '--', label='k-median', color="purple")
+    plt.plot(tot_dims, kmed_acd_avg, '--', label='$k$-medians-$\ell_1$', color="purple")
     plt.errorbar(tot_dims, kmed_acd_avg, yerr=kmed_acd_err, fmt='none', ecolor='black', capsize=3)
 
-    plt.plot(tot_dims, kmeans_acd_avg, '-', label='Lloyd ($k$-means)', color="blue")
+    plt.plot(tot_dims, kmeans_acd_avg, '-', label='$k$-means', color="blue")
     plt.errorbar(tot_dims, kmeans_acd_avg, yerr=kmeans_acd_err, fmt='none', ecolor='black', capsize=3)
 
     # plt.ylim(0, max(np.array(kmeans_acd_avg,lloydL1_acd_avg,kmed_acd_avg))+0.3)
@@ -115,19 +115,19 @@ def plot_diffprop(f, out_dir='', out_name='diffprop_random_mp', fontsize=10):
     figsize = (8, 6)
     fig, ax = plt.subplots()
 
-    plt.plot(tot_props, lloydL1_misc_avg, '-.', label='Lloyd-$L_1$', color="green")
+    plt.plot(tot_props, lloydL1_misc_avg, '-.', label='$k$-medians-hybrid', color="green")
     plt.errorbar(tot_props, lloydL1_misc_avg, yerr=lloydL1_misc_err, fmt='none', ecolor='black', capsize=3)
 
-    plt.plot(tot_props, kmed_misc_avg, '--', label='k-median', color="purple")
+    plt.plot(tot_props, kmed_misc_avg, '--', label='$k$-medians-$\ell_1$', color="purple")
     plt.errorbar(tot_props, kmed_misc_avg, yerr=kmed_misc_err, fmt='none', ecolor='black', capsize=3)
 
-    plt.plot(tot_props, kmeans_misc_avg, '-', label='Llyod (k-means)', color="blue")
+    plt.plot(tot_props, kmeans_misc_avg, '-', label='$k$-means', color="blue")
     plt.errorbar(tot_props, kmeans_misc_avg, yerr=kmeans_misc_err, fmt='none', ecolor='black', capsize=3)
 
     # plt.ylim(0,0.5)
     ax.set_xticks(tot_props)
 
-    plt.xlabel("Noise Proportion",fontdict={'fontsize':fontsize})
+    plt.xlabel("Outlier Proportion",fontdict={'fontsize':fontsize})
     plt.ylabel("MP",fontdict={'fontsize':fontsize})
     # plt.title(title+'_mp')
     # Add a legend and show the plot
@@ -146,19 +146,19 @@ def plot_diffprop(f, out_dir='', out_name='diffprop_random_mp', fontsize=10):
     # figsize = (8, 6)
     fig, ax = plt.subplots()
 
-    plt.plot(tot_props, lloydL1_acd_avg, '-.', label='Lloyd-$L_1$', color="green")
+    plt.plot(tot_props, lloydL1_acd_avg, '-.', label='$k$-medians-hybrid', color="green")
     plt.errorbar(tot_props, lloydL1_acd_avg, yerr=lloydL1_acd_err, fmt='none', ecolor='black', capsize=3)
 
-    plt.plot(tot_props, kmed_acd_avg, '--', label='k-median', color="purple")
+    plt.plot(tot_props, kmed_acd_avg, '--', label='$k$-medians-$\ell_1$', color="purple")
     plt.errorbar(tot_props, kmed_acd_avg, yerr=kmed_acd_err, fmt='none', ecolor='black', capsize=3)
 
-    plt.plot(tot_props, kmeans_acd_avg, '-', label='Lloyd ($k$-means)', color="blue")
+    plt.plot(tot_props, kmeans_acd_avg, '-', label='$k$-means', color="blue")
     plt.errorbar(tot_props, kmeans_acd_avg, yerr=kmeans_acd_err, fmt='none', ecolor='black', capsize=3)
 
     # plt.ylim(0, max(np.array(kmeans_acd_avg,lloydL1_acd_avg,kmed_acd_avg))+0.3)
     ax.set_xticks(tot_props)
 
-    plt.xlabel("Noise Proportion", fontdict={'fontsize':fontsize})
+    plt.xlabel("Outlier Proportion", fontdict={'fontsize':fontsize})
     plt.ylabel("ACD", fontdict={'fontsize':fontsize})
     # plt.title("Plot of acd: %g_clusters_rad_%g_out_%g_sigma_%g" % (num_centroids, radius, prop, sigma))
     # Add a legend and show the plot
@@ -189,19 +189,19 @@ def plot_diffvar(f, out_dir='', out_name='', fontsize=10):
 
     fig, ax = plt.subplots()
 
-    plt.plot(sigma_out_vec, lloydL1_misc_avg, '-.', label='Lloyd-$L_1$', color="green")
+    plt.plot(sigma_out_vec, lloydL1_misc_avg, '-.', label='$k$-medians-hybrid', color="green")
     plt.errorbar(sigma_out_vec, lloydL1_misc_avg, yerr=lloydL1_misc_err, fmt='none', ecolor='black', capsize=3)
 
-    plt.plot(sigma_out_vec, kmed_misc_avg, '--', label='k-median', color="purple")
+    plt.plot(sigma_out_vec, kmed_misc_avg, '--', label='$k$-medians-$\ell_1$', color="purple")
     plt.errorbar(sigma_out_vec, kmed_misc_avg, yerr=kmed_misc_err, fmt='none', ecolor='black', capsize=3)
 
-    plt.plot(sigma_out_vec, kmeans_misc_avg, '-', label='Llyod (k-means)', color="blue")
+    plt.plot(sigma_out_vec, kmeans_misc_avg, '-', label='$k$-means', color="blue")
     plt.errorbar(sigma_out_vec, kmeans_misc_avg, yerr=kmeans_misc_err, fmt='none', ecolor='black', capsize=3)
 
     # plt.ylim(0,0.5)
     ax.set_xticks(sigma_out_vec)
 
-    plt.xlabel("Noise Standard Deviation",fontdict={'fontsize':fontsize})
+    plt.xlabel("Outlier Standard Deviation",fontdict={'fontsize':fontsize})
     plt.ylabel("MP",fontdict={'fontsize':fontsize})
     # plt.title("Plot of misc_prop: %g_clusters_rad_%g_out_%g_dim_%g" % (num_centroids, radius, prop, dim))
 
@@ -221,19 +221,19 @@ def plot_diffvar(f, out_dir='', out_name='', fontsize=10):
 
     fig, ax = plt.subplots()
 
-    plt.plot(sigma_out_vec, lloydL1_acd_avg, '-.', label='Lloyd-$L_1$', color="green")
+    plt.plot(sigma_out_vec, lloydL1_acd_avg, '-.', label='$k$-medians-hybrid', color="green")
     plt.errorbar(sigma_out_vec, lloydL1_acd_avg, yerr=lloydL1_acd_err, fmt='none', ecolor='black', capsize=3)
 
-    plt.plot(sigma_out_vec, kmed_acd_avg, '--', label='k-median', color="purple")
+    plt.plot(sigma_out_vec, kmed_acd_avg, '--', label='$k$-medians-$\ell_1$', color="purple")
     plt.errorbar(sigma_out_vec, kmed_acd_avg, yerr=kmed_acd_err, fmt='none', ecolor='black', capsize=3)
 
-    plt.plot(sigma_out_vec, kmeans_acd_avg, '-', label='Lloyd ($k$-means)', color="blue")
+    plt.plot(sigma_out_vec, kmeans_acd_avg, '-', label='$k$-means', color="blue")
     plt.errorbar(sigma_out_vec, kmeans_acd_avg, yerr=kmeans_acd_err, fmt='none', ecolor='black', capsize=3)
 
     # plt.ylim(0, max(np.array(kmeans_acd_avg,lloydL1_acd_avg,kmed_acd_avg))+0.3)
     ax.set_xticks(sigma_out_vec)
 
-    plt.xlabel("Noise Standard Deviation",fontdict={'fontsize':fontsize})
+    plt.xlabel("Outlier Standard Deviation",fontdict={'fontsize':fontsize})
     plt.ylabel("ACD",fontdict={'fontsize':fontsize})
     # plt.title("Plot of acd: %g_clusters_rad_%g_out_%g_dim_%g" % (num_centroids, radius, prop, dim))
 
@@ -270,19 +270,19 @@ def plot_diffrad(f, out_dir='', out_name='', fontsize=10):
 
     fig, ax = plt.subplots()
 
-    plt.plot(rad_out_vec, lloydL1_misc_avg, '-.', label='Lloyd-$L_1$', color="green")
+    plt.plot(rad_out_vec, lloydL1_misc_avg, '-.', label='$k$-medians-hybrid', color="green")
     plt.errorbar(rad_out_vec, lloydL1_misc_avg, yerr=lloydL1_misc_err, fmt='none', ecolor='black', capsize=3)
 
-    plt.plot(rad_out_vec, kmed_misc_avg, '--', label='k-median', color="purple")
+    plt.plot(rad_out_vec, kmed_misc_avg, '--', label='$k$-medians-$\ell_1$', color="purple")
     plt.errorbar(rad_out_vec, kmed_misc_avg, yerr=kmed_misc_err, fmt='none', ecolor='black', capsize=3)
 
-    plt.plot(rad_out_vec, kmeans_misc_avg, '-', label='Llyod (k-means)',color="blue")
+    plt.plot(rad_out_vec, kmeans_misc_avg, '-', label='$k$-means',color="blue")
     plt.errorbar(rad_out_vec, kmeans_misc_avg, yerr=kmeans_misc_err, fmt='none', ecolor='black', capsize=3)
 
     # plt.ylim(0,0.5)
     ax.set_xticks(rad_out_vec)
 
-    plt.xlabel("Noise Radius")
+    plt.xlabel("Outlier Location")
     plt.ylabel("MP")
     # plt.title("Plot of misc_prop: %g_clusters_rad_%g_out_%g_dim_%g" % (num_centroids, radius, prop, dim))
 
@@ -302,19 +302,19 @@ def plot_diffrad(f, out_dir='', out_name='', fontsize=10):
 
     fig, ax = plt.subplots()
 
-    plt.plot(rad_out_vec, lloydL1_acd_avg, '-.', label='Lloyd-$L_1$', color="green")
+    plt.plot(rad_out_vec, lloydL1_acd_avg, '-.', label='$k$-medians-hybrid', color="green")
     plt.errorbar(rad_out_vec, lloydL1_acd_avg, yerr=lloydL1_acd_err, fmt='none', ecolor='black', capsize=3)
 
-    plt.plot(rad_out_vec, kmed_acd_avg, '--', label='k-median', color="purple")
+    plt.plot(rad_out_vec, kmed_acd_avg, '--', label='$k$-medians-$\ell_1$', color="purple")
     plt.errorbar(rad_out_vec, kmed_acd_avg, yerr=kmed_acd_err, fmt='none', ecolor='black', capsize=3)
 
-    plt.plot(rad_out_vec, kmeans_acd_avg, '-', label='Lloyd ($k$-means)', color="blue")
+    plt.plot(rad_out_vec, kmeans_acd_avg, '-', label='$k$-means', color="blue")
     plt.errorbar(rad_out_vec, kmeans_acd_avg, yerr=kmeans_acd_err, fmt='none', ecolor='black', capsize=3)
 
     # plt.ylim(0, max(np.array(kmeans_acd_avg,lloydL1_acd_avg,kmed_acd_avg))+0.3)
     ax.set_xticks(rad_out_vec)
 
-    plt.xlabel("Noise Radius")
+    plt.xlabel("Outlier Location")
     plt.ylabel("ACD")
     # plt.title("Plot of acd: %g_clusters_rad_%g_out_%g_dim_%g" % (num_centroids, radius, prop, dim))
 
@@ -336,7 +336,8 @@ if __name__ == '__main__':
     # in_dir = 'out-R_5000-S_100-20230516'
     # in_dir = 'R_5000-S_100-O_True-20230525'
     # in_dir = 'R_5000-S_100-O_True-20230610'
-    in_dir = 'out/std_05/R_5000-S_100-O_True'
+    in_dir = 'paper_results-20230614/out-outlier_prop_0.4-std_2-normal_std_1/std_1/R_5000-S_100-O_True'
+    # in_dir = 'paper_results-20230614/out-outlier_prop_0.6-std_10-normal_std_2/std_2/R_5000-S_100-O_True'
     out_dir = f'{in_dir}/paper_plot'
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)

@@ -103,7 +103,7 @@ def find_minimal_mp(centroids, true_centroids, points, num_centroids, true_clust
 tot_iterate = 50
 sub_iterate = 4
 tolerance = 1e-4
-SHOW=1
+SHOW=0
 
 def kmeans(points, k, centroids_input, max_iterations=tot_iterate, true_centroids=None, true_labels=None, out_dir=''):
     new_centroids = np.copy(centroids_input)
@@ -190,8 +190,6 @@ def lloydL1(points, k, centroids_input, max_iterations=tot_iterate, true_centroi
         if np.sum((new_centroids - pre_centroids) ** 2) / k < tolerance:
             break
 
-
-
     # Here should be L2
     distances = np.sqrt(np.sum((points[:, np.newaxis, :] - new_centroids[np.newaxis, :, :]) ** 2, axis=2))
     labels = np.argmin(distances, axis=1)
@@ -201,6 +199,44 @@ def lloydL1(points, k, centroids_input, max_iterations=tot_iterate, true_centroi
 
     return new_centroids, labels
 
+
+def geom_kmed(points, k, centroids_input, max_iterations=tot_iterate, true_centroids=None, true_labels=None, out_dir=''):
+    new_centroids = np.copy(centroids_input)
+    from geom_median.numpy import compute_geometric_median  # NumPy API
+
+    for i in range(max_iterations):
+        # Assign each point to the closest centroid
+        distances = np.sum(np.abs(points[:, np.newaxis, :] - new_centroids[np.newaxis, :, :]), axis=2)
+        labels = np.argmin(distances, axis=1)
+
+        if SHOW:
+            plot_centroids(points, labels, true_centroids, new_centroids, true_cluster_size, i, 'geom_kmed', out_dir)
+
+        pre_centroids = np.copy(new_centroids)
+        # Update the centroids to be the median of the points in each cluster
+        for j in range(k):
+            if sum(labels == j) == 0:
+                # new_centroids[j] use the previous centroid
+                continue
+            # new_centroids[j] = np.median(points[labels == j], axis=0)
+            # new_centroids[j] = np.median(points[labels == j], axis=0)
+            # https://github.com/krishnap25/geom_median/blob/main/README.md
+            _out = compute_geometric_median(points[labels == j])
+            # Access the median via `out.median`, which has the same shape as the points, i.e., (d,)
+            new_centroids[j] = _out.median
+
+        if np.sum((new_centroids - pre_centroids) ** 2) / k < tolerance:
+            break
+
+    # note that it should be L1, not L2
+    # distances2 = np.sqrt(np.sum((points[:, np.newaxis, :] - new_centroids[np.newaxis, :, :]) ** 2, axis=2))
+    distances = np.sum(np.abs(points[:, np.newaxis, :] - new_centroids[np.newaxis, :, :]), axis=2)
+    labels = np.argmin(distances, axis=1)
+
+    if SHOW:
+        plot_centroids(points, labels, true_centroids, new_centroids, true_cluster_size, i+1, 'geom_kmed', out_dir)
+
+    return new_centroids, labels
 
 def plot_centroids(X, labels_pred, true_centroids, new_centroids, true_cluster_size=100,
                    iter=0, alg_name='kmeans', out_dir=''):
@@ -313,7 +349,7 @@ import os
 parser = argparse.ArgumentParser()
 # parser.add_argument('--force', default=False,   # whether overwrite the previous results or not?
 #                     action='store_true', help='force')
-parser.add_argument("--n_repeats", type=int, default=1)  #
+parser.add_argument("--n_repeats", type=int, default=5000)  #
 parser.add_argument("--true_cluster_size", type=int, default=100)
 parser.add_argument("--init_method", type=str, default='omniscient')
 parser.add_argument("--with_outlier", type=str, default='True')
@@ -347,6 +383,8 @@ for num_centroids in range(4, 10, 6):
     lloydL1_misc_err = []
     kmed_misc_avg = []
     kmed_misc_err = []
+    geomkmed_misc_avg = []
+    geomkmed_misc_err = []
     kmeans_misc_avg = []
     kmeans_misc_err = []
 
@@ -356,6 +394,8 @@ for num_centroids in range(4, 10, 6):
     lloydL1_acd_err = []
     kmed_acd_avg = []
     kmed_acd_err = []
+    geomkmed_acd_avg = []
+    geomkmed_acd_err = []
     kmeans_acd_avg = []
     kmeans_acd_err = []
 
@@ -363,10 +403,12 @@ for num_centroids in range(4, 10, 6):
 
         lloydL1_misc = []
         kmed_misc = []
+        geomkmed_misc = []
         kmeans_misc = []
 
         lloydL1_acd = []
         kmed_acd = []
+        geomkmed_acd = []
         kmeans_acd = []
 
         for i in range(num_repeat):
@@ -417,7 +459,7 @@ for num_centroids in range(4, 10, 6):
                 points = true_points
 
             # Perform k-means clustering with k clusters
-            tmp_dir = f'{out_dir}/seeds/K_{num_centroids}-R_{rad_out}-S_{i}-diffrad'
+            tmp_dir = f'{out_dir}/seeds/K_{num_centroids}-R_{rad_out}-S_{i}-diffdim'
             if SHOW:
                 if os.path.exists(tmp_dir):
                     shutil.rmtree(tmp_dir)
@@ -430,6 +472,9 @@ for num_centroids in range(4, 10, 6):
             kmed_centroids, kmed_labels = kmed(points, centroids_input=init_centroids, k=num_centroids,
                                                true_centroids=centroids,
                                                out_dir=tmp_dir)
+            geomkmed_centroids, geomkmed_labels = geom_kmed(points, centroids_input=init_centroids, k=num_centroids,
+                                               true_centroids=centroids,
+                                               out_dir=tmp_dir)
             kmeans_centroids, kmeans_labels = kmeans(points, centroids_input=init_centroids, k=num_centroids,
                                                      true_centroids=centroids,
                                                      out_dir=tmp_dir)
@@ -439,30 +484,43 @@ for num_centroids in range(4, 10, 6):
             # kmeans_acd.append(np.sum((kmeans_centroids - centroids) ** 2) / num_centroids)
 
             lloydL1_acd.append(np.sum((lloydL1_centroids - centroids) ** 2) / num_centroids)
-            print('lloydL1 ...')
-            print(lloydL1_centroids)
-            print(centroids)
-            print(lloydL1_acd)
-            print(collections.Counter(lloydL1_labels))
+            if SHOW:
+                print('lloydL1 ...')
+                print(lloydL1_centroids)
+                print(centroids)
+                print(lloydL1_acd)
+                print(collections.Counter(lloydL1_labels))
             kmed_acd.append(np.sum((kmed_centroids - centroids) ** 2) / num_centroids)
-            print('kmed ...')
-            print(kmed_centroids)
-            print(centroids)
-            print(kmed_acd)
-            print(collections.Counter(kmed_labels))
+            if SHOW:
+                print('kmed ...')
+                print(kmed_centroids)
+                print(centroids)
+                print(kmed_acd)
+                print(collections.Counter(kmed_labels))
+            geomkmed_acd.append(np.sum((geomkmed_centroids - centroids) ** 2) / num_centroids)
+            if SHOW:
+                print('geomkmed ...')
+                print(geomkmed_centroids)
+                print(centroids)
+                print(geomkmed_acd)
+                print(collections.Counter(geomkmed_labels))
             kmeans_acd.append(np.sum((kmeans_centroids - centroids) ** 2) / num_centroids)
-            print('kmeans ...')
-            print(kmeans_centroids)
-            print(centroids)
-            print(kmeans_acd)
-            print(collections.Counter(kmeans_labels))
-            # Misclustering label estimation
+            if SHOW:
+                print('kmeans ...')
+                print(kmeans_centroids)
+                print(centroids)
+                print(kmeans_acd)
+                print(collections.Counter(kmeans_labels))
+                # Misclustering label estimation
 
             lloydL1_misc.append(
                 sum(lloydL1_labels[range(num_centroids * true_cluster_size)] != true_labels) / len(true_labels))
 
             kmed_misc.append(
                 sum(kmed_labels[range(num_centroids * true_cluster_size)] != true_labels) / len(true_labels))
+
+            geomkmed_misc.append(
+                sum(geomkmed_labels[range(num_centroids * true_cluster_size)] != true_labels) / len(true_labels))
 
             kmeans_misc.append(sum(kmeans_labels[range(num_centroids*true_cluster_size)]!=true_labels)/len(true_labels))
 
@@ -484,6 +542,11 @@ for num_centroids in range(4, 10, 6):
         kmed_acd_avg.append(np.mean(kmed_acd_temp))
         kmed_acd_err.append(1.96 * np.std(kmed_acd_temp) / np.sqrt(len(kmed_acd_temp)))
 
+        # geomkmed_acd_temp = remove_outliers(geomkmed_acd,q)
+        geomkmed_acd_temp = geomkmed_acd.copy()
+        geomkmed_acd_avg.append(np.mean(geomkmed_acd_temp))
+        geomkmed_acd_err.append(1.96 * np.std(geomkmed_acd_temp) / np.sqrt(len(geomkmed_acd_temp)))
+
         # kmeans_acd_temp = remove_outliers(kmeans_acd,q)
         kmeans_acd_temp = kmeans_acd.copy()
         kmeans_acd_avg.append(np.mean(kmeans_acd_temp))
@@ -501,6 +564,11 @@ for num_centroids in range(4, 10, 6):
         kmed_misc_avg.append(np.mean(kmed_misc_temp))
         kmed_misc_err.append(1.96 * np.std(kmed_misc_temp) / np.sqrt(len(kmed_misc_temp)))
 
+        # geomkmed_misc_temp = remove_outliers(geomkmed_misc,q)
+        geomkmed_misc_temp = geomkmed_misc.copy()
+        geomkmed_misc_avg.append(np.mean(geomkmed_misc_temp))
+        geomkmed_misc_err.append(1.96 * np.std(geomkmed_misc_temp) / np.sqrt(len(geomkmed_misc_temp)))
+
         # kmeans_misc_temp = remove_outliers(kmeans_misc,q)
         kmeans_misc_temp = kmeans_misc.copy()
         kmeans_misc_avg.append(np.mean(kmeans_misc_temp))
@@ -514,9 +582,11 @@ for num_centroids in range(4, 10, 6):
             'outlier rad':rad_out_vec,
             'lloydL1ians misc':lloydL1_misc_avg,'lloydL1ians misc err_bar':lloydL1_misc_err,
             'lloydL1ians-L1 misc':kmed_misc_avg,'lloydL1ians-L1 misc err_bar':kmed_misc_err,
+             'geomkmed-L1 misc': geomkmed_misc_avg, 'geomkmed-L1 misc err_bar': geomkmed_misc_err,
             'kmeans misc':kmeans_misc_avg,'kmeans misc err_bar':kmeans_misc_err,
             'lloydL1ians acd': lloydL1_acd_avg, 'lloydL1ians acd err_bar': lloydL1_acd_err,
             'lloydL1ians-L1 acd': kmed_acd_avg, 'lloydL1ians-L1 acd err_bar': kmed_acd_err,
+            'geomkmed-L1 acd': geomkmed_acd_avg, 'geomked-L1 acd err_bar': geomkmed_acd_err,
             'kmeans acd': kmeans_acd_avg, 'kmeans acd err_bar': kmeans_acd_err
             }
     df = pd.DataFrame(data)
@@ -535,6 +605,9 @@ for num_centroids in range(4, 10, 6):
 
     plt.plot(rad_out_vec, kmed_misc_avg, '--', label='k-median', color="purple")
     plt.errorbar(rad_out_vec, kmed_misc_avg, yerr=kmed_misc_err, fmt='none', ecolor='black', capsize=3)
+
+    plt.plot(rad_out_vec, geomkmed_misc_avg, '--', label='geometric_k-median', color="purple")
+    plt.errorbar(rad_out_vec, geomkmed_misc_avg, yerr=geomkmed_misc_err, fmt='none', ecolor='black', capsize=3)
 
     plt.plot(rad_out_vec, kmeans_misc_avg, '-', label='Llyod (k-means)',color="blue")
     plt.errorbar(rad_out_vec, kmeans_misc_avg, yerr=kmeans_misc_err, fmt='none', ecolor='black', capsize=3)
@@ -567,6 +640,9 @@ for num_centroids in range(4, 10, 6):
 
     plt.plot(rad_out_vec, kmed_acd_avg, '--', label='k-median', color="purple")
     plt.errorbar(rad_out_vec, kmed_acd_avg, yerr=kmed_acd_err, fmt='none', ecolor='black', capsize=3)
+
+    plt.plot(rad_out_vec, geomkmed_acd_avg, '--', label='geometric-k-median', color="purple")
+    plt.errorbar(rad_out_vec, geomkmed_acd_avg, yerr=geomkmed_acd_err, fmt='none', ecolor='black', capsize=3)
 
     plt.plot(rad_out_vec, kmeans_acd_avg, '-', label='Lloyd ($k$-means)', color="blue")
     plt.errorbar(rad_out_vec, kmeans_acd_avg, yerr=kmeans_acd_err, fmt='none', ecolor='black', capsize=3)

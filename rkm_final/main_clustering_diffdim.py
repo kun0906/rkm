@@ -125,8 +125,6 @@ for num_centroids in range(4,9,5):
             # acd computations
 
 
-
-
             lloydL1_acd.append(np.sum((lloydL1_centroids-centroids)**2)/num_centroids)
             kmed_acd.append(np.sum((kmed_centroids - centroids) ** 2) / num_centroids)
             kmeans_acd.append(np.sum((kmeans_centroids - centroids) ** 2) / num_centroids)

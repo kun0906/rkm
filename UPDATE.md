@@ -1,3 +1,11 @@
+v0.4.0: Add new datasets 
+
+1. Add new datasets 
+2. Implement diffprop for the new datasets
+3. Add process_batch_real.py
+
+
+
 v0.3.6: Update diffrad 
 
 1. Choose the random centroids on all data (including normal and outliers)
