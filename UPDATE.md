@@ -1,3 +1,11 @@
+v0.4.1: Add synthetic datasets and try different setting for 'letter_recognition' and 'pen_digits'
+
+1. Add synthetic datasets 
+2. For each dataset, add random outliers and special outliers 
+3. without_outliers in data_gen() can has different results due to the effect of rng.choice()
+4.Add centroids and colors for plot_data().
+
+
 v0.4.0: Add new datasets 
 
 1. Add new datasets 

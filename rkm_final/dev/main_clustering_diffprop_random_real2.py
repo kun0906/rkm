@@ -15,13 +15,13 @@ from data.gen_data import gen_data, plot_xy
 parser = argparse.ArgumentParser()
 # parser.add_argument('--force', default=False,   # whether overwrite the previous results or not?
 #                     action='store_true', help='force')
-parser.add_argument("--n_repeats", type=int, default=5000)  #
+parser.add_argument("--n_repeats", type=int, default=2)  #
 parser.add_argument("--true_cluster_size", type=int, default=100)
 parser.add_argument("--init_method", type=str, default='random')
 parser.add_argument("--with_outlier", type=str, default='True')
 parser.add_argument("--out_dir", type=str, default='out')
-parser.add_argument("--data_name", type=str, default='pen_digits')
-parser.add_argument("--fake_label", type=str, default='synthetic')
+parser.add_argument("--data_name", type=str, default='letter_recognition')
+parser.add_argument("--fake_label", type=str, default='True')
 parser.add_argument("--std", type=float, default=1)
 args = parser.parse_args()
 args.with_outlier = False if args.with_outlier == 'False' else True
@@ -33,20 +33,20 @@ init_method = args.init_method
 true_cluster_size = args.true_cluster_size
 with_outlier=args.with_outlier
 data_name = args.data_name
-fake_label = args.fake_label
+fake_label = args.fake_label = True if args.fake_label == 'True' else False
 # out_dir = f'{args.out_dir}/diffdim/{init_method}/R_{num_repeat}-S_{true_cluster_size}'
 out_dir = args.out_dir
 if not os.path.exists(out_dir):
     os.makedirs(out_dir)
 
 
-for num_centroids in range(3,9,9):
+for num_centroids in range(4,9,9):
     # True labels
 
-    # true_labels = np.concatenate([np.ones(true_cluster_size)*i for i in range(num_centroids)]).astype(int)
+    true_labels = np.concatenate([np.ones(true_cluster_size)*i for i in range(num_centroids)]).astype(int)
 
     # dim = 10
-    props = [0, 0.2, 0.4, 0.6, 0.8]
+    props = [0.2, 0.2, 0.4, 0.6, 0.8]
 
 
     lloydL1_misc_avg = []
@@ -82,12 +82,33 @@ for num_centroids in range(3,9,9):
 
             sigma = args.std
             # data_name = 'biocoin_heist'  # 'letter_recognition'
-            data = gen_data(data_name, fake_label, num_centroids, true_cluster_size, prop, with_outlier,
-                            random_state=i)
+            data = gen_data(data_name, fake_label, num_centroids, true_cluster_size, prop, random_state=i)
             true_points = data['X']
-            true_labels = data['Y']
             centroids = data['centroids']
             outliers = data['outliers']
+
+            plot_xy(np.concatenate([data['X'], outliers], axis=0),
+                    np.concatenate([data['Y'], np.asarray(['100'] * len(outliers))], axis=0),
+                    random_state=i,
+                    title = f'prop: {prop}')
+
+            # normalize the data
+            if True:
+                # only normalize inliers to mean=0 and std=1
+                dim = true_points.shape[1]
+                mu = np.mean(true_points, axis=0)
+                scale = np.std(true_points, axis=0)
+                for j in range(dim):
+                    true_points[:, j] = (true_points[:, j] - mu[j])
+                    if scale[j] == 0: continue
+                    true_points[:, j] = true_points[:, j] / scale[j]
+
+                # recompute the centroids after standardization.
+                j = 0
+                for i in range(0, len(true_points), true_cluster_size):
+                    if j >= num_centroids: break
+                    centroids[j] = np.mean(true_points[i:i + true_cluster_size], axis=0)
+                    j += 1
 
             # Final points
             if with_outlier:
@@ -96,28 +117,9 @@ for num_centroids in range(3,9,9):
                 # Without outliers
                 points = true_points
 
-            # plot_xy(np.concatenate([data['X'], outliers], axis=0),
-            #         np.concatenate([data['Y'], np.asarray(['100'] * len(outliers))], axis=0),
-            #         random_state=i,
-            #         title=f'prop: {prop}')
-
-            # normalize the data
-            if True:
-                # only normalize inliers to mean=0 and std=1
-                dim = points.shape[1]
-                mu = np.mean(points, axis=0)
-                scale = np.std(points, axis=0)
-                for j in range(dim):
-                    points[:, j] = (points[:, j] - mu[j])
-                    if scale[j] == 0: continue
-                    points[:, j] = points[:, j] / scale[j]
-
-                # recompute the centroids after standardization.
-                j = 0
-                for i in range(0, len(points), true_cluster_size):
-                    if j >= num_centroids: break
-                    centroids[j] = np.mean(points[i:i + true_cluster_size], axis=0)
-                    j += 1
+            plot_xy(points,np.concatenate([data['Y'], np.asarray(['100']*len(outliers))], axis=0),
+                    random_state=i,
+                    title = f'prop: {prop}')
 
             if init_method == 'random':
                 indices = rng.choice(range(len(points)), size=num_centroids, replace=False)
@@ -125,10 +127,6 @@ for num_centroids in range(3,9,9):
                 # init_centroids = np.copy(centroids)
             else:
                 pass
-
-            # plot_xy(points, np.concatenate([true_labels, [max(true_labels)+1] * len(outliers)]),
-            #         random_state=i, true_centroids= copy.deepcopy(init_centroids),
-            #         title=f'prop: {prop} after std')
 
             # Perform k-means clustering with k clusters
             lloydL1_centroids, lloydL1_labels = lloydL1(points,centroids_input=init_centroids,k=num_centroids, true_centroids=centroids)

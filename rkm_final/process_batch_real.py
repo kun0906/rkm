@@ -36,13 +36,13 @@ def main():
     cnt = 0
     procs = set()
     OUT_DIR = 'out'
-    for data_name in ['letter_recognition', 'music_genre', 'pen_digits', 'iot_intrusion']: #'iot_intrusion','pen_digits', 'biocoin_heist','letter_recognition']:
-        for fake_label in [True, False]:   # False
+    for data_name in ['letter_recognition',  'pen_digits', 'music_genre', 'iot_intrusion',]: #'iot_intrusion','pen_digits', 'biocoin_heist','letter_recognition']:
+        for fake_label in ['synthetic', 'random', 'special']:   # False
             out_dir = os.path.join(OUT_DIR, data_name, f'F_{fake_label}')
             for n_repeats in [5000]:
                 for true_cluster_size in [100]:
                     for std in [0]: #[0.1, 0.25, 0.5, 1, 0.1, 0.25, ]:
-                        for with_outlier in [True, False]:  # [True, False]:
+                        for with_outlier in [True]:  # [True, False]:
                             for init_method in ['random', 'omniscient']:  # ['omniscient', 'random']:
                                 if init_method == 'random':
                                     pys = [
@@ -50,6 +50,7 @@ def main():
                                         # "main_clustering_diffrad_random.py",
                                         # "main_clustering_diffvar_random.py",
                                         "main_clustering_diffprop_random_real.py",
+                                        # "main_clustering_diffprop_random_real2.py",
                                     ]
                                 else:
                                     pys = [
@@ -57,6 +58,7 @@ def main():
                                         # "main_clustering_diffrad.py",
                                         # "main_clustering_diffvar.py",
                                          "main_clustering_diffprop_real.py",
+                                        # "main_clustering_diffprop_real2.py",
                                     ]
                                 for py in pys:
                                     cnt += 1
