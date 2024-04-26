@@ -11,8 +11,8 @@ python3 -V
 uname -a
 
 date
-#cmd="python3 process_batch.py"
-cmd="python3 process_batch_real.py"
+cmd="python3 process_batch.py"    # for synthetic datasets
+cmd="python3 process_batch_real.py" # for real datasets
 echo $cmd
 $cmd &> log.txt &
 date

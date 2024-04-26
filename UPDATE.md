@@ -1,9 +1,16 @@
+v0.5.0: Add spectral clustering
+
+1. Add spectral clustering for every experiment, e.g., sc_omniscient() and sc_random()
+2. Add more information for running the experiments in Readme.md.
+
+
+
 v0.4.1: Add synthetic datasets and try different setting for 'letter_recognition' and 'pen_digits'
 
 1. Add synthetic datasets 
 2. For each dataset, add random outliers and special outliers 
 3. without_outliers in data_gen() can has different results due to the effect of rng.choice()
-4.Add centroids and colors for plot_data().
+4. Add centroids and colors for plot_data().
 
 
 v0.4.0: Add new datasets 

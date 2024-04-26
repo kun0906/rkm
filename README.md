@@ -46,10 +46,17 @@
 ## Usage
 
 ```shell
+$ssh ky8517@nobel.princeton.edu
+$tmux ls
+$tmux new -s rkm
+#tmux attach -t rkm
 $cd rkm/rkm_final/
 #$PYTHONPATH='..' python3 main_all.py
 ./R_5000.sh
 ```
+Note that in R_5000.sh, 
+_process_batch.py (for synthetic datasets) and  
+process_batch_real.py (for real-world datasets)_ 
 
 ## Update
 

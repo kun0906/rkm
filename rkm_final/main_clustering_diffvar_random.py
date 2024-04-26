@@ -43,7 +43,6 @@ for num_centroids in range(4,9,6):
 
     true_labels = np.concatenate([np.ones(true_cluster_size)*i for i in range(num_centroids)]).astype(int)
 
-
     lloydL1_misc_avg = []
     lloydL1_misc_err = []
     kmed_misc_avg = []
@@ -51,8 +50,13 @@ for num_centroids in range(4,9,6):
     kmeans_misc_avg = []
     kmeans_misc_err = []
 
+    sc_lloydL1_misc_avg = []
+    sc_lloydL1_misc_err = []
+    sc_kmed_misc_avg = []
+    sc_kmed_misc_err = []
+    sc_kmeans_misc_avg = []
+    sc_kmeans_misc_err = []
     # acd variables
-
 
     lloydL1_acd_avg = []
     lloydL1_acd_err = []
@@ -61,18 +65,33 @@ for num_centroids in range(4,9,6):
     kmeans_acd_avg = []
     kmeans_acd_err = []
 
+    sc_lloydL1_acd_avg = []
+    sc_lloydL1_acd_err = []
+    sc_kmed_acd_avg = []
+    sc_kmed_acd_err = []
+    sc_kmeans_acd_avg = []
+    sc_kmeans_acd_err = []
+
     for sigma_out in tqdm(sigma_out_vec):
 
         lloydL1_misc = []
         kmed_misc = []
         kmeans_misc = []
+        sc_lloydL1_misc = []
+        sc_kmed_misc = []
+        sc_kmeans_misc = []
 
         lloydL1_acd = []
         kmed_acd = []
         kmeans_acd = []
 
+        sc_lloydL1_acd = []
+        sc_kmed_acd = []
+        sc_kmeans_acd = []
+
         for i in range(num_repeat):
-            rng = np.random.RandomState(seed=i)
+            seed = i
+            rng = np.random.RandomState(seed=seed)
             centroids = rng.normal(size=(num_centroids, dim))
             centroids /= np.linalg.norm(centroids, axis=1)[:, np.newaxis]
 
@@ -116,6 +135,14 @@ for num_centroids in range(4,9,6):
             lloydL1_centroids, lloydL1_labels = lloydL1(points,centroids_input=init_centroids,k=num_centroids, true_centroids=centroids)
             kmed_centroids, kmed_labels = kmed(points,centroids_input=init_centroids,k=num_centroids, true_centroids=centroids)
             kmeans_centroids, kmeans_labels = kmeans(points,centroids_input=init_centroids,k=num_centroids, true_centroids=centroids)
+
+            sc_lloydL1_centroids, sc_lloydL1_labels = sc_random(points, k=num_centroids,
+                                                                clustering_method='lloydL1',
+                                                                random_state=seed, true_centroids=centroids)
+            sc_kmed_centroids, sc_kmed_labels = sc_random(points, k=num_centroids, clustering_method='Kmed',
+                                                          random_state=seed, true_centroids=centroids)
+            sc_kmeans_centroids, sc_kmeans_labels = sc_random(points, k=num_centroids, clustering_method='kmeans',
+                                                              random_state=seed, true_centroids=centroids)
             # lloyd_order_centroids,lloyd_order_labels = lloyd_order(points,centroids_input=copy.deepcopy(centroids),k=num_centroids)
             # print(lloydL1_labels)
             #
@@ -130,6 +157,10 @@ for num_centroids in range(4,9,6):
             kmed_acd.append(np.sum((kmed_centroids - centroids) ** 2) / num_centroids)
             kmeans_acd.append(np.sum((kmeans_centroids - centroids) ** 2) / num_centroids)
 
+            sc_lloydL1_acd.append(np.sum((sc_lloydL1_centroids - centroids) ** 2) / num_centroids)
+            sc_kmed_acd.append(np.sum((sc_kmed_centroids - centroids) ** 2) / num_centroids)
+            sc_kmeans_acd.append(np.sum((sc_kmeans_centroids - centroids) ** 2) / num_centroids)
+
             # Misclustering label estimation
 
             lloydL1_misc.append(sum(lloydL1_labels[range(num_centroids*true_cluster_size)]!=true_labels)/len(true_labels))
@@ -137,6 +168,13 @@ for num_centroids in range(4,9,6):
             kmed_misc.append(sum(kmed_labels[range(num_centroids*true_cluster_size)]!=true_labels)/len(true_labels))
 
             kmeans_misc.append(sum(kmeans_labels[range(num_centroids*true_cluster_size)]!=true_labels)/len(true_labels))
+
+            sc_lloydL1_misc.append(
+                sum(sc_lloydL1_labels[range(num_centroids * true_cluster_size)] != true_labels) / len(true_labels))
+            sc_kmed_misc.append(
+                sum(sc_kmed_labels[range(num_centroids * true_cluster_size)] != true_labels) / len(true_labels))
+            sc_kmeans_misc.append(
+                sum(sc_kmeans_labels[range(num_centroids * true_cluster_size)] != true_labels) / len(true_labels))
 
         # acd average and error bar
 
@@ -149,7 +187,14 @@ for num_centroids in range(4,9,6):
         kmeans_acd_avg.append(np.mean(kmeans_acd))
         kmeans_acd_err.append(1.96 * np.std(kmeans_acd) / np.sqrt(len(kmeans_acd)))
 
+        sc_lloydL1_acd_avg.append(np.mean(sc_lloydL1_acd))
+        sc_lloydL1_acd_err.append(1.96 * np.std(sc_lloydL1_acd) / np.sqrt(len(sc_lloydL1_acd)))
 
+        sc_kmed_acd_avg.append(np.mean(sc_kmed_acd))
+        sc_kmed_acd_err.append(1.96 * np.std(sc_kmed_acd) / np.sqrt(len(sc_kmed_acd)))
+
+        sc_kmeans_acd_avg.append(np.mean(sc_kmeans_acd))
+        sc_kmeans_acd_err.append(1.96 * np.std(sc_kmeans_acd) / np.sqrt(len(sc_kmeans_acd)))
         # Misclustering proportion avg and error bar
 
         lloydL1_misc_avg.append(np.mean(lloydL1_misc))
@@ -161,6 +206,14 @@ for num_centroids in range(4,9,6):
         kmeans_misc_avg.append(np.mean(kmeans_misc))
         kmeans_misc_err.append(1.96*np.std(kmeans_misc)/np.sqrt(len(kmeans_misc)))
 
+        sc_lloydL1_misc_avg.append(np.mean(sc_lloydL1_misc))
+        sc_lloydL1_misc_err.append(1.96 * np.std(sc_lloydL1_misc) / np.sqrt(len(sc_lloydL1_misc)))
+
+        sc_kmed_misc_avg.append(np.mean(sc_kmed_misc))
+        sc_kmed_misc_err.append(1.96 * np.std(sc_kmed_misc) / np.sqrt(len(sc_kmed_misc)))
+
+        sc_kmeans_misc_avg.append(np.mean(sc_kmeans_misc))
+        sc_kmeans_misc_err.append(1.96 * np.std(sc_kmeans_misc) / np.sqrt(len(sc_kmeans_misc)))
 
     # create data frame with the misclustering
 
@@ -169,7 +222,11 @@ for num_centroids in range(4,9,6):
             'kmeans misc':kmeans_misc_avg,'kmeans misc err_bar':kmeans_misc_err,
             'lloydL1ians acd': lloydL1_acd_avg, 'lloydL1ians acd err_bar': lloydL1_acd_err,
             'lloydL1ians-L1 acd': kmed_acd_avg, 'lloydL1ians-L1 acd err_bar': kmed_acd_err,
-            'kmeans acd': kmeans_acd_avg, 'kmeans acd err_bar': kmeans_acd_err
+            'kmeans acd': kmeans_acd_avg, 'kmeans acd err_bar': kmeans_acd_err,
+
+            'sc_lloydL1ians acd': sc_lloydL1_acd_avg, 'sc_lloydL1ians acd err_bar': sc_lloydL1_acd_err,
+            'sc_lloydL1ians-L1 acd': sc_kmed_acd_avg, 'sc_lloydL1ians-L1 acd err_bar': sc_kmed_acd_err,
+            'sc_kmeans acd': sc_kmeans_acd_avg, 'sc_kmeans acd err_bar': sc_kmeans_acd_err,
             }
     df = pd.DataFrame(data)
 
@@ -192,6 +249,14 @@ for num_centroids in range(4,9,6):
     plt.plot(sigma_out_vec, kmeans_misc_avg, '-', label='Llyod (k-means)',color="blue")
     plt.errorbar(sigma_out_vec, kmeans_misc_avg, yerr=kmeans_misc_err, fmt='none', ecolor='black', capsize=3)
 
+    plt.plot(sigma_out_vec, sc_lloydL1_misc_avg, '-.', label='SC-Lloyd-$L_1$', color="lightgreen")
+    plt.errorbar(sigma_out_vec, sc_lloydL1_misc_avg, yerr=sc_lloydL1_misc_err, fmt='none', ecolor='black', capsize=3)
+
+    plt.plot(sigma_out_vec, sc_kmed_misc_avg, '--', label='SC-k-median', color="violet")
+    plt.errorbar(sigma_out_vec, sc_kmed_misc_avg, yerr=sc_kmed_misc_err, fmt='none', ecolor='black', capsize=3)
+
+    plt.plot(sigma_out_vec, sc_kmeans_misc_avg, '-', label='SC-Llyod (k-means)', color="skyblue")
+    plt.errorbar(sigma_out_vec, sc_kmeans_misc_avg, yerr=sc_kmeans_misc_err, fmt='none', ecolor='black', capsize=3)
 
     # plt.ylim(0,0.5)
     ax.set_xticks(sigma_out_vec)
@@ -225,6 +290,15 @@ for num_centroids in range(4,9,6):
 
     plt.plot(sigma_out_vec, kmeans_acd_avg, '-', label='Lloyd ($k$-means)', color="blue")
     plt.errorbar(sigma_out_vec, kmeans_acd_avg, yerr=kmeans_acd_err, fmt='none', ecolor='black', capsize=3)
+
+    plt.plot(sigma_out_vec, sc_lloydL1_acd_avg, '-.', label='SC-Lloyd-$L_1$', color="lightgreen")
+    plt.errorbar(sigma_out_vec, sc_lloydL1_acd_avg, yerr=sc_lloydL1_acd_err, fmt='none', ecolor='black', capsize=3)
+
+    plt.plot(sigma_out_vec, sc_kmed_acd_avg, '--', label='SC-k-median', color="violet")
+    plt.errorbar(sigma_out_vec, sc_kmed_acd_avg, yerr=sc_kmed_acd_err, fmt='none', ecolor='black', capsize=3)
+
+    plt.plot(sigma_out_vec, sc_kmeans_acd_avg, '-', label='SC-Lloyd ($k$-means)', color="skyblue")
+    plt.errorbar(sigma_out_vec, sc_kmeans_acd_avg, yerr=sc_kmeans_acd_err, fmt='none', ecolor='black', capsize=3)
 
     # plt.ylim(0, max(np.array(kmeans_acd_avg,lloydL1_acd_avg,kmed_acd_avg))+0.3)
     ax.set_xticks(sigma_out_vec)

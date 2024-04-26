@@ -1,2 +1,0 @@
-Namespace(n_repeats=5000, true_cluster_size=100, init_method='random', with_outlier=True, out_dir='out/R_5000-S_100-O_True/random/main_clustering_diffprop_random_py')
-  0%|          | 0/5 [00:00<?, ?it/s] 20%|██        | 1/5 [08:33<34:12, 513.16s/it] 40%|████      | 2/5 [18:01<27:16, 545.48s/it] 60%|██████    | 3/5 [28:15<19:14, 577.06s/it] 80%|████████  | 4/5 [39:10<10:07, 607.86s/it]100%|██████████| 5/5 [50:59<00:00, 644.27s/it]100%|██████████| 5/5 [50:59<00:00, 611.96s/it]

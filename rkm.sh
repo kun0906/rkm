@@ -7,6 +7,11 @@
   check cuda and cudnn version for tensorflow_gpu==1.13.1
   https://www.tensorflow.org/install/source#linux
 '
+# ssh ky8517@nobel.princeton.edu
+#tmux ls
+#tmux new -s rkm
+#tmux attach -t rkm
+#cd /u/ky8517/rkm/rkm_final
 #ssh ky8517@tigergpu.princeton.edu
 cd /scratch/gpfs/ky8517/rkm/rkm
 module load anaconda3/2021.11

@@ -3,6 +3,7 @@ https://stackoverflow.com/questions/30227466/combine-several-images-horizontally
 
 """
 import os.path
+import shutil
 import sys
 import time
 import traceback
@@ -329,43 +330,46 @@ def plot_diffrad(f, out_dir='', out_name='', fontsize=10):
     # plt.pause(2)
     plt.close()
 
+
 if __name__ == '__main__':
 
-    # in_dir = 'out/out-R_5000-S_100-20230516'
-    # in_dir = 'out/R_5000-S_100-O_True-20230525'
-    # in_dir = 'out/R_5000-S_100-O_True-20230610'
-    in_dir = 'paper_results-20230614/out-outlier_prop_0.4-std_2-normal_std_1/std_1/R_5000-S_100-O_True'
-    # in_dir = 'paper_results-20230614/out-outlier_prop_0.6-std_10-normal_std_2/std_2/R_5000-S_100-O_True'
-    out_dir = f'{in_dir}/paper_plot'
-    if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
+    for data_name in ['letter_recognition', 'pen_digits']:
+        for fake_label in ['synthetic', 'random', 'special']:
+            # in_dir = 'paper_results-20230614/out-outlier_prop_0.6-std_10-normal_std_2/std_2/R_5000-S_100-O_True'
+            in_dir = f'paper_results-20230614/real_data_20230803/{data_name}/F_{fake_label}/std_0/R_5000-S_100-O_True'
+            out_dir = f'{in_dir}/paper_plot'
+            if os.path.exists(out_dir):
+                shutil.rmtree(out_dir)
+            if not os.path.exists(out_dir):
+                os.makedirs(out_dir)
 
-    R = 5000 # 5000  # number of repeats
-    S = 100
+            R = 5000 # 5000  # number of repeats
+            S = 100
 
-    for alg_method in ['diffdim', 'diffrad', 'diffvar', 'diffprop']: #['diffdim', 'diffrad', 'diffvar', 'diffprop']:
-        for init_method in ['omniscient', 'random']:
-            if init_method == 'random':
-                py = f"main_clustering_{alg_method}_{init_method}_py"
-            else:
-                py = f"main_clustering_{alg_method}_py"
-            # if alg_method=='diffrad':
-            #     py = py + '-std_01'
-            f = f'{in_dir}/{init_method}/{py}/data_4_clusters.csv'
-            print(f)
-            fontsize=12
-            try:
-                if alg_method == 'diffdim':
-                    plot_diffdim(f, out_dir=out_dir, out_name=f'{alg_method}_{init_method}', fontsize=fontsize)
-                elif alg_method == 'diffvar':
-                    plot_diffvar(f, out_dir=out_dir, out_name=f'{alg_method}_{init_method}', fontsize=fontsize)
-                elif alg_method == 'diffrad':
-                    plot_diffrad(f, out_dir=out_dir, out_name=f'{alg_method}_{init_method}', fontsize=fontsize)
-                elif alg_method == 'diffprop':
-                    plot_diffprop(f, out_dir=out_dir, out_name=f'{alg_method}_{init_method}', fontsize=fontsize)
-                else:
-                    raise NotImplementedError()
-            except Exception as e:
-                traceback.print_exc()
+            for alg_method in ['diffprop']: #['diffdim', 'diffrad', 'diffvar', 'diffprop']:
+                for init_method in ['omniscient', 'random']:
+                    if init_method == 'random':
+                        py = f"main_clustering_{alg_method}_{init_method}_real_py"
+                    else:
+                        py = f"main_clustering_{alg_method}_real_py"
+                    # if alg_method=='diffrad':
+                    #     py = py + '-std_01'
+                    f = f'{in_dir}/{init_method}/{py}/data_3_clusters.csv'
+                    print(f)
+                    fontsize=12
+                    try:
+                        # if alg_method == 'diffdim':
+                        #     plot_diffdim(f, out_dir=out_dir, out_name=f'{alg_method}_{init_method}', fontsize=fontsize)
+                        # elif alg_method == 'diffvar':
+                        #     plot_diffvar(f, out_dir=out_dir, out_name=f'{alg_method}_{init_method}', fontsize=fontsize)
+                        # elif alg_method == 'diffrad':
+                        #     plot_diffrad(f, out_dir=out_dir, out_name=f'{alg_method}_{init_method}', fontsize=fontsize)
+                        if alg_method == 'diffprop':
+                            name = 'letter' if data_name == 'letter_recognition' else 'pen'
+                            plot_diffprop(f, out_dir=out_dir, out_name=f'{name}_{fake_label}_{alg_method}_{init_method}', fontsize=fontsize)
+                        else:
+                            raise NotImplementedError()
+                    except Exception as e:
+                        traceback.print_exc()
 
-    print('finished')
+            print('finished')
