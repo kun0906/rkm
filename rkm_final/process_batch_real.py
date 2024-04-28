@@ -36,10 +36,10 @@ def main():
     cnt = 0
     procs = set()
     OUT_DIR = 'out'
-    for data_name in ['letter_recognition',  'pen_digits', 'music_genre', 'iot_intrusion',]: #'iot_intrusion','pen_digits', 'biocoin_heist','letter_recognition']:
-        for fake_label in ['synthetic', 'random', 'special']:   # False
+    for data_name in ['letter_recognition',  'pen_digits']: # 'music_genre', 'iot_intrusion','iot_intrusion','pen_digits', 'biocoin_heist','letter_recognition']:
+        for fake_label in ['random', 'special']: # ['synthetic', 'random', 'special']:   # False
             out_dir = os.path.join(OUT_DIR, data_name, f'F_{fake_label}')
-            for n_repeats in [5000]:
+            for n_repeats in [5000]:  #[5000]
                 for true_cluster_size in [100]:
                     for std in [0]: #[0.1, 0.25, 0.5, 1, 0.1, 0.25, ]:
                         for with_outlier in [True]:  # [True, False]:

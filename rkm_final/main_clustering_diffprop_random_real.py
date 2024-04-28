@@ -22,7 +22,7 @@ parser.add_argument("--with_outlier", type=str, default='True')
 parser.add_argument("--out_dir", type=str, default='out')
 parser.add_argument("--data_name", type=str, default='pen_digits')
 parser.add_argument("--fake_label", type=str, default='synthetic')
-parser.add_argument("--std", type=float, default=1)
+parser.add_argument("--std", type=float, default=0)
 args = parser.parse_args()
 args.with_outlier = False if args.with_outlier == 'False' else True
 print(args)
@@ -95,6 +95,7 @@ for num_centroids in range(3,9,9):
         sc_kmeans_acd = []
 
         for i in range(num_repeat):
+            print(prop, i, flush=True)
             seed = i
             rng = np.random.RandomState(seed=seed)
             radius = 5
@@ -161,6 +162,7 @@ for num_centroids in range(3,9,9):
                                                           random_state=seed, true_centroids=centroids)
             sc_kmeans_centroids, sc_kmeans_labels = sc_random(points, k=num_centroids, clustering_method='kmeans',
                                                               random_state=seed, true_centroids=centroids)
+
 
             # print(lloydL1_labels)
             #

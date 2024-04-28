@@ -1,8 +1,15 @@
+
+v0.5.1: Change rbf to knn for spectral clustering  
+
+1. Change rbf to knn for spectral clustering due to there are 0s for outliers when using rbf kernel.
+   Causing affinity_matrix has 0 for whole rows (except for diagonal), and Graph is not connected. "Graph is not fully connected, spectral embedding may not work as expected."
+2. Install threadpoolctl==3.1.0
+
+
 v0.5.0: Add spectral clustering
 
 1. Add spectral clustering for every experiment, e.g., sc_omniscient() and sc_random()
 2. Add more information for running the experiments in Readme.md.
-
 
 
 v0.4.1: Add synthetic datasets and try different setting for 'letter_recognition' and 'pen_digits'

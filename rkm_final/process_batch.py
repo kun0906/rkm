@@ -34,9 +34,9 @@ def main():
     out_dir = "out"
     cnt = 0
     procs = set()
-    for n_repeats in [5000]:
+    for n_repeats in [5000]: #[5000]
         for true_cluster_size in [100]:
-            for std in [0.5, 1, 2]: #[0.1, 0.25, 0.5, 1, 0.1, 0.25, ]:
+            for std in [2]: #[0.5, 1, 2]: #[0.1, 0.25, 0.5, 1, 0.1, 0.25, ]:
                 for with_outlier in [True]:  # [True, False]:
                     for init_method in ['random', 'omniscient']:  # ['omniscient', 'random']:
                         if init_method == 'random':
