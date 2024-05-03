@@ -12,9 +12,12 @@ uname -a
 
 date
 cmd="python3 process_batch.py"    # for synthetic datasets
+echo $cmd
+$cmd &> log_synthetic.txt &
+
 cmd="python3 process_batch_real.py" # for real datasets
 echo $cmd
-$cmd &> log.txt &
+$cmd &> log_real.txt &
 date
 
 wait

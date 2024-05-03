@@ -58,8 +58,12 @@ Note that in R_5000.sh,
 _process_batch.py (for synthetic datasets) and  
 process_batch_real.py (for real-world datasets)_ 
 
+$ssh ky8517@nobel.princeton.edu
 $sshfs ky8517@nobel.princeton.edu:/u/ky8517/ nobel -o volname=nobel
 $killall -u ky8517
+
+# download all from the remote server
+$rsync -azP ky8517@nobel.princeton.edu:/u/ky8517/rkm/rkm_final/out .
 ## Update
 
 - All the update details can be seen in UPDATE.md

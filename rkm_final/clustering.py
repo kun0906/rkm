@@ -4,7 +4,7 @@ import warnings
 import numpy as np
 from sklearn.neighbors import kneighbors_graph
 
-from utils import timer
+from utils import *
 
 tot_iterate = 50
 tolerance = 1e-4
@@ -58,20 +58,21 @@ def sc_kmeans(projected_points, points, k, centroids_input, max_iterations=tot_i
 
     # according to labels, find the final centroids on the original centroids.
     new_centroids = np.zeros((k, points.shape[1]))
-    # Update the centroids to be the median of the points in each cluster
-    for j in range(k):
-        if sum(labels == j) == 0:
-            # random select initial centroids
-            rng = np.random.RandomState(seed=j)
-            indices = rng.choice(range(len(points)), size=1, replace=False)
-            # raise ValueError('no data to the cluster')
-            new_centroids[j] = points[indices[0]]
-            continue
-        new_centroids[j] = np.mean(points[labels == j], axis=0)  # original data points.
-
-    # L2
-    distances = np.sqrt(np.sum((points[:, np.newaxis, :] - new_centroids[np.newaxis, :, :]) ** 2, axis=2))
-    labels = np.argmin(distances, axis=1)
+    # TODO: we don't ACD now
+    # # Update the centroids to be the median of the points in each cluster
+    # for j in range(k):
+    #     if sum(labels == j) == 0:
+    #         # random select initial centroids
+    #         rng = np.random.RandomState(seed=j)
+    #         indices = rng.choice(range(len(points)), size=1, replace=False)
+    #         # raise ValueError('no data to the cluster')
+    #         new_centroids[j] = points[indices[0]]
+    #         continue
+    #     new_centroids[j] = np.mean(points[labels == j], axis=0)  # original data points.
+    #
+    # # L2
+    # distances = np.sqrt(np.sum((points[:, np.newaxis, :] - new_centroids[np.newaxis, :, :]) ** 2, axis=2))
+    # labels = np.argmin(distances, axis=1)
 
     return new_centroids, labels
 
@@ -128,23 +129,24 @@ def sc_kmed(projected_points, points, k, centroids_input, max_iterations=tot_ite
 
     # according to labels, find the final centroids on the original centroids.
     new_centroids = np.zeros((k, points.shape[1]))
-    # Update the centroids to be the median of the points in each cluster
-    for j in range(k):
-        if sum(labels == j) == 0:
-            # new_centroids[j] use the previous centroid
-            # random select initial centroids
-            rng = np.random.RandomState(seed=j)
-            indices = rng.choice(range(len(points)), size=1, replace=False)
-            # raise ValueError('no data to the cluster')
-            new_centroids[j] = points[indices[0]]
-            continue
-            # continue
-        new_centroids[j] = np.median(points[labels == j], axis=0)  # original data points.
-
-    # note that it should be L1, not L2
-    # distances2 = np.sqrt(np.sum((points[:, np.newaxis, :] - new_centroids[np.newaxis, :, :]) ** 2, axis=2))
-    distances = np.sum(np.abs(points[:, np.newaxis, :] - new_centroids[np.newaxis, :, :]), axis=2)
-    labels = np.argmin(distances, axis=1)
+    # TODO: we don't ACD now
+    # # Update the centroids to be the median of the points in each cluster
+    # for j in range(k):
+    #     if sum(labels == j) == 0:
+    #         # new_centroids[j] use the previous centroid
+    #         # random select initial centroids
+    #         rng = np.random.RandomState(seed=j)
+    #         indices = rng.choice(range(len(points)), size=1, replace=False)
+    #         # raise ValueError('no data to the cluster')
+    #         new_centroids[j] = points[indices[0]]
+    #         continue
+    #         # continue
+    #     new_centroids[j] = np.median(points[labels == j], axis=0)  # original data points.
+    #
+    # # note that it should be L1, not L2
+    # # distances2 = np.sqrt(np.sum((points[:, np.newaxis, :] - new_centroids[np.newaxis, :, :]) ** 2, axis=2))
+    # distances = np.sum(np.abs(points[:, np.newaxis, :] - new_centroids[np.newaxis, :, :]), axis=2)
+    # labels = np.argmin(distances, axis=1)
 
     return new_centroids, labels
 def lloydL1(points, k, centroids_input, max_iterations=tot_iterate):
@@ -201,22 +203,24 @@ def sc_lloydL1(projected_points, points, k, centroids_input, max_iterations=tot_
 
     # according to labels, find the final centroids on the original centroids.
     new_centroids = np.zeros((k, points.shape[1]))
-    # Update the centroids to be the median of the points in each cluster
-    for j in range(k):
-        if sum(labels == j) == 0:
-            # new_centroids[j] use the previous centroid
-            print('be careful: ', np.unique(labels), k)
-            # random select initial centroids
-            rng = np.random.RandomState(seed=j)
-            indices = rng.choice(range(len(points)), size=1, replace=False)
-            # raise ValueError('no data to the cluster')
-            new_centroids[j] = points[indices[0]]
-            continue
-        new_centroids[j] = np.median(points[labels == j], axis=0)  # original data points.
-
-    # find the labels on the projected data first. Here should be L2
-    distances = np.sqrt(np.sum((points[:, np.newaxis, :] - new_centroids[np.newaxis, :, :]) ** 2, axis=2))
-    labels = np.argmin(distances, axis=1)
+    # TODO: we don't ACD now
+    # # Update the centroids to be the median of the points in each cluster
+    # for j in range(k):
+    #     if sum(labels == j) == 0:
+    #         # new_centroids[j] use the previous centroid
+    #         print('be careful: ', np.unique(labels), k)
+    #         # random select initial centroids
+    #         rng = np.random.RandomState(seed=j)
+    #         indices = rng.choice(range(len(points)), size=1, replace=False)
+    #         # raise ValueError('no data to the cluster')
+    #         new_centroids[j] = points[indices[0]]
+    #         continue
+    #     new_centroids[j] = np.median(points[labels == j], axis=0)  # original data points.
+    #
+    # # find the labels on the projected data first. Here should be L2
+    # distances = np.sqrt(np.sum((points[:, np.newaxis, :] - new_centroids[np.newaxis, :, :]) ** 2, axis=2))
+    # labels = np.argmin(distances, axis=1)
+    #
     return new_centroids, labels
 
 def geom_kmed(points, k, centroids_input, max_iterations=tot_iterate, true_centroids=None, true_labels=None):
@@ -250,56 +254,6 @@ def geom_kmed(points, k, centroids_input, max_iterations=tot_iterate, true_centr
 
     return new_centroids, labels
 
-# @timer
-def sc_projection(points, k, random_state):
-    from sklearn.metrics import pairwise_kernels
-    params = {}  # default value in slkearn
-    # https://github.com/scikit-learn/scikit-learn/blob/872124551/sklearn/cluster/_spectral.py#L667
-    # Number of eigenvectors to use for the spectral embedding, default=n_clusters
-    n_components = k
-    eigen_tol = 0.0
-    eigen_solver = None
-    affinity = 'nearest_neighbors'  # affinity str or callable, default =’rbf’
-    if affinity == 'rbf':
-        params["gamma"] = 1.0  # ?
-        params["degree"] = 3
-        params["coef0"] = 1
-        # eigen_solver{‘arpack’, ‘lobpcg’, ‘amg’}, default=None
-        # The eigenvalue decomposition strategy to use. AMG requires pyamg to be installed.
-        # It can be faster on very large, sparse problems, but may also lead to instabilities.
-        # If None, then 'arpack' is used. See [4] for more details regarding 'lobpcg'.
-        affinity_matrix_ = pairwise_kernels(
-            points, metric=affinity, filter_params=True, **params,
-        )
-    else:
-        # if affinity == "nearest_neighbors":
-        connectivity = kneighbors_graph(
-            points, n_neighbors=10, include_self=True, n_jobs=None
-        )
-        affinity_matrix_ = 0.5 * (connectivity + connectivity.T)
-
-    # We now obtain the real valued solution matrix to the
-    # relaxed Ncut problem, solving the eigenvalue problem
-    # L_sym x = lambda x  and recovering u = D^-1/2 x.
-    # The first eigenvector is constant only for fully connected graphs
-    # and should be kept for spectral clustering (drop_first = False)
-    # See spectral_embedding documentation.
-    from sklearn.manifold import spectral_embedding
-    maps = spectral_embedding(
-        affinity_matrix_,  # n xn
-        n_components=n_components,
-        eigen_solver=eigen_solver,
-        random_state=random_state,
-        eigen_tol=eigen_tol,
-        drop_first=False,
-    )
-    # print(np.min(points), np.max(points), np.min(affinity_matrix_), np.max(affinity_matrix_), np.min(maps), np.max(maps), flush=True)
-    # MAX=1e+5
-    # maps[maps > MAX] = MAX  # avoid overflow in np.square()
-    # maps[maps < -MAX] = -MAX
-    # print(np.min(points), np.max(points), np.min(affinity_matrix_), np.max(affinity_matrix_), np.min(maps),
-    #       np.max(maps), flush=True)
-    return maps
 
 def sc_omniscient(points, centroids_input, k, max_iterations=tot_iterate, clustering_method='kmeans', random_state=42):
     """ Spectral clustering in sklearn

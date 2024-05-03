@@ -1,3 +1,9 @@
+v0.5.2: Choose bandwidth and update plots 
+
+1. Choose rbf bandwidth
+2. Update plots 
+3. Update bugs 
+
 
 v0.5.1: Change rbf to knn for spectral clustering  
 
