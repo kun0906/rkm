@@ -1,12 +1,20 @@
 """
 
 """
+import argparse
 import os
 import subprocess
 from tqdm import tqdm
 from functools import partial
 
 print = partial(print, flush=True)
+
+parser = argparse.ArgumentParser()
+# parser.add_argument('--force', default=False,   # whether overwrite the previous results or not?
+#                     action='store_true', help='force')
+parser.add_argument("--n_repeats", type=int, default=2)  #
+args = parser.parse_args()
+print(args)
 
 
 # project_dir = '~/'
@@ -36,17 +44,18 @@ def main():
     cnt = 0
     procs = set()
     OUT_DIR = 'out'
-    for data_name in ['letter_recognition',  'pen_digits']: # 'music_genre', 'iot_intrusion','iot_intrusion','pen_digits', 'biocoin_heist','letter_recognition']:
-        for fake_label in ['random', 'special']: # ['synthetic', 'random', 'special']:   # False
+    for data_name in ['letter_recognition',
+                      'pen_digits']:  # 'music_genre', 'iot_intrusion','iot_intrusion','pen_digits', 'biocoin_heist','letter_recognition']:
+        for fake_label in ['random', 'special']:  # ['synthetic', 'random', 'special']:   # False
             out_dir = os.path.join(OUT_DIR, data_name, f'F_{fake_label}')
-            for n_repeats in [5000]:  #[5000]
+            for n_repeats in [args.n_repeats]:  # [5000]
                 for true_cluster_size in [100]:
-                    for std in [0]: #[0.1, 0.25, 0.5, 1, 0.1, 0.25, ]:
+                    for std in [0]:  # [0.1, 0.25, 0.5, 1, 0.1, 0.25, ]:
                         for with_outlier in [True]:  # [True, False]:
                             for init_method in ['random', 'omniscient']:  # ['omniscient', 'random']:
                                 if init_method == 'random':
                                     pys = [
-                                         # "main_clustering_diffdim_random.py",
+                                        # "main_clustering_diffdim_random.py",
                                         # "main_clustering_diffrad_random.py",
                                         # "main_clustering_diffvar_random.py",
                                         "main_clustering_diffprop_random_real.py",
@@ -54,10 +63,10 @@ def main():
                                     ]
                                 else:
                                     pys = [
-                                         # "main_clustering_diffdim.py",
+                                        # "main_clustering_diffdim.py",
                                         # "main_clustering_diffrad.py",
                                         # "main_clustering_diffvar.py",
-                                         "main_clustering_diffprop_real.py",
+                                        "main_clustering_diffprop_real.py",
                                         # "main_clustering_diffprop_real2.py",
                                     ]
                                 for py in pys:
@@ -75,14 +84,15 @@ def main():
                                     # check if the given directory exists; otherwise, create
                                     check_dir(os.path.dirname(log_file))
 
-                                    while len(procs) >= n_max_process:
-                                        if p.poll() is None:
-                                            # the process is still running.
-                                            # print(p.pid)
-                                            pass
-                                        else:
-                                            print(f"{p.pid} finished and returncode was {p.returncode}")
-                                            procs.remove(p)
+                                    # while len(procs) >= n_max_process:
+                                    #     for p in procs:
+                                    #         if p.poll() is None:
+                                    #             # the process is still running.
+                                    #             # print(p.pid)
+                                    #             pass
+                                    #         else:
+                                    #             print(f"{p.pid} finished and returncode was {p.returncode}")
+                                    #             procs.remove(p)
 
                                     print(f"{cnt}: {cmd} > {log_file} &")
                                     with open(log_file, 'w') as f:
@@ -92,11 +102,11 @@ def main():
 
     print(f'\n***{cnt} commands in total.')
 
-    for i, p in tqdm(enumerate(procs)):
-        # ret = p.wait()
-        # https://stackoverflow.com/questions/44456996/does-popen-communicate-implicitly-call-popen-wait
-        ret = p.communicate()  # communicate() call wait() implicitly
-        print(ret, p.returncode, p.pid)
+    # for i, p in tqdm(enumerate(procs)):
+    #     # ret = p.wait()
+    #     # https://stackoverflow.com/questions/44456996/does-popen-communicate-implicitly-call-popen-wait
+    #     ret = p.communicate()  # communicate() call wait() implicitly
+    #     print(ret, p.returncode, p.pid)
 
 
 if __name__ == '__main__':

@@ -1,5 +1,3 @@
-
-
 from functools import wraps
 import time
 
@@ -12,6 +10,9 @@ import scipy.stats as stats
 from sklearn.metrics import pairwise_distances
 from sklearn.neighbors import kneighbors_graph
 
+from robust_spectral_clustering import RSC
+
+
 def timer(func):
     @wraps(func)
     def timeit_wrapper(*args, **kwargs):
@@ -22,21 +23,23 @@ def timer(func):
         # print(f'{func.__name__}{args} {kwargs} Took {total_time:.4f} seconds')
         print(f'{func.__name__} Took {total_time:.4f} seconds')
         return result
-    return timeit_wrapper
 
+    return timeit_wrapper
 
 
 def compute_bandwidth(X):
     pd = pairwise_distances(X, Y=None, metric='euclidean')
-    beta = 0.05
+    beta = 0.5
     qs = np.quantile(pd, q=beta, axis=1)
-    alpha = 0.05
+    alpha = 0.01
     n, d = X.shape
     df = d  # degrees of freedom
-    denominator = np.sqrt(stats.chi2.ppf((1-alpha) , df))
-    bandwidth = np.quantile(qs, (1-alpha))/denominator
+    denominator = np.sqrt(stats.chi2.ppf((1 - alpha), df))
+    bandwidth = np.quantile(qs, (1 - alpha)) / denominator
 
     return bandwidth
+
+
 # @timer
 def sc_projection(points, k, random_state):
     from sklearn.metrics import pairwise_kernels
@@ -50,7 +53,7 @@ def sc_projection(points, k, random_state):
     if affinity == 'rbf':
         # params["gamma"] = 1.0  # ?
         sigma = compute_bandwidth(points)
-        params["gamma"] = 1/(2*sigma**2)
+        params["gamma"] = 1 / (2 * sigma ** 2)
 
         params["degree"] = 3
         params["coef0"] = 1
@@ -92,3 +95,23 @@ def sc_projection(points, k, random_state):
     return maps
 
 
+def robust_sc_projection(points, k, random_state=42):
+    """ Robust Spectral clustering
+        https://github.com/abojchevski/rsc/tree/master
+        """
+    rsc = RSC(k=k, nn=15, theta=20, verbose=False)
+    # y_rsc = rsc.fit_predict(X)
+    Ag, Ac, H = rsc._RSC__latent_decomposition(points)
+    # Ag: similarity matrix of good points
+    # Ac: similarity matrix of corruption points
+    # A = Ag + Ac
+    rsc.Ag = Ag
+    rsc.Ac = Ac
+
+    if rsc.normalize:
+        rsc.H = H / np.linalg.norm(H, axis=1)[:, None]
+    else:
+        rsc.H = H
+
+    projected_points = rsc.H
+    return projected_points

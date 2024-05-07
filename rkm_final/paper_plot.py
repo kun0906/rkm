@@ -12,7 +12,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-
+is_robust=False
 def plot_diffdim(f, out_dir='', out_name='diffdim_random_mp', fontsize=10):
     # Plot the line plot with error bars
 
@@ -34,6 +34,13 @@ def plot_diffdim(f, out_dir='', out_name='diffdim_random_mp', fontsize=10):
     sc_lloydL1_misc_avg, sc_lloydL1_misc_err = df['sc_lloydL1ians misc'], df['sc_lloydL1ians misc err_bar']
     sc_kmed_misc_avg, sc_kmed_misc_err = df['sc_lloydL1ians-L1 misc'], df['sc_lloydL1ians-L1 misc err_bar']
     sc_kmeans_misc_avg, sc_kmeans_misc_err = df['sc_kmeans misc'], df['sc_kmeans misc err_bar']
+    if is_robust:
+        robust_sc_lloydL1_misc_avg, robust_sc_lloydL1_misc_err = df['robust_sc_lloydL1ians misc'], df[
+            'robust_sc_lloydL1ians misc err_bar']
+        robust_sc_kmed_misc_avg, robust_sc_kmed_misc_err = df['robust_sc_lloydL1ians-L1 misc'], df[
+            'robust_sc_lloydL1ians-L1 misc err_bar']
+        robust_sc_kmeans_misc_avg, robust_sc_kmeans_misc_err = df['robust_sc_kmeans misc'], df[
+            'robust_sc_kmeans misc err_bar']
 
     lloydL1_acd_avg, lloydL1_acd_err = df['lloydL1ians acd'], df['lloydL1ians acd err_bar']
     kmed_acd_avg, kmed_acd_err = df['lloydL1ians-L1 acd'], df['lloydL1ians-L1 acd err_bar']
@@ -41,7 +48,6 @@ def plot_diffdim(f, out_dir='', out_name='diffdim_random_mp', fontsize=10):
     sc_lloydL1_acd_avg, sc_lloydL1_acd_err = df['sc_lloydL1ians acd'], df['sc_lloydL1ians acd err_bar']
     sc_kmed_acd_avg, sc_kmed_acd_err = df['sc_lloydL1ians-L1 acd'], df['sc_lloydL1ians-L1 acd err_bar']
     sc_kmeans_acd_avg, sc_kmeans_acd_err = df['sc_kmeans acd'], df['sc_kmeans acd err_bar']
-
 
     figsize = (8, 6)
     fig, ax = plt.subplots()
@@ -64,11 +70,23 @@ def plot_diffdim(f, out_dir='', out_name='diffdim_random_mp', fontsize=10):
     plt.plot(tot_dims, sc_kmeans_misc_avg, '-', label='sc-$k$-means', color="skyblue")
     plt.errorbar(tot_dims, sc_kmeans_misc_avg, yerr=sc_kmeans_misc_err, fmt='none', ecolor='black', capsize=3)
 
+    if is_robust:
+        plt.plot(tot_dims, robust_sc_lloydL1_misc_avg, '-.', label='RSC-Lloyd-$L_1$', color="lime")
+        plt.errorbar(tot_dims, robust_sc_lloydL1_misc_avg, yerr=robust_sc_lloydL1_misc_err, fmt='none', ecolor='black',
+                     capsize=3)
+
+        plt.plot(tot_dims, robust_sc_kmed_misc_avg, '--', label='RSC-k-median', color="fuchsia")
+        plt.errorbar(tot_dims, robust_sc_kmed_misc_avg, yerr=robust_sc_kmed_misc_err, fmt='none', ecolor='black', capsize=3)
+
+        plt.plot(tot_dims, robust_sc_kmeans_misc_avg, '-', label='RSC-Llyod (k-means)', color="steelblue")
+        plt.errorbar(tot_dims, robust_sc_kmeans_misc_avg, yerr=robust_sc_kmeans_misc_err, fmt='none', ecolor='black',
+                     capsize=3)
+
     # plt.ylim(0,0.5)
     ax.set_xticks(tot_dims)
 
-    plt.xlabel("Dimension",fontdict={'fontsize':fontsize})
-    plt.ylabel("MP",fontdict={'fontsize':fontsize})
+    plt.xlabel("Dimension", fontdict={'fontsize': fontsize})
+    plt.ylabel("MP", fontdict={'fontsize': fontsize})
     # plt.title(title+'_mp')
     # Add a legend and show the plot
     plt.legend()
@@ -124,7 +142,6 @@ def plot_diffdim(f, out_dir='', out_name='diffdim_random_mp', fontsize=10):
 def plot_diffprop(f, out_dir='', out_name='diffprop_random_mp', fontsize=10):
     # Plot the line plot with error bars
 
-
     df = pd.read_csv(f)
 
     tot_props = [0, 0.2, 0.4, 0.6, 0.8]
@@ -135,6 +152,13 @@ def plot_diffprop(f, out_dir='', out_name='diffprop_random_mp', fontsize=10):
     sc_lloydL1_misc_avg, sc_lloydL1_misc_err = df['sc_lloydL1ians misc'], df['sc_lloydL1ians misc err_bar']
     sc_kmed_misc_avg, sc_kmed_misc_err = df['sc_lloydL1ians-L1 misc'], df['sc_lloydL1ians-L1 misc err_bar']
     sc_kmeans_misc_avg, sc_kmeans_misc_err = df['sc_kmeans misc'], df['sc_kmeans misc err_bar']
+    if is_robust:
+        robust_sc_lloydL1_misc_avg, robust_sc_lloydL1_misc_err = df['robust_sc_lloydL1ians misc'], df[
+            'robust_sc_lloydL1ians misc err_bar']
+        robust_sc_kmed_misc_avg, robust_sc_kmed_misc_err = df['robust_sc_lloydL1ians-L1 misc'], df[
+            'robust_sc_lloydL1ians-L1 misc err_bar']
+        robust_sc_kmeans_misc_avg, robust_sc_kmeans_misc_err = df['robust_sc_kmeans misc'], df[
+            'robust_sc_kmeans misc err_bar']
 
     lloydL1_acd_avg, lloydL1_acd_err = df['lloydL1ians acd'], df['lloydL1ians acd err_bar']
     kmed_acd_avg, kmed_acd_err = df['lloydL1ians-L1 acd'], df['lloydL1ians-L1 acd err_bar']
@@ -164,11 +188,24 @@ def plot_diffprop(f, out_dir='', out_name='diffprop_random_mp', fontsize=10):
     plt.plot(tot_props, sc_kmeans_misc_avg, '-', label='sc-$k$-means', color="skyblue")
     plt.errorbar(tot_props, sc_kmeans_misc_avg, yerr=sc_kmeans_misc_err, fmt='none', ecolor='black', capsize=3)
 
+    if is_robust:
+        plt.plot(tot_props, robust_sc_lloydL1_misc_avg, '-.', label='RSC-Lloyd-$L_1$', color="lime")
+        plt.errorbar(tot_props, robust_sc_lloydL1_misc_avg, yerr=robust_sc_lloydL1_misc_err, fmt='none', ecolor='black',
+                     capsize=3)
+
+        plt.plot(tot_props, robust_sc_kmed_misc_avg, '--', label='RSC-k-median', color="fuchsia")
+        plt.errorbar(tot_props, robust_sc_kmed_misc_avg, yerr=robust_sc_kmed_misc_err, fmt='none', ecolor='black',
+                     capsize=3)
+
+        plt.plot(tot_props, robust_sc_kmeans_misc_avg, '-', label='RSC-Llyod (k-means)', color="steelblue")
+        plt.errorbar(tot_props, robust_sc_kmeans_misc_avg, yerr=robust_sc_kmeans_misc_err, fmt='none', ecolor='black',
+                     capsize=3)
+
     # plt.ylim(0,0.5)
     ax.set_xticks(tot_props)
 
-    plt.xlabel("Outlier Proportion",fontdict={'fontsize':fontsize})
-    plt.ylabel("MP",fontdict={'fontsize':fontsize})
+    plt.xlabel("Outlier Proportion", fontdict={'fontsize': fontsize})
+    plt.ylabel("MP", fontdict={'fontsize': fontsize})
     # plt.title(title+'_mp')
     # Add a legend and show the plot
     plt.legend()
@@ -220,6 +257,7 @@ def plot_diffprop(f, out_dir='', out_name='diffprop_random_mp', fontsize=10):
     # # plt.pause(2)
     # plt.close()
 
+
 def plot_diffvar(f, out_dir='', out_name='', fontsize=10):
     # Plot the line plot with error bars
 
@@ -234,6 +272,13 @@ def plot_diffvar(f, out_dir='', out_name='', fontsize=10):
     sc_lloydL1_misc_avg, sc_lloydL1_misc_err = df['sc_lloydL1ians misc'], df['sc_lloydL1ians misc err_bar']
     sc_kmed_misc_avg, sc_kmed_misc_err = df['sc_lloydL1ians-L1 misc'], df['sc_lloydL1ians-L1 misc err_bar']
     sc_kmeans_misc_avg, sc_kmeans_misc_err = df['sc_kmeans misc'], df['sc_kmeans misc err_bar']
+    if is_robust:
+        robust_sc_lloydL1_misc_avg, robust_sc_lloydL1_misc_err = df['robust_sc_lloydL1ians misc'], df[
+            'robust_sc_lloydL1ians misc err_bar']
+        robust_sc_kmed_misc_avg, robust_sc_kmed_misc_err = df['robust_sc_lloydL1ians-L1 misc'], df[
+            'robust_sc_lloydL1ians-L1 misc err_bar']
+        robust_sc_kmeans_misc_avg, robust_sc_kmeans_misc_err = df['robust_sc_kmeans misc'], df[
+            'robust_sc_kmeans misc err_bar']
 
     lloydL1_acd_avg, lloydL1_acd_err = df['lloydL1ians acd'], df['lloydL1ians acd err_bar']
     kmed_acd_avg, kmed_acd_err = df['lloydL1ians-L1 acd'], df['lloydL1ians-L1 acd err_bar']
@@ -241,7 +286,6 @@ def plot_diffvar(f, out_dir='', out_name='', fontsize=10):
     sc_lloydL1_acd_avg, sc_lloydL1_acd_err = df['sc_lloydL1ians acd'], df['sc_lloydL1ians acd err_bar']
     sc_kmed_acd_avg, sc_kmed_acd_err = df['sc_lloydL1ians-L1 acd'], df['sc_lloydL1ians-L1 acd err_bar']
     sc_kmeans_acd_avg, sc_kmeans_acd_err = df['sc_kmeans acd'], df['sc_kmeans acd err_bar']
-
 
     fig, ax = plt.subplots()
 
@@ -262,11 +306,25 @@ def plot_diffvar(f, out_dir='', out_name='', fontsize=10):
 
     plt.plot(sigma_out_vec, sc_kmeans_misc_avg, '-', label='sc-$k$-means', color="skyblue")
     plt.errorbar(sigma_out_vec, sc_kmeans_misc_avg, yerr=sc_kmeans_misc_err, fmt='none', ecolor='black', capsize=3)
+
+    if is_robust:
+        plt.plot(sigma_out_vec, robust_sc_lloydL1_misc_avg, '-.', label='RSC-Lloyd-$L_1$', color="lime")
+        plt.errorbar(sigma_out_vec, robust_sc_lloydL1_misc_avg, yerr=robust_sc_lloydL1_misc_err, fmt='none', ecolor='black',
+                     capsize=3)
+
+        plt.plot(sigma_out_vec, robust_sc_kmed_misc_avg, '--', label='RSC-k-median', color="fuchsia")
+        plt.errorbar(sigma_out_vec, robust_sc_kmed_misc_avg, yerr=robust_sc_kmed_misc_err, fmt='none', ecolor='black',
+                     capsize=3)
+
+        plt.plot(sigma_out_vec, robust_sc_kmeans_misc_avg, '-', label='RSC-Llyod (k-means)', color="steelblue")
+        plt.errorbar(sigma_out_vec, robust_sc_kmeans_misc_avg, yerr=robust_sc_kmeans_misc_err, fmt='none', ecolor='black',
+                     capsize=3)
+
     # plt.ylim(0,0.5)
     ax.set_xticks(sigma_out_vec)
 
-    plt.xlabel("Outlier Standard Deviation",fontdict={'fontsize':fontsize})
-    plt.ylabel("MP",fontdict={'fontsize':fontsize})
+    plt.xlabel("Outlier Standard Deviation", fontdict={'fontsize': fontsize})
+    plt.ylabel("MP", fontdict={'fontsize': fontsize})
     # plt.title("Plot of misc_prop: %g_clusters_rad_%g_out_%g_dim_%g" % (num_centroids, radius, prop, dim))
 
     # Add a legend and show the plot
@@ -335,6 +393,13 @@ def plot_diffrad(f, out_dir='', out_name='', fontsize=10):
     sc_lloydL1_misc_avg, sc_lloydL1_misc_err = df['sc_lloydL1ians misc'], df['sc_lloydL1ians misc err_bar']
     sc_kmed_misc_avg, sc_kmed_misc_err = df['sc_lloydL1ians-L1 misc'], df['sc_lloydL1ians-L1 misc err_bar']
     sc_kmeans_misc_avg, sc_kmeans_misc_err = df['sc_kmeans misc'], df['sc_kmeans misc err_bar']
+    if is_robust:
+        robust_sc_lloydL1_misc_avg, robust_sc_lloydL1_misc_err = df['robust_sc_lloydL1ians misc'], df[
+            'robust_sc_lloydL1ians misc err_bar']
+        robust_sc_kmed_misc_avg, robust_sc_kmed_misc_err = df['robust_sc_lloydL1ians-L1 misc'], df[
+            'robust_sc_lloydL1ians-L1 misc err_bar']
+        robust_sc_kmeans_misc_avg, robust_sc_kmeans_misc_err = df['robust_sc_kmeans misc'], df[
+            'robust_sc_kmeans misc err_bar']
 
     lloydL1_acd_avg, lloydL1_acd_err = df['lloydL1ians acd'], df['lloydL1ians acd err_bar']
     kmed_acd_avg, kmed_acd_err = df['lloydL1ians-L1 acd'], df['lloydL1ians-L1 acd err_bar']
@@ -355,7 +420,7 @@ def plot_diffrad(f, out_dir='', out_name='', fontsize=10):
     plt.plot(rad_out_vec, kmed_misc_avg, '--', label='$k$-medians-$\ell_1$', color="purple")
     plt.errorbar(rad_out_vec, kmed_misc_avg, yerr=kmed_misc_err, fmt='none', ecolor='black', capsize=3)
 
-    plt.plot(rad_out_vec, kmeans_misc_avg, '-', label='$k$-means',color="blue")
+    plt.plot(rad_out_vec, kmeans_misc_avg, '-', label='$k$-means', color="blue")
     plt.errorbar(rad_out_vec, kmeans_misc_avg, yerr=kmeans_misc_err, fmt='none', ecolor='black', capsize=3)
 
     plt.plot(rad_out_vec, sc_lloydL1_misc_avg, '-.', label='sc-$k$-medians-hybrid', color="lightgreen")
@@ -366,6 +431,19 @@ def plot_diffrad(f, out_dir='', out_name='', fontsize=10):
 
     plt.plot(rad_out_vec, sc_kmeans_misc_avg, '-', label='sc-$k$-means', color="skyblue")
     plt.errorbar(rad_out_vec, sc_kmeans_misc_avg, yerr=sc_kmeans_misc_err, fmt='none', ecolor='black', capsize=3)
+
+    if is_robust:
+        plt.plot(rad_out_vec, robust_sc_lloydL1_misc_avg, '-.', label='RSC-Lloyd-$L_1$', color="lime")
+        plt.errorbar(rad_out_vec, robust_sc_lloydL1_misc_avg, yerr=robust_sc_lloydL1_misc_err, fmt='none', ecolor='black',
+                     capsize=3)
+
+        plt.plot(rad_out_vec, robust_sc_kmed_misc_avg, '--', label='RSC-k-median', color="fuchsia")
+        plt.errorbar(rad_out_vec, robust_sc_kmed_misc_avg, yerr=robust_sc_kmed_misc_err, fmt='none', ecolor='black',
+                     capsize=3)
+
+        plt.plot(rad_out_vec, robust_sc_kmeans_misc_avg, '-', label='RSC-Llyod (k-means)', color="steelblue")
+        plt.errorbar(rad_out_vec, robust_sc_kmeans_misc_avg, yerr=robust_sc_kmeans_misc_err, fmt='none', ecolor='black',
+                     capsize=3)
 
     # plt.ylim(0,0.5)
     ax.set_xticks(rad_out_vec)
@@ -429,7 +507,7 @@ def plot_diffrad(f, out_dir='', out_name='', fontsize=10):
 
 if __name__ == '__main__':
 
-    R = 5000  # 5000  # number of repeats
+    R = 2  # 5000  # number of repeats
     S = 100
     # in_dir = 'out/out-R_5000-S_100-20230516'
     # in_dir = 'out/R_5000-S_100-O_True-20230525'
@@ -441,7 +519,7 @@ if __name__ == '__main__':
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
-    for alg_method in ['diffdim', 'diffrad', 'diffvar', 'diffprop']: #['diffdim', 'diffrad', 'diffvar', 'diffprop']:
+    for alg_method in ['diffdim', 'diffrad', 'diffvar', 'diffprop']:  # ['diffdim', 'diffrad', 'diffvar', 'diffprop']:
         for init_method in ['omniscient', 'random']:
             if init_method == 'random':
                 py = f"main_clustering_{alg_method}_{init_method}_py"
@@ -451,7 +529,7 @@ if __name__ == '__main__':
             #     py = py + '-std_01'
             f = f'{in_dir}/{init_method}/{py}/data_4_clusters.csv'
             print(f)
-            fontsize=12
+            fontsize = 12
             try:
                 if alg_method == 'diffdim':
                     plot_diffdim(f, out_dir=out_dir, out_name=f'{alg_method}_{init_method}', fontsize=fontsize)

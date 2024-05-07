@@ -9,6 +9,7 @@ import warnings
 
 from utils import *
 
+
 # Filter or ignore the RuntimeWarning
 # warnings.filterwarnings("error", category=RuntimeWarning)
 
@@ -45,7 +46,7 @@ def align_centroids(centroids, true_centroids, method='name'):
         d = np.sum(np.sum(np.square(c - c1), axis=1), axis=0)
         if d < min_d:
             # print(method, d, min_d)
-            min_d = np.copy(d) # here is just a float, so there is no need to copy()
+            min_d = np.copy(d)  # here is just a float, so there is no need to copy()
             best_centroids = np.asarray(copy.deepcopy(c))
             # print(method, d, min_d, best_centroids)
     # print(f'centroids after: {best_centroids}')
@@ -89,7 +90,8 @@ def kmeans(points, k, centroids_input, max_iterations=tot_iterate, true_centroid
     return new_centroids, labels
 
 
-def sc_kmeans(projected_points, points, k, centroids_input, max_iterations=tot_iterate, true_centroids=None, true_labels=None):
+def sc_kmeans(projected_points, points, k, centroids_input, max_iterations=tot_iterate, true_centroids=None,
+              true_labels=None):
     new_centroids = np.copy(centroids_input)
 
     for i in range(max_iterations):
@@ -134,10 +136,11 @@ def sc_kmeans(projected_points, points, k, centroids_input, max_iterations=tot_i
 
     return new_centroids, labels
 
+
 def kmed(points, k, centroids_input, max_iterations=tot_iterate, true_centroids=None, true_labels=None):
     new_centroids = np.copy(centroids_input)
 
-    for i in range(max_iterations ):
+    for i in range(max_iterations):
         # Assign each point to the closest centroid
         distances = np.sum(np.abs(points[:, np.newaxis, :] - new_centroids[np.newaxis, :, :]), axis=2)
         labels = np.argmin(distances, axis=1)
@@ -161,10 +164,11 @@ def kmed(points, k, centroids_input, max_iterations=tot_iterate, true_centroids=
     return new_centroids, labels
 
 
-def sc_kmed(projected_points, points, k, centroids_input, max_iterations=tot_iterate, true_centroids=None, true_labels=None):
+def sc_kmed(projected_points, points, k, centroids_input, max_iterations=tot_iterate, true_centroids=None,
+            true_labels=None):
     new_centroids = np.copy(centroids_input)
 
-    for i in range(max_iterations ):
+    for i in range(max_iterations):
         # Assign each point to the closest centroid
         distances = np.sum(np.abs(projected_points[:, np.newaxis, :] - new_centroids[np.newaxis, :, :]), axis=2)
         labels = np.argmin(distances, axis=1)
@@ -179,7 +183,6 @@ def sc_kmed(projected_points, points, k, centroids_input, max_iterations=tot_ite
 
         if np.sum((new_centroids - pre_centroids) ** 2) / k < tolerance:
             break
-
 
     # find the labels on the projected data first. Here should be L2
     distances = np.sum(np.abs(projected_points[:, np.newaxis, :] - new_centroids[np.newaxis, :, :]), axis=2)
@@ -207,6 +210,7 @@ def sc_kmed(projected_points, points, k, centroids_input, max_iterations=tot_ite
 
     return new_centroids, labels
 
+
 def lloydL1(points, k, centroids_input, max_iterations=tot_iterate, true_centroids=None, true_labels=None):
     new_centroids = np.copy(centroids_input)
 
@@ -233,7 +237,9 @@ def lloydL1(points, k, centroids_input, max_iterations=tot_iterate, true_centroi
 
     return new_centroids, labels
 
-def sc_lloydL1(projected_points, points, k, centroids_input, max_iterations=tot_iterate, true_centroids=None, true_labels=None):
+
+def sc_lloydL1(projected_points, points, k, centroids_input, max_iterations=tot_iterate, true_centroids=None,
+               true_labels=None):
     new_centroids = np.copy(centroids_input)
 
     for i in range(max_iterations):
@@ -277,11 +283,12 @@ def sc_lloydL1(projected_points, points, k, centroids_input, max_iterations=tot_
 
     return new_centroids, labels
 
+
 def geom_kmed(points, k, centroids_input, max_iterations=tot_iterate, true_centroids=None, true_labels=None):
     new_centroids = np.copy(centroids_input)
     from geom_median.numpy import compute_geometric_median  # NumPy API
 
-    for i in range(max_iterations ):
+    for i in range(max_iterations):
         # Assign each point to the closest centroid
         distances = np.sum(np.abs(points[:, np.newaxis, :] - new_centroids[np.newaxis, :, :]), axis=2)
         labels = np.argmin(distances, axis=1)
@@ -308,9 +315,10 @@ def geom_kmed(points, k, centroids_input, max_iterations=tot_iterate, true_centr
 
     return new_centroids, labels
 
+
 def sc_random(points, k, max_iterations=tot_iterate, clustering_method='kmeans', random_state=42,
-                     true_centroids=None,
-                     true_labels=None):
+              true_centroids=None,
+              true_labels=None):
     """ Spectral clustering in sklearn
 
     Parameters
@@ -336,16 +344,63 @@ def sc_random(points, k, max_iterations=tot_iterate, clustering_method='kmeans',
     indices = rng.choice(range(len(points)), size=k, replace=False)
     projected_init_centroids = projected_points[indices, :]
     if clustering_method == 'kmeans':
-        centroids, labels = sc_kmeans(projected_points, points, k, projected_init_centroids, max_iterations=max_iterations,
-                            true_centroids=true_centroids, true_labels=true_labels)
+        centroids, labels = sc_kmeans(projected_points, points, k, projected_init_centroids,
+                                      max_iterations=max_iterations,
+                                      true_centroids=true_centroids, true_labels=true_labels)
     elif clustering_method == 'Kmed':
-        centroids, labels =sc_kmed(projected_points, points, k, projected_init_centroids, max_iterations=max_iterations,
-                            true_centroids=true_centroids, true_labels=true_labels)
+        centroids, labels = sc_kmed(projected_points, points, k, projected_init_centroids,
+                                    max_iterations=max_iterations,
+                                    true_centroids=true_centroids, true_labels=true_labels)
     elif clustering_method == 'lloydL1':
-        centroids, labels = sc_lloydL1(projected_points, points, k, projected_init_centroids, max_iterations=max_iterations,
-                            true_centroids=true_centroids, true_labels=true_labels)
+        centroids, labels = sc_lloydL1(projected_points, points, k, projected_init_centroids,
+                                       max_iterations=max_iterations,
+                                       true_centroids=true_centroids, true_labels=true_labels)
     else:
         raise NotImplemented(f'{clustering_method}')
 
+    return centroids, labels
+
+
+def robust_sc_random(points, k, max_iterations=tot_iterate, clustering_method='kmeans', random_state=42,
+                     true_centroids=None,
+                     true_labels=None):
+    """ Spectral clustering in sklearn
+
+    Parameters
+    ----------
+    points
+    k
+    centroids_input
+    max_iterations
+
+    Returns
+    -------
+
+    """
+
+    projected_points = robust_sc_projection(points, k, random_state=random_state)
+
+    # X = np.concatenate([true_centroids, points], axis=0)
+    # X_projected = sc_projection(X, k, random_state=random_state)
+    # projected_true_centroids = X_projected[:k, :]
+
+    # random select initial centroids
+    rng = np.random.RandomState(seed=random_state)
+    indices = rng.choice(range(len(points)), size=k, replace=False)
+    projected_init_centroids = projected_points[indices, :]
+    if clustering_method == 'kmeans':
+        centroids, labels = sc_kmeans(projected_points, points, k, projected_init_centroids,
+                                      max_iterations=max_iterations,
+                                      true_centroids=true_centroids, true_labels=true_labels)
+    elif clustering_method == 'Kmed':
+        centroids, labels = sc_kmed(projected_points, points, k, projected_init_centroids,
+                                    max_iterations=max_iterations,
+                                    true_centroids=true_centroids, true_labels=true_labels)
+    elif clustering_method == 'lloydL1':
+        centroids, labels = sc_lloydL1(projected_points, points, k, projected_init_centroids,
+                                       max_iterations=max_iterations,
+                                       true_centroids=true_centroids, true_labels=true_labels)
+    else:
+        raise NotImplemented(f'{clustering_method}')
 
     return centroids, labels

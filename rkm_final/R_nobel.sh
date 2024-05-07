@@ -10,16 +10,17 @@ pwd
 python3 -V
 uname -a
 
+n_repeats=2
 date
-cmd="python3 process_batch.py"    # for synthetic datasets
+cmd="python3 process_batch.py --n_repeats=$n_repeats"    # for synthetic datasets
 echo $cmd
 $cmd &> log_synthetic.txt &
 
-cmd="python3 process_batch_real.py" # for real datasets
+cmd="python3 process_batch_real.py --n_repeats=$n_repeats" # for real datasets
 echo $cmd
 $cmd &> log_real.txt &
-date
 
 wait
-echo 'done'     
+date
+echo 'done'
 

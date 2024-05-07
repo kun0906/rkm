@@ -1,12 +1,22 @@
 """
 
 """
+import argparse
 import os
 import subprocess
 from tqdm import tqdm
 from functools import partial
 
 print = partial(print, flush=True)
+
+
+parser = argparse.ArgumentParser()
+# parser.add_argument('--force', default=False,   # whether overwrite the previous results or not?
+#                     action='store_true', help='force')
+parser.add_argument("--n_repeats", type=int, default=2)  #
+args = parser.parse_args()
+print(args)
+
 
 
 # project_dir = '~/'
@@ -34,7 +44,7 @@ def main():
     out_dir = "out"
     cnt = 0
     procs = set()
-    for n_repeats in [5000]: #[5000]
+    for n_repeats in [args.n_repeats]: #[5000]
         for true_cluster_size in [100]:
             for std in [2]: #[0.5, 1, 2]: #[0.1, 0.25, 0.5, 1, 0.1, 0.25, ]:
                 for with_outlier in [True]:  # [True, False]:
@@ -67,18 +77,19 @@ def main():
 
                             # check if the given directory exists; otherwise, create
                             check_dir(os.path.dirname(log_file))
-
-                            while len(procs) >= n_max_process:
-                                if p.poll() is None:
-                                    # the process is still running.
-                                    # print(p.pid)
-                                    pass
-                                else:
-                                    print(f"{p.pid} finished and returncode was {p.returncode}")
-                                    procs.remove(p)
+                            # while len(procs) >= n_max_process:
+                            #     for p in procs:
+                            #         if p.poll() is None:
+                            #             # the process is still running.
+                            #             # print(p.pid)
+                            #             pass
+                            #         else:
+                            #             print(f"{p.pid} finished and returncode was {p.returncode}")
+                            #             procs.remove(p)
 
                             print(f"{cnt}: {cmd} > {log_file} &")
                             with open(log_file, 'w') as f:
+                                # the subprocess.Popen function in Python will run the command specified by cmd immediately when called.
                                 p = subprocess.Popen(cmd, stderr=f, stdout=f, shell=True)
                             procs.add(p)
                             print(f"pid:{p.pid} started.")
@@ -86,11 +97,11 @@ def main():
     print(f'\n***{cnt} commands in total.')
 
     for i, p in tqdm(enumerate(procs)):
+        procs.remove(p)
         # ret = p.wait()
         # https://stackoverflow.com/questions/44456996/does-popen-communicate-implicitly-call-popen-wait
         ret = p.communicate()  # communicate() call wait() implicitly
         print(ret, p.returncode, p.pid)
-
 
 if __name__ == '__main__':
     main()
