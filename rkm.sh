@@ -13,11 +13,12 @@
 #tmux attach -t rkm
 #cd /u/ky8517/rkm/rkm_final
 #ssh ky8517@tigergpu.princeton.edu
-cd /scratch/gpfs/ky8517/rkm/rkm
+cd /scratch/gpfs/ky8517/rkm/rkm_final
 module load anaconda3/2021.11
 
-srun --time=20:00:00 --mem=40G --pty bash -i
+#srun --time=20:00:00 --mem=40G --pty bash -i
 
+squeue -u ky8517
 # # check memory: sacct --format="CPUTime,MaxRSS,ReqMem" -j 9918974
 #srun --nodes=1  --mem=128G --ntasks-per-node=1 --time=20:00:00 --pty bash -i
 #srun --nodes=1 --gres=gpu:1 --mem=128G --ntasks-per-node=1 --time=20:00:00 --pty bash -i

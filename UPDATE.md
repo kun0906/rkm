@@ -1,3 +1,8 @@
+V0.5.4: Update hpc_sbatch.py and submit to HPC.
+
+v0.5.3: Add Robust Spectral Clustering
+
+
 v0.5.2: Choose bandwidth and update plots 
 
 1. Choose rbf bandwidth
