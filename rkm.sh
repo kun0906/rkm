@@ -25,6 +25,8 @@ squeue -u ky8517
 #cd /scratch/gpfs/ky8517/rkm/rkm
 #module load anaconda3/2021.11
 
+# rsync -azP ky8517@nobel.princeton.edu:/u/ky8517/rkm/rkm_final/out .
+# rsync -azP ky8517@tiger.princeton.edu:/scratch/gpfs/ky8517/rkm/rkm_final/out .
 #sshfs ky8517@tiger.princeton.edu:/scratch/gpfs/ky8517/rkm tiger
 #sshfs ky8517@nobel.princeton.edu:/u/ky8517/rkm nobel
 # scancel  {1000..1050}

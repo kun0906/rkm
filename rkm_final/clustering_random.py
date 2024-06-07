@@ -363,7 +363,8 @@ def sc_random(points, k, max_iterations=tot_iterate, clustering_method='kmeans',
 
 def robust_sc_random(points, k, max_iterations=tot_iterate, clustering_method='kmeans', random_state=42,
                      true_centroids=None,
-                     true_labels=None):
+                     true_labels=None,
+                     n_neighbours=15):
     """ Spectral clustering in sklearn
 
     Parameters
@@ -378,7 +379,7 @@ def robust_sc_random(points, k, max_iterations=tot_iterate, clustering_method='k
 
     """
 
-    projected_points = robust_sc_projection(points, k, random_state=random_state)
+    projected_points = robust_sc_projection(points, k, n_neighbours, random_state=random_state)
 
     # X = np.concatenate([true_centroids, points], axis=0)
     # X_projected = sc_projection(X, k, random_state=random_state)

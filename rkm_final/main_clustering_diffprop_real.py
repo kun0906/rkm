@@ -24,6 +24,7 @@ parser.add_argument("--out_dir", type=str, default='out')
 parser.add_argument("--data_name", type=str, default='pen_digits')
 parser.add_argument("--fake_label", type=str, default='special')
 parser.add_argument("--std", type=float, default=1)     # sigma of outliers, not used in real data.
+parser.add_argument("--n_neighbours", type=int, default=15)
 args = parser.parse_args()
 args.with_outlier = False if args.with_outlier == 'False' else True
 print(args)
@@ -35,6 +36,7 @@ true_cluster_size = args.true_cluster_size
 with_outlier=args.with_outlier
 data_name = args.data_name
 fake_label = args.fake_label
+n_neighbours=args.n_neighbours
 # out_dir = f'{args.out_dir}/diffdim/{init_method}/R_{num_repeat}-S_{true_cluster_size}'
 out_dir = args.out_dir
 print(out_dir)
@@ -160,37 +162,47 @@ for num_centroids in range(3,9,9):
             kmed_centroids, kmed_labels = kmed(points,centroids_input=copy.deepcopy(centroids),k=num_centroids)
             kmeans_centroids, kmeans_labels = kmeans(points,centroids_input=copy.deepcopy(centroids),k=num_centroids)
 
-            sc_lloydL1_centroids, sc_lloydL1_labels = sc_omniscient(points, centroids_input=copy.deepcopy(centroids),
-                                                                    k=num_centroids,
-                                                                    clustering_method='lloydL1',
-                                                                    random_state=seed)
-            sc_kmed_centroids, sc_kmed_labels = sc_omniscient(points, centroids_input=copy.deepcopy(centroids),
-                                                              k=num_centroids,
-                                                              clustering_method='Kmed',
-                                                              random_state=seed)
-            sc_kmeans_centroids, sc_kmeans_labels = sc_omniscient(points, centroids_input=copy.deepcopy(centroids),
+            is_sc=False
+            if is_sc:
+                sc_lloydL1_centroids, sc_lloydL1_labels = sc_omniscient(points, centroids_input=copy.deepcopy(centroids),
+                                                                        k=num_centroids,
+                                                                        clustering_method='lloydL1',
+                                                                        random_state=seed)
+                sc_kmed_centroids, sc_kmed_labels = sc_omniscient(points, centroids_input=copy.deepcopy(centroids),
                                                                   k=num_centroids,
-                                                                  clustering_method='kmeans',
+                                                                  clustering_method='Kmed',
                                                                   random_state=seed)
+                sc_kmeans_centroids, sc_kmeans_labels = sc_omniscient(points, centroids_input=copy.deepcopy(centroids),
+                                                                      k=num_centroids,
+                                                                      clustering_method='kmeans',
+                                                                      random_state=seed)
+            else:
+                shape_ = lloydL1_labels.shape
+                sc_lloydL1_centroids, sc_lloydL1_labels = np.zeros((num_centroids, dim)), np.zeros(shape_)
+                sc_kmed_centroids, sc_kmed_labels = np.zeros((num_centroids, dim)), np.zeros(shape_)
+                sc_kmeans_centroids, sc_kmeans_labels = np.zeros((num_centroids, dim)), np.zeros(shape_)
 
             robust_sc_lloydL1_centroids, robust_sc_lloydL1_labels = robust_sc_omniscient(points,
                                                                                          centroids_input=copy.deepcopy(
                                                                                              centroids),
                                                                                          k=num_centroids,
                                                                                          clustering_method='lloydL1',
-                                                                                         random_state=seed)
+                                                                                         random_state=seed,
+                                                                                         n_neighbours=n_neighbours)
             robust_sc_kmed_centroids, robust_sc_kmed_labels = robust_sc_omniscient(points,
                                                                                    centroids_input=copy.deepcopy(
                                                                                        centroids),
                                                                                    k=num_centroids,
                                                                                    clustering_method='Kmed',
-                                                                                   random_state=seed)
+                                                                                   random_state=seed,
+                                                                                   n_neighbours=n_neighbours)
             robust_sc_kmeans_centroids, robust_sc_kmeans_labels = robust_sc_omniscient(points,
                                                                                        centroids_input=copy.deepcopy(
                                                                                            centroids),
                                                                                        k=num_centroids,
                                                                                        clustering_method='kmeans',
-                                                                                       random_state=seed)
+                                                                                       random_state=seed,
+                                                                                       n_neighbours=n_neighbours)
             # plot_xy(points, lloydL1_labels,
             #         random_state=i, true_centroids=copy.deepcopy(lloydL1_centroids),
             #         title=f'lloydL1: prop: {prop} after std')
@@ -336,14 +348,15 @@ for num_centroids in range(3,9,9):
     plt.plot(props, kmeans_misc_avg, '-', label='Llyod (k-means)',color="blue")
     plt.errorbar(props, kmeans_misc_avg, yerr=kmeans_misc_err, fmt='none', ecolor='black', capsize=3)
 
-    plt.plot(props, sc_lloydL1_misc_avg, '-.', label='SC-Lloyd-$L_1$', color="lightgreen")
-    plt.errorbar(props, sc_lloydL1_misc_avg, yerr=sc_lloydL1_misc_err, fmt='none', ecolor='black', capsize=3)
+    if is_sc:
+        plt.plot(props, sc_lloydL1_misc_avg, '-.', label='SC-Lloyd-$L_1$', color="lightgreen")
+        plt.errorbar(props, sc_lloydL1_misc_avg, yerr=sc_lloydL1_misc_err, fmt='none', ecolor='black', capsize=3)
 
-    plt.plot(props, sc_kmed_misc_avg, '--', label='SC-k-median', color="violet")
-    plt.errorbar(props, sc_kmed_misc_avg, yerr=sc_kmed_misc_err, fmt='none', ecolor='black', capsize=3)
+        plt.plot(props, sc_kmed_misc_avg, '--', label='SC-k-median', color="violet")
+        plt.errorbar(props, sc_kmed_misc_avg, yerr=sc_kmed_misc_err, fmt='none', ecolor='black', capsize=3)
 
-    plt.plot(props, sc_kmeans_misc_avg, '-', label='SC-Llyod (k-means)', color="skyblue")
-    plt.errorbar(props, sc_kmeans_misc_avg, yerr=sc_kmeans_misc_err, fmt='none', ecolor='black', capsize=3)
+        plt.plot(props, sc_kmeans_misc_avg, '-', label='SC-Llyod (k-means)', color="skyblue")
+        plt.errorbar(props, sc_kmeans_misc_avg, yerr=sc_kmeans_misc_err, fmt='none', ecolor='black', capsize=3)
 
     plt.plot(props, robust_sc_lloydL1_misc_avg, '-.', label='RSC-Lloyd-$L_1$', color="lime")
     plt.errorbar(props, robust_sc_lloydL1_misc_avg, yerr=robust_sc_lloydL1_misc_err, fmt='none', ecolor='black',

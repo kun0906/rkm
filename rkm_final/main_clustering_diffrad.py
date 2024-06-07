@@ -28,12 +28,13 @@ from clustering import *
 parser = argparse.ArgumentParser()
 # parser.add_argument('--force', default=False,   # whether overwrite the previous results or not?
 #                     action='store_true', help='force')
-parser.add_argument("--n_repeats", type=int, default=3)  #
+parser.add_argument("--n_repeats", type=int, default=2)  #
 parser.add_argument("--true_cluster_size", type=int, default=100)
 parser.add_argument("--init_method", type=str, default='omniscient')
 parser.add_argument("--with_outlier", type=str, default='True')
 parser.add_argument("--out_dir", type=str, default='out')
 parser.add_argument("--std", type=float, default=1)
+parser.add_argument("--n_neighbours", type=int, default=0.5)
 args = parser.parse_args()
 args.with_outlier = False if args.with_outlier == 'False' else True
 print(args)
@@ -42,6 +43,7 @@ num_repeat = args.n_repeats
 init_method = args.init_method
 true_cluster_size = args.true_cluster_size
 with_outlier = args.with_outlier
+n_neighbours=args.n_neighbours
 # out_dir = f'{args.out_dir}/diffdim/{init_method}/R_{num_repeat}-S_{true_cluster_size}'
 out_dir = args.out_dir
 if not os.path.exists(out_dir):
@@ -49,6 +51,7 @@ if not os.path.exists(out_dir):
 
 
 dim = 10
+# dim = 2 # for testing
 rad_out_vec = np.trunc(np.linspace(0, 100, 11))
 
 for num_centroids in range(4, 10, 6):
@@ -171,7 +174,7 @@ for num_centroids in range(4, 10, 6):
             kmed_centroids, kmed_labels = kmed(points, centroids_input=copy.deepcopy(centroids), k=num_centroids)
             kmeans_centroids, kmeans_labels = kmeans(points,centroids_input=copy.deepcopy(centroids),k=num_centroids)
 
-            is_sc=True
+            is_sc=False
             if is_sc:
                 sc_lloydL1_centroids, sc_lloydL1_labels = sc_omniscient(points, centroids_input=copy.deepcopy(centroids),
                                                                         k=num_centroids,
@@ -185,6 +188,12 @@ for num_centroids in range(4, 10, 6):
                                                                       k=num_centroids,
                                                                       clustering_method='kmeans',
                                                                       random_state=seed)
+            else:
+                shape_ = lloydL1_labels.shape
+                sc_lloydL1_centroids, sc_lloydL1_labels = np.zeros((num_centroids, dim)), np.zeros(shape_)
+                sc_kmed_centroids, sc_kmed_labels = np.zeros((num_centroids, dim)), np.zeros(shape_)
+                sc_kmeans_centroids, sc_kmeans_labels = np.zeros((num_centroids, dim)), np.zeros(shape_)
+
             is_rsc=True
             if is_rsc:
                 robust_sc_lloydL1_centroids, robust_sc_lloydL1_labels = robust_sc_omniscient(points,
@@ -192,19 +201,22 @@ for num_centroids in range(4, 10, 6):
                                                                                                  centroids),
                                                                                              k=num_centroids,
                                                                                              clustering_method='lloydL1',
-                                                                                             random_state=seed)
+                                                                                             random_state=seed,
+                                                                                             n_neighbours=n_neighbours)
                 robust_sc_kmed_centroids, robust_sc_kmed_labels = robust_sc_omniscient(points,
                                                                                        centroids_input=copy.deepcopy(
                                                                                            centroids),
                                                                                        k=num_centroids,
                                                                                        clustering_method='Kmed',
-                                                                                       random_state=seed)
+                                                                                       random_state=seed,
+                                                                                       n_neighbours=n_neighbours)
                 robust_sc_kmeans_centroids, robust_sc_kmeans_labels = robust_sc_omniscient(points,
                                                                                            centroids_input=copy.deepcopy(
                                                                                                centroids),
                                                                                            k=num_centroids,
                                                                                            clustering_method='kmeans',
-                                                                                           random_state=seed)
+                                                                                           random_state=seed,
+                                                                                           n_neighbours=n_neighbours)
             # lloydL1_acd.append(np.median((lloydL1_centroids - centroids) ** 2))
             # kmed_acd.append(np.median((kmed_centroids - centroids) ** 2))
             # kmeans_acd.append(np.sum((kmeans_centroids - centroids) ** 2) / num_centroids)
@@ -213,10 +225,9 @@ for num_centroids in range(4, 10, 6):
             kmed_acd.append(np.sum((kmed_centroids - centroids) ** 2) / num_centroids)
             kmeans_acd.append(np.sum((kmeans_centroids - centroids) ** 2) / num_centroids)
 
-            if is_sc:
-                sc_lloydL1_acd.append(np.sum((sc_lloydL1_centroids - centroids) ** 2) / num_centroids)
-                sc_kmed_acd.append(np.sum((sc_kmed_centroids - centroids) ** 2) / num_centroids)
-                sc_kmeans_acd.append(np.sum((sc_kmeans_centroids - centroids) ** 2) / num_centroids)
+            sc_lloydL1_acd.append(np.sum((sc_lloydL1_centroids - centroids) ** 2) / num_centroids)
+            sc_kmed_acd.append(np.sum((sc_kmed_centroids - centroids) ** 2) / num_centroids)
+            sc_kmeans_acd.append(np.sum((sc_kmeans_centroids - centroids) ** 2) / num_centroids)
 
             if is_rsc:
                 robust_sc_lloydL1_acd.append(np.sum((robust_sc_lloydL1_centroids - centroids) ** 2) / num_centroids)
@@ -233,13 +244,12 @@ for num_centroids in range(4, 10, 6):
 
             kmeans_misc.append(sum(kmeans_labels[range(num_centroids*true_cluster_size)]!=true_labels)/len(true_labels))
 
-            if is_sc:
-                sc_lloydL1_misc.append(
-                    sum(sc_lloydL1_labels[range(num_centroids * true_cluster_size)] != true_labels) / len(true_labels))
-                sc_kmed_misc.append(
-                    sum(sc_kmed_labels[range(num_centroids * true_cluster_size)] != true_labels) / len(true_labels))
-                sc_kmeans_misc.append(
-                    sum(sc_kmeans_labels[range(num_centroids * true_cluster_size)] != true_labels) / len(true_labels))
+            sc_lloydL1_misc.append(
+                sum(sc_lloydL1_labels[range(num_centroids * true_cluster_size)] != true_labels) / len(true_labels))
+            sc_kmed_misc.append(
+                sum(sc_kmed_labels[range(num_centroids * true_cluster_size)] != true_labels) / len(true_labels))
+            sc_kmeans_misc.append(
+                sum(sc_kmeans_labels[range(num_centroids * true_cluster_size)] != true_labels) / len(true_labels))
 
             if is_rsc:
                 robust_sc_lloydL1_misc.append(
@@ -274,15 +284,14 @@ for num_centroids in range(4, 10, 6):
         kmeans_acd_avg.append(np.mean(kmeans_acd_temp))
         kmeans_acd_err.append(1.96 * np.std(kmeans_acd_temp) / np.sqrt(len(kmeans_acd_temp)))
 
-        if is_sc:
-            sc_lloydL1_acd_avg.append(np.mean(sc_lloydL1_acd))
-            sc_lloydL1_acd_err.append(1.96 * np.std(sc_lloydL1_acd) / np.sqrt(len(sc_lloydL1_acd)))
+        sc_lloydL1_acd_avg.append(np.mean(sc_lloydL1_acd))
+        sc_lloydL1_acd_err.append(1.96 * np.std(sc_lloydL1_acd) / np.sqrt(len(sc_lloydL1_acd)))
 
-            sc_kmed_acd_avg.append(np.mean(sc_kmed_acd))
-            sc_kmed_acd_err.append(1.96 * np.std(sc_kmed_acd) / np.sqrt(len(sc_kmed_acd)))
+        sc_kmed_acd_avg.append(np.mean(sc_kmed_acd))
+        sc_kmed_acd_err.append(1.96 * np.std(sc_kmed_acd) / np.sqrt(len(sc_kmed_acd)))
 
-            sc_kmeans_acd_avg.append(np.mean(sc_kmeans_acd))
-            sc_kmeans_acd_err.append(1.96 * np.std(sc_kmeans_acd) / np.sqrt(len(sc_kmeans_acd)))
+        sc_kmeans_acd_avg.append(np.mean(sc_kmeans_acd))
+        sc_kmeans_acd_err.append(1.96 * np.std(sc_kmeans_acd) / np.sqrt(len(sc_kmeans_acd)))
 
 
         # Misclustering proportion avg and error bar
@@ -302,15 +311,14 @@ for num_centroids in range(4, 10, 6):
         kmeans_misc_avg.append(np.mean(kmeans_misc_temp))
         kmeans_misc_err.append(1.96*np.std(kmeans_misc_temp)/np.sqrt(len(kmeans_misc_temp)))
 
-        if is_sc:
-            sc_lloydL1_misc_avg.append(np.mean(sc_lloydL1_misc))
-            sc_lloydL1_misc_err.append(1.96 * np.std(sc_lloydL1_misc) / np.sqrt(len(sc_lloydL1_misc)))
+        sc_lloydL1_misc_avg.append(np.mean(sc_lloydL1_misc))
+        sc_lloydL1_misc_err.append(1.96 * np.std(sc_lloydL1_misc) / np.sqrt(len(sc_lloydL1_misc)))
 
-            sc_kmed_misc_avg.append(np.mean(sc_kmed_misc))
-            sc_kmed_misc_err.append(1.96 * np.std(sc_kmed_misc) / np.sqrt(len(sc_kmed_misc)))
+        sc_kmed_misc_avg.append(np.mean(sc_kmed_misc))
+        sc_kmed_misc_err.append(1.96 * np.std(sc_kmed_misc) / np.sqrt(len(sc_kmed_misc)))
 
-            sc_kmeans_misc_avg.append(np.mean(sc_kmeans_misc))
-            sc_kmeans_misc_err.append(1.96 * np.std(sc_kmeans_misc) / np.sqrt(len(sc_kmeans_misc)))
+        sc_kmeans_misc_avg.append(np.mean(sc_kmeans_misc))
+        sc_kmeans_misc_err.append(1.96 * np.std(sc_kmeans_misc) / np.sqrt(len(sc_kmeans_misc)))
 
         if is_rsc:
             robust_sc_lloydL1_misc_avg.append(np.mean(robust_sc_lloydL1_misc))
@@ -341,7 +349,7 @@ for num_centroids in range(4, 10, 6):
             'robust_sc_kmeans misc': robust_sc_kmeans_misc_avg, 'robust_sc_kmeans misc err_bar': robust_sc_kmeans_misc_err,
 
 
-        'lloydL1ians acd': lloydL1_acd_avg, 'lloydL1ians acd err_bar': lloydL1_acd_err,
+            'lloydL1ians acd': lloydL1_acd_avg, 'lloydL1ians acd err_bar': lloydL1_acd_err,
             'lloydL1ians-L1 acd': kmed_acd_avg, 'lloydL1ians-L1 acd err_bar': kmed_acd_err,
             'kmeans acd': kmeans_acd_avg, 'kmeans acd err_bar': kmeans_acd_err,
             'sc_lloydL1ians acd': sc_lloydL1_acd_avg, 'sc_lloydL1ians acd err_bar': sc_lloydL1_acd_err,

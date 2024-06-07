@@ -1,4 +1,25 @@
-V0.5.4: Update hpc_sbatch.py and submit to HPC.
+v0.5.6: Set v0 to robust_spectral_clustering.py to for reproducibility. 
+
+1. Set v0 for RSC
+   v0 = rng.rand(min(L.shape))   # avoid random initialization for eigsh()
+   # solve the normal eigenvalue problem
+   if self.laplacian == 0:
+       h, H = eigsh(L, self.k, which='SM', v0=v0)     # eigsh can involve random initialization
+   # solve the generalized eigenvalue problem
+   elif self.laplacian == 1:
+       h, H = eigsh(L, self.k, D, which='SM', v0=v0)    # tol=1e-6, add 1e-10 to the eigsh()
+
+2. Set normalize=True.
+   RSC(k=k, nn=15, theta=50, m=n_neighbours/10,laplacian=1,  normalize=True, verbose=False, random_state=random_state)
+
+
+v0.5.5: Add tol=1e-10 for robust_spectral_clustering.py
+
+  elif self.laplacian == 1:
+          h, H = eigsh(L, self.k, D, which='SM', tol=1e-10)    # add 1e-10 to the eigsh()
+
+
+v0.5.4: Update hpc_sbatch.py and submit to HPC.
 
 v0.5.3: Add Robust Spectral Clustering
 

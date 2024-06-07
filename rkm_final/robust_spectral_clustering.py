@@ -29,7 +29,8 @@ class RSC:
     Technical University of Munich, Germany
     """
 
-    def __init__(self, k, nn=15, theta=20, m=0.5, laplacian=1, n_iter=50, normalize=False, verbose=False):
+    def __init__(self, k, nn=15, theta=20, m=0.5, laplacian=1, n_iter=50, normalize=False, verbose=False,
+                 random_state=42):
         """
         :param k: number of clusters
         :param nn: number of neighbours to consider for constructing the KNN graph (excluding the node itself)
@@ -49,6 +50,7 @@ class RSC:
         self.normalize = normalize
         self.verbose = verbose
         self.laplacian = laplacian
+        self.random_state = random_state
 
         if laplacian == 0:
             if self.verbose:
@@ -62,12 +64,16 @@ class RSC:
             raise ValueError('Choice of graph Laplacian not valid. Please use 0, 1 or 2.')
 
     def __latent_decomposition(self, X):
+        # Set random seed for reproducibility
+        # rng = np.random.seed(self.random_state)   # set globally for all random number generation operations
+        rng = np.random.RandomState(seed=self.random_state) # creates a new instance of the random number generator with the specified seed value.
+
         # compute the KNN graph
         A = kneighbors_graph(X=X, n_neighbors=self.nn, metric='euclidean', include_self=False, mode='connectivity')
         A = A.maximum(A.T)  # make the graph undirected
 
         N = A.shape[0]  # number of nodes
-        deg = A.sum(0).A1  # node degrees
+        deg = A.sum(0).A1  # node degrees,  Return `self` as a flattened `ndarray`.
 
         prev_trace = np.inf  # keep track of the trace for convergence
         Ag = A.copy()
@@ -78,17 +84,19 @@ class RSC:
             D = sp.diags(Ag.sum(0).A1).tocsc()
             L = D - Ag
 
+            v0 = rng.rand(min(L.shape))   # avoid random initialization for eigsh(),
+            # generate random samples from a uniform distribution over [0, 1).
             # solve the normal eigenvalue problem
             if self.laplacian == 0:
-                h, H = eigsh(L, self.k, which='SM')
+                h, H = eigsh(L, self.k, which='SM', v0=v0)     # eigsh can involve random initialization
             # solve the generalized eigenvalue problem
             elif self.laplacian == 1:
-                h, H = eigsh(L, self.k, D, which='SM')
+                h, H = eigsh(L, self.k, D, which='SM', v0=v0)    # tol=1e-6, add 1e-10 to the eigsh()
 
             trace = h.sum()
 
             if self.verbose:
-                print('Iter: {} Trace: {:.4f}'.format(it, trace))
+                print('Iter: {}, prev_trace - trace: {}, Trace: {:.4f} h: {}'.format(it, prev_trace - trace, trace, h))
 
             if self.theta == 0:
                 # no edges are removed

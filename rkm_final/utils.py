@@ -29,7 +29,7 @@ def timer(func):
 
 def compute_bandwidth(X):
     pd = pairwise_distances(X, Y=None, metric='euclidean')
-    beta = 0.5
+    beta = 0.3
     qs = np.quantile(pd, q=beta, axis=1)
     alpha = 0.01
     n, d = X.shape
@@ -95,18 +95,24 @@ def sc_projection(points, k, random_state):
     return maps
 
 
-def robust_sc_projection(points, k, random_state=42):
+def robust_sc_projection(points, k, n_neighbours=15, random_state=42):
     """ Robust Spectral clustering
         https://github.com/abojchevski/rsc/tree/master
+
+        RSC(k=k, nn=n_neighbours, theta=60*400, m=0.5,laplacian=1,  verbose=False, random_state=random_state)
+
+        theta = number of corrupted edges we want to remove. E.g., if we want to remove 10, then theta = 5.
+        m is minimum  percentage of neighbours will be removed for each node (omega_i constraints)
+
         """
-    rsc = RSC(k=k, nn=15, theta=20, verbose=False)
+    rsc = RSC(k=k, nn=15, theta=50, m=n_neighbours/10,laplacian=1,  normalize=True, verbose=False, random_state=random_state)
     # y_rsc = rsc.fit_predict(X)
     Ag, Ac, H = rsc._RSC__latent_decomposition(points)
-    # Ag: similarity matrix of good points
-    # Ac: similarity matrix of corruption points
-    # A = Ag + Ac
-    rsc.Ag = Ag
-    rsc.Ac = Ac
+    # # Ag: similarity matrix of good points
+    # # Ac: similarity matrix of corruption points
+    # # A = Ag + Ac
+    # rsc.Ag = Ag
+    # rsc.Ac = Ac
 
     if rsc.normalize:
         rsc.H = H / np.linalg.norm(H, axis=1)[:, None]

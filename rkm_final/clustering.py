@@ -1,6 +1,7 @@
 import collections
 import warnings
 
+import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.neighbors import kneighbors_graph
 
@@ -307,14 +308,69 @@ def sc_omniscient(points, centroids_input, k, max_iterations=tot_iterate, cluste
 
     return centroids, labels
 
+def plot_centroids_diff(points, projected_points, cluster_size=100, clustering_method='kmeans', random_state=42):
+    # Create a color map for 5 classes
+    colors = ['red', 'green', 'blue', 'purple', 'orange']
+
+    # Plot the figures
+    fig, axes = plt.subplots(2, 2, figsize=(12, 6))
+
+    # Plot points
+    for i in range(4):
+        x1 = points[i*cluster_size: (i+1)*cluster_size, 0]
+        x2 = points[i*cluster_size: (i+1)*cluster_size, 1]
+        axes[0, 0].scatter(x1, x2, color=colors[i], label=f'Class {i}')
+    axes[0, 0].set_title('Points without outliers')
+    axes[0, 0].set_xlabel('X axis')
+    axes[0, 0].set_ylabel('Y axis')
+    axes[0, 0].legend()
+
+    # Plot points
+    for i in range(5):
+        x1 = points[i*cluster_size: (i+1)*cluster_size, 0]
+        x2 = points[i*cluster_size: (i+1)*cluster_size, 1]
+        axes[0, 1].scatter(x1, x2, color=colors[i], label=f'Class {i}')
+    axes[0, 1].set_title('Points')
+    axes[0, 1].set_xlabel('X axis')
+    axes[0, 1].set_ylabel('Y axis')
+    axes[0, 1].legend()
+
+
+    # Plot projected points
+    for i in range(4):
+        x1 = projected_points[i*cluster_size: (i+1)*cluster_size, 0]
+        x2 = projected_points[i*cluster_size: (i+1)*cluster_size, 1]
+        axes[1, 0].scatter(x1, x2, color=colors[i], label=f'Class {i}')
+    axes[1, 0].set_title('Projected Points without outliers')
+    axes[1, 0].set_xlabel('X axis')
+    axes[1, 0].set_ylabel('Y axis')
+    axes[1, 0].legend()
+
+    # Plot projected points
+    for i in range(5):
+        x1 = projected_points[i*cluster_size: (i+1)*cluster_size, 0]
+        x2 = projected_points[i*cluster_size: (i+1)*cluster_size, 1]
+        axes[1, 1].scatter(x1, x2, color=colors[i], label=f'Class {i}')
+    axes[1, 1].set_title('Projected Points')
+    axes[1, 1].set_xlabel('X axis')
+    axes[1, 1].set_ylabel('Y axis')
+    axes[1, 1].legend()
+
+    fig.suptitle(f'Seed: {random_state},{clustering_method}')
+    plt.tight_layout()
+    plt.savefig('diff.png')
+    plt.show()
 
 def robust_sc_omniscient(points, k, centroids_input, max_iterations=tot_iterate, random_state=42,
-                     clustering_method='kmeans'):
-    projected_points = robust_sc_projection(points, k, random_state=random_state)
+                     clustering_method='kmeans', n_neighbours=15):
+
+    projected_points = robust_sc_projection(points, k, n_neighbours=n_neighbours, random_state=random_state)
+
+    # plot_centroids_diff(points, projected_points, cluster_size=100, clustering_method=clustering_method, random_state=random_state)
 
     # find the projected initial centroids
     X = np.concatenate([centroids_input, points], axis=0)
-    X_projected = robust_sc_projection(X, k, random_state=random_state)
+    X_projected = robust_sc_projection(X, k, n_neighbours=n_neighbours, random_state=random_state)
     projected_true_centroids = X_projected[:k, :]
 
     # # random select initial centroids
