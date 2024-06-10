@@ -535,7 +535,8 @@ if __name__ == '__main__':
     # in_dir = 'paper_results-20230614/out-outlier_prop_0.6-std_10-normal_std_2/std_2/R_5000-S_100-O_True'
     # in_dir = f'paper_results-20240504/std_2/R_{R}-S_100-O_True'
     # in_dir = f'out_SC_beta=0.3_20240508/std_2/R_{R}-S_100-O_True'
-    in_dir = f'out-20240606-m_normalization=False/std_2/R_{R}-S_100-O_True-B_0_1'
+    # in_dir = f'out-20240608-m_normalization=True/std_2/R_{R}-S_100-O_True-B_9' # for different m (percentage): 0.1 to 0.9
+    in_dir = f'out-20240609-different_projected_k/std_2/R_{R}-S_100-O_True-B_9'  # for different projected_k    : 1 to 9
     out_dir = f'{in_dir}/paper_plot'
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)

@@ -28,13 +28,13 @@ from clustering import *
 parser = argparse.ArgumentParser()
 # parser.add_argument('--force', default=False,   # whether overwrite the previous results or not?
 #                     action='store_true', help='force')
-parser.add_argument("--n_repeats", type=int, default=2)  #
+parser.add_argument("--n_repeats", type=int, default=10)  #
 parser.add_argument("--true_cluster_size", type=int, default=100)
 parser.add_argument("--init_method", type=str, default='omniscient')
 parser.add_argument("--with_outlier", type=str, default='True')
 parser.add_argument("--out_dir", type=str, default='out')
 parser.add_argument("--std", type=float, default=1)
-parser.add_argument("--n_neighbours", type=int, default=0.5)
+parser.add_argument("--n_neighbours", type=int, default=20)
 args = parser.parse_args()
 args.with_outlier = False if args.with_outlier == 'False' else True
 print(args)
@@ -50,11 +50,12 @@ if not os.path.exists(out_dir):
     os.makedirs(out_dir)
 
 
-dim = 10
-# dim = 2 # for testing
-rad_out_vec = np.trunc(np.linspace(0, 100, 11))
 
+# dim = 2 # for testing
+rad_out_vec = np.trunc(np.linspace(10, 100, 11))
+dim = 10
 for num_centroids in range(4, 10, 6):
+
     # True labels
 
     true_labels = np.concatenate([np.ones(true_cluster_size) * i for i in range(num_centroids)]).astype(int)

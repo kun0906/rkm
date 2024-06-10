@@ -105,7 +105,7 @@ def robust_sc_projection(points, k, n_neighbours=15, random_state=42):
         m is minimum  percentage of neighbours will be removed for each node (omega_i constraints)
 
         """
-    rsc = RSC(k=k, nn=15, theta=50, m=n_neighbours/10,laplacian=1,  normalize=True, verbose=False, random_state=random_state)
+    rsc = RSC(k=k, nn=n_neighbours, theta=50, m=0.5,laplacian=1,  normalize=True, verbose=False, random_state=random_state)
     # y_rsc = rsc.fit_predict(X)
     Ag, Ac, H = rsc._RSC__latent_decomposition(points)
     # # Ag: similarity matrix of good points

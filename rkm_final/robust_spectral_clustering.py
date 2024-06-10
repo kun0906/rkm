@@ -6,10 +6,42 @@ Source:
 """
 import numpy as np
 import scipy.sparse as sp
+from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import eigsh
 from sklearn.neighbors import kneighbors_graph
 from sklearn.cluster import k_means
+import scipy.stats as stats
+from sklearn.metrics import pairwise_distances
+from sklearn.metrics import pairwise_kernels
 
+def compute_bandwidth(X):
+    pd = pairwise_distances(X, Y=None, metric='euclidean')
+    beta = 0.3
+    qs = np.quantile(pd, q=beta, axis=1)
+    alpha = 0.01
+    n, d = X.shape
+    df = d  # degrees of freedom
+    denominator = np.sqrt(stats.chi2.ppf((1 - alpha), df))
+    bandwidth = np.quantile(qs, (1 - alpha)) / denominator
+
+    return bandwidth
+
+def rbf_graph(points):
+    params = {}  # default value in sklearn
+    sigma = compute_bandwidth(points)
+    params["gamma"] = 1 / (2 * sigma ** 2)
+
+    params["degree"] = 3
+    params["coef0"] = 1
+    # eigen_solver{‘arpack’, ‘lobpcg’, ‘amg’}, default=None
+    # The eigenvalue decomposition strategy to use. AMG requires pyamg to be installed.
+    # It can be faster on very large, sparse problems, but may also lead to instabilities.
+    # If None, then 'arpack' is used. See [4] for more details regarding 'lobpcg'.
+    affinity_matrix_ = pairwise_kernels(
+        points, metric='rbf', filter_params=True, **params,
+    )
+
+    return affinity_matrix_
 
 class RSC:
     """
@@ -67,9 +99,14 @@ class RSC:
         # Set random seed for reproducibility
         # rng = np.random.seed(self.random_state)   # set globally for all random number generation operations
         rng = np.random.RandomState(seed=self.random_state) # creates a new instance of the random number generator with the specified seed value.
-
-        # compute the KNN graph
-        A = kneighbors_graph(X=X, n_neighbors=self.nn, metric='euclidean', include_self=False, mode='connectivity')
+        affinity = 'knn'
+        if affinity == 'rbf':
+            A = rbf_graph(X)
+            # Convert the numpy array to a csr_matrix
+            A = csr_matrix(A)
+        else:
+            # compute the KNN graph
+            A = kneighbors_graph(X=X, n_neighbors=self.nn, metric='euclidean', include_self=False, mode='connectivity')
         A = A.maximum(A.T)  # make the graph undirected
 
         N = A.shape[0]  # number of nodes
@@ -88,11 +125,27 @@ class RSC:
             # generate random samples from a uniform distribution over [0, 1).
             # solve the normal eigenvalue problem
             if self.laplacian == 0:
-                h, H = eigsh(L, self.k, which='SM', v0=v0)     # eigsh can involve random initialization
+                h, H = eigsh(L, min(self.k*2, N), which='SM', v0=v0)     # eigsh can involve random initialization
             # solve the generalized eigenvalue problem
             elif self.laplacian == 1:
-                h, H = eigsh(L, self.k, D, which='SM', v0=v0)    # tol=1e-6, add 1e-10 to the eigsh()
-
+                h, H = eigsh(L, min(self.k*2, N), D, which='SM', v0=v0)
+                if self.verbose:
+                    print(list(h), sorted(h, key=lambda x: abs(x), reverse=False))
+                    print('h[i] - h[i-1] diff： ', [h[i] - h[i-1] for i in range(1, len(h))])
+                is_non_zero_eigen = False    # if True, we only use non_zero_eigenvalues and eigenvectors
+                if is_non_zero_eigen:
+                    # Find top 2 non-zero eigenvalues
+                    top_k_nonzero_indices = []
+                    for idx in range(len(h)):
+                        if len(top_k_nonzero_indices) >= self.k:
+                            break
+                        if not np.isclose(h[idx], 0, atol=1.e-10):  # Check if the eigenvalue is non-zero
+                            top_k_nonzero_indices.append(idx)
+                    # print(it, top_k_nonzero_indices, h, flush=True)
+                    h, H = h[top_k_nonzero_indices], H[:,top_k_nonzero_indices]
+                else:
+                    h, H = h[:self.k], H[:,:self.k]
+                self.h = h
             trace = h.sum()
 
             if self.verbose:
@@ -139,9 +192,15 @@ class RSC:
                         break
 
             removed_edges = np.array(removed_edges)
-            Ac = sp.coo_matrix((np.ones(len(removed_edges)), (removed_edges[:, 0], removed_edges[:, 1])), shape=(N, N))
-            Ac = Ac.maximum(Ac.T)
-            Ag = A - Ac
+            if removed_edges.shape[0] > 0:
+                Ac = sp.coo_matrix((np.ones(len(removed_edges)), (removed_edges[:, 0], removed_edges[:, 1])), shape=(N, N))
+                Ac = Ac.maximum(Ac.T)
+                Ag = A - Ac
+            else:
+                # use the previous results
+                if self.verbose:
+                    print(removed_edges.shape, flush=True)
+                break
 
         return Ag, Ac, H
 

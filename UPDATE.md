@@ -1,3 +1,7 @@
+v0.5.7: Add 'rbf' for RSC and remove zero eigenvectors from RSC.
+
+
+
 v0.5.6: Set v0 to robust_spectral_clustering.py to for reproducibility. 
 
 1. Set v0 for RSC

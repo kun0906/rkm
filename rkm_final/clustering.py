@@ -308,53 +308,73 @@ def sc_omniscient(points, centroids_input, k, max_iterations=tot_iterate, cluste
 
     return centroids, labels
 
-def plot_centroids_diff(points, projected_points, cluster_size=100, clustering_method='kmeans', random_state=42):
+def plot_centroids_diff(points, projected_points, cluster_size=100, clustering_method='kmeans',
+                        centroids=None, projected_centroids=None,
+                        random_state=42):
     # Create a color map for 5 classes
     colors = ['red', 'green', 'blue', 'purple', 'orange']
 
     # Plot the figures
-    fig, axes = plt.subplots(2, 2, figsize=(12, 6))
+    fig, axes = plt.subplots(2, 2, figsize=(10, 8))
+    # fig, axes = plt.subplots(2, 2)
 
-    # Plot points
-    for i in range(4):
-        x1 = points[i*cluster_size: (i+1)*cluster_size, 0]
-        x2 = points[i*cluster_size: (i+1)*cluster_size, 1]
-        axes[0, 0].scatter(x1, x2, color=colors[i], label=f'Class {i}')
-    axes[0, 0].set_title('Points without outliers')
-    axes[0, 0].set_xlabel('X axis')
-    axes[0, 0].set_ylabel('Y axis')
-    axes[0, 0].legend()
-
+    # # Plot points
+    # for i in range(4):
+    #     x1 = points[i*cluster_size: (i+1)*cluster_size, 0]
+    #     x2 = points[i*cluster_size: (i+1)*cluster_size, 1]
+    #     axes[0, 0].scatter(x1, x2, color=colors[i], label=f'Class {i}')
+    #     if centroids is not None and i < centroids.shape[0]:
+    #         axes[0, 0].scatter(centroids[i, 0], centroids[i, 1], color='black', marker='x', s = 100, label=f'{i}')
+    #     if projected_centroids is not None and i < projected_centroids.shape[0]:
+    #         axes[0, 0].scatter(projected_centroids[i, 0], projected_centroids[i, 1], color='black', marker='s',  s = 100, label=f'{i}')
+    # axes[0, 0].set_title('Points without outliers')
+    # axes[0, 0].set_xlabel('X axis')
+    # axes[0, 0].set_ylabel('Y axis')
+    # axes[0, 0].legend()
+    #
     # Plot points
     for i in range(5):
         x1 = points[i*cluster_size: (i+1)*cluster_size, 0]
         x2 = points[i*cluster_size: (i+1)*cluster_size, 1]
         axes[0, 1].scatter(x1, x2, color=colors[i], label=f'Class {i}')
+        print(i, x1, x2)
+        if centroids is not None and i < centroids.shape[0]:
+            axes[0, 1].scatter(centroids[i, 0], centroids[i, 1], color='black', marker='x',  s = 100, label=f'{i}')
+        if projected_centroids is not None and i < projected_centroids.shape[0]:
+            axes[0, 1].scatter(projected_centroids[i, 0], projected_centroids[i, 1], color='black', marker='s',  s = 100, label=f'{i}')
     axes[0, 1].set_title('Points')
     axes[0, 1].set_xlabel('X axis')
     axes[0, 1].set_ylabel('Y axis')
-    axes[0, 1].legend()
+    # axes[0, 1].legend()
 
 
-    # Plot projected points
-    for i in range(4):
-        x1 = projected_points[i*cluster_size: (i+1)*cluster_size, 0]
-        x2 = projected_points[i*cluster_size: (i+1)*cluster_size, 1]
-        axes[1, 0].scatter(x1, x2, color=colors[i], label=f'Class {i}')
-    axes[1, 0].set_title('Projected Points without outliers')
-    axes[1, 0].set_xlabel('X axis')
-    axes[1, 0].set_ylabel('Y axis')
-    axes[1, 0].legend()
+    # # Plot projected points
+    # for i in range(4):
+    #     x1 = projected_points[i*cluster_size: (i+1)*cluster_size, 0]
+    #     x2 = projected_points[i*cluster_size: (i+1)*cluster_size, 1]
+    #     axes[1, 0].scatter(x1, x2, color=colors[i], label=f'Class {i}')
+    #     if centroids is not None and i < centroids.shape[0]:
+    #         axes[1, 0].scatter(centroids[i, 0], centroids[i, 1], color='black', marker='x',  s = 100, label=f'{i}')
+    #     if projected_centroids is not None and i < projected_centroids.shape[0]:
+    #         axes[1, 0].scatter(projected_centroids[i, 0], projected_centroids[i, 1], color='black', marker='s',  s = 100, label=f'{i}')
+    # axes[1, 0].set_title('Projected Points without outliers')
+    # axes[1, 0].set_xlabel('X axis')
+    # axes[1, 0].set_ylabel('Y axis')
+    # axes[1, 0].legend()
 
     # Plot projected points
     for i in range(5):
         x1 = projected_points[i*cluster_size: (i+1)*cluster_size, 0]
         x2 = projected_points[i*cluster_size: (i+1)*cluster_size, 1]
         axes[1, 1].scatter(x1, x2, color=colors[i], label=f'Class {i}')
+        if centroids is not None and i < centroids.shape[0]:
+            axes[1, 1].scatter(centroids[i, 0], centroids[i, 1], color='black', marker='x',  s = 100, label=f'{i}')
+        if projected_centroids is not None and i < projected_centroids.shape[0]:
+            axes[1, 1].scatter(projected_centroids[i, 0], projected_centroids[i, 1], color='black', marker='s',  s = 100, label=f'{i}')
     axes[1, 1].set_title('Projected Points')
     axes[1, 1].set_xlabel('X axis')
     axes[1, 1].set_ylabel('Y axis')
-    axes[1, 1].legend()
+    # axes[1, 1].legend()
 
     fig.suptitle(f'Seed: {random_state},{clustering_method}')
     plt.tight_layout()
@@ -366,12 +386,18 @@ def robust_sc_omniscient(points, k, centroids_input, max_iterations=tot_iterate,
 
     projected_points = robust_sc_projection(points, k, n_neighbours=n_neighbours, random_state=random_state)
 
-    # plot_centroids_diff(points, projected_points, cluster_size=100, clustering_method=clustering_method, random_state=random_state)
+    plot_centroids_diff(points, projected_points, cluster_size=100, clustering_method=clustering_method,
+                        centroids=centroids_input,projected_centroids=None,
+                        random_state=random_state)
 
     # find the projected initial centroids
     X = np.concatenate([centroids_input, points], axis=0)
     X_projected = robust_sc_projection(X, k, n_neighbours=n_neighbours, random_state=random_state)
     projected_true_centroids = X_projected[:k, :]
+
+    # plot_centroids_diff(projected_points, X_projected, cluster_size=100, clustering_method=clustering_method,
+    #                     centroids=centroids_input, projected_centroids=projected_true_centroids,
+    #                     random_state=random_state)
 
     # # random select initial centroids
     # rng = np.random.RandomState(seed=random_state)
