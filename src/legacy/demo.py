@@ -1,13 +1,13 @@
-from clustering import plot_centroids_diff
+
 from robust_spectral_clustering import RSC
 import matplotlib.pyplot as plt
 import numpy as np
 np.random.seed(42)
-def robust_sc_projection2(points, k, n_neighbours=15, random_state=42):
+def robust_sc_projection2(points, k, n_neighbors=15, random_state=42):
     """ Robust Spectral clustering
         https://github.com/abojchevski/rsc/tree/master
         """
-    rsc = RSC(k=k, nn=n_neighbours, theta=20, m=0.5,laplacian=1,  verbose=False)
+    rsc = RSC(k=k, nn=n_neighbors, theta=20, m=0.5,laplacian=1,  verbose=False)
     # y_rsc = rsc.fit_predict(X)
     Ag, Ac, H = rsc._RSC__latent_decomposition(points)
     # Ag: similarity matrix of good points
@@ -28,14 +28,14 @@ def robust_sc_projection2(points, k, n_neighbours=15, random_state=42):
 import scipy.sparse as sp
 from scipy.sparse.linalg import eigsh
 from sklearn.neighbors import kneighbors_graph
-def robust_sc_projection(points, k, n_neighbours=5, random_state=42):
+def robust_sc_projection(points, k, n_neighbors=5, random_state=42):
     """ Robust Spectral clustering
         https://github.com/abojchevski/rsc/tree/master
         """
     # np.random.seed(random_state)
 
     # compute the KNN graph
-    A = kneighbors_graph(X=points, n_neighbors=n_neighbours, metric='euclidean', include_self=False, mode='connectivity')
+    A = kneighbors_graph(X=points, n_neighbors=n_neighbors, metric='euclidean', include_self=False, mode='connectivity')
     A = A.maximum(A.T)  # make the graph undirected
 
     N = A.shape[0]  # number of nodes
@@ -75,26 +75,60 @@ def plot_data(points, random_state=42):
     plt.show()
 
 
+def test1():
+    for i in range(1):
+        seed = i
+        rng = np.random.RandomState(seed=seed)
+        # points = rng.normal(size=(10, 2))
+        points = np.asarray([[1, 0],
+                             [0, 1],
+                             [1, 1],
+                             [5, 5]])
+        plot_data(points)
 
-for i in range(1):
-    seed = i
-    rng = np.random.RandomState(seed=seed)
-    # points = rng.normal(size=(10, 2))
-    points = np.asarray([[1, 0],
-                         [0, 1],
-                         [1, 1],
-                         [5, 5]])
-    plot_data(points)
+        for clustering_method in [1, 2, 3]:
+            random_state = seed
+            k = 2
+            n_neighbors = 2
+            # clustering_method = 'robust_spectral_clustering'
+            # np.random.seed(42)
+            projected_points = robust_sc_projection(points, k, n_neighbors=n_neighbors, random_state=random_state)
 
-    for clustering_method in [1, 2, 3]:
-        random_state = seed
-        k = 2
-        n_neighbours = 2
-        # clustering_method = 'robust_spectral_clustering'
-        # np.random.seed(42)
-        projected_points = robust_sc_projection(points, k, n_neighbours=n_neighbours, random_state=random_state)
+            # plot_centroids_diff(points, projected_points, cluster_size=100, clustering_method=clustering_method, random_state=random_state)
 
-        plot_centroids_diff(points, projected_points, cluster_size=100, clustering_method=clustering_method, random_state=random_state)
+
+
+from sklearn.manifold import SpectralEmbedding
+from sklearn.datasets import make_blobs
+import numpy as np
+
+n_neighbors  = 50
+# Example data
+X, _ = make_blobs(n_samples=100, centers=3, random_state=42)
+
+# Increase the number of neighbors
+embedding = SpectralEmbedding(n_components=2, affinity="nearest_neighbors", n_neighbors=n_neighbors)
+
+# Fit the model
+X_transformed = embedding.fit_transform(X)
+
+
+import matplotlib.pyplot as plt
+import networkx as nx
+from sklearn.neighbors import kneighbors_graph
+
+# Create a k-neighbors graph
+A = kneighbors_graph(X, n_neighbors=n_neighbors, include_self=False)
+A = A.maximum(A.T)
+# Convert to a NetworkX graph
+# G = nx.from_scipy_sparse_matrix(A)
+G = nx.from_scipy_sparse_array(A)
+
+# Draw the graph
+plt.figure(figsize=(8, 6))
+nx.draw(G, node_size=50)
+plt.show()
+
 
 
 

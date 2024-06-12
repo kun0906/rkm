@@ -15,28 +15,28 @@ from data.gen_data import gen_data, plot_xy
 parser = argparse.ArgumentParser()
 # parser.add_argument('--force', default=False,   # whether overwrite the previous results or not?
 #                     action='store_true', help='force')
-parser.add_argument("--n_repeats", type=int, default=2)  #
-parser.add_argument("--true_cluster_size", type=int, default=100)
+parser.add_argument("--n_repetitions", type=int, default=2)  #
+parser.add_argument("--true_single_cluster_size", type=int, default=100)
 parser.add_argument("--init_method", type=str, default='random')
-parser.add_argument("--with_outlier", type=str, default='True')
+parser.add_argument("--add_outlier", type=str, default='True')
 parser.add_argument("--out_dir", type=str, default='out')
 parser.add_argument("--data_name", type=str, default='pen_digits')
 parser.add_argument("--fake_label", type=str, default='special')
-parser.add_argument("--std", type=float, default=0)
-parser.add_argument("--n_neighbours", type=int, default=15)
+parser.add_argument("--cluster_std", type=float, default=0)
+parser.add_argument("--n_neighbors", type=int, default=15)
 args = parser.parse_args()
-args.with_outlier = False if args.with_outlier == 'False' else True
+args.add_outlier = False if args.add_outlier == 'False' else True
 print(args)
 
 # num_repeat = 400
-num_repeat = args.n_repeats
+num_repeat = args.n_repetitions
 init_method = args.init_method
-true_cluster_size = args.true_cluster_size
-with_outlier=args.with_outlier
+true_single_cluster_size = args.true_single_cluster_size
+add_outlier=args.add_outlier
 data_name = args.data_name
 fake_label = args.fake_label
-n_neighbours=args.n_neighbours
-# out_dir = f'{args.out_dir}/diffdim/{init_method}/R_{num_repeat}-S_{true_cluster_size}'
+n_neighbors=args.n_neighbors
+# out_dir = f'{args.out_dir}/diffdim/{init_method}/R_{num_repeat}-S_{true_single_cluster_size}'
 out_dir = args.out_dir
 if not os.path.exists(out_dir):
     os.makedirs(out_dir)
@@ -45,7 +45,7 @@ if not os.path.exists(out_dir):
 for num_centroids in range(3,9,9):
     # True labels
 
-    # true_labels = np.concatenate([np.ones(true_cluster_size)*i for i in range(num_centroids)]).astype(int)
+    # true_labels = np.concatenate([np.ones(true_single_cluster_size)*i for i in range(num_centroids)]).astype(int)
 
     # dim = 10
     props = [0, 0.2, 0.4, 0.6, 0.8]
@@ -112,18 +112,18 @@ for num_centroids in range(3,9,9):
             rng = np.random.RandomState(seed=seed)
             radius = 5
 
-            sigma = args.std
+            sigma = args.cluster_std
             # data_name = 'biocoin_heist'  # 'letter_recognition'
-            data = gen_data(data_name, fake_label, num_centroids, true_cluster_size, prop, with_outlier,
+            data = gen_data(data_name, fake_label, num_centroids, true_single_cluster_size, prop, add_outlier,
                             random_state=i)
             true_points = data['X']
             true_labels = data['Y']
             centroids = data['centroids']
             outliers = data['outliers']
 
-            n_outliers = prop* true_cluster_size
+            n_outliers = prop* true_single_cluster_size
             # Final points
-            if with_outlier:
+            if add_outlier:
                 points = np.concatenate((true_points, outliers), axis=0)
             else:
                 # Without outliers
@@ -147,9 +147,9 @@ for num_centroids in range(3,9,9):
 
                 # recompute the centroids after standardization.
                 j = 0
-                for i in range(0, len(points), true_cluster_size):
+                for i in range(0, len(points), true_single_cluster_size):
                     if j >= num_centroids: break
-                    centroids[j] = np.mean(points[i:i + true_cluster_size], axis=0)
+                    centroids[j] = np.mean(points[i:i + true_single_cluster_size], axis=0)
                     j += 1
 
             if init_method == 'random':
@@ -163,19 +163,19 @@ for num_centroids in range(3,9,9):
             #         random_state=i, true_centroids= copy.deepcopy(init_centroids),
             #         title=f'prop: {prop} after std')
             orig_points = copy.deepcopy(points)
-            # Perform k-means clustering with k clusters
-            lloydL1_centroids, lloydL1_labels = lloydL1(points,centroids_input=init_centroids,k=num_centroids, true_centroids=centroids)
-            kmed_centroids, kmed_labels = kmed(points,centroids_input=init_centroids,k=num_centroids,  true_centroids=centroids)
-            kmeans_centroids, kmeans_labels = kmeans(points,centroids_input=init_centroids,k=num_centroids,  true_centroids=centroids)
+            # Perform k_means clustering with k clusters
+            lloydL1_centroids, lloydL1_labels = k_medians_l2(points,centroids_input=init_centroids,k=num_centroids, true_centroids=centroids)
+            kmed_centroids, kmed_labels = k_medians_l1(points,centroids_input=init_centroids,k=num_centroids,  true_centroids=centroids)
+            kmeans_centroids, kmeans_labels = k_means(points,centroids_input=init_centroids,k=num_centroids,  true_centroids=centroids)
 
-            is_sc=False
+            is_sc=True
             if is_sc:
                 sc_lloydL1_centroids, sc_lloydL1_labels = sc_random(points, k=num_centroids,
-                                                                    clustering_method='lloydL1',
+                                                                    clustering_method='k_medians_l2',
                                                                     random_state=seed, true_centroids=centroids)
-                sc_kmed_centroids, sc_kmed_labels = sc_random(points, k=num_centroids, clustering_method='Kmed',
+                sc_kmed_centroids, sc_kmed_labels = sc_random(points, k=num_centroids, clustering_method='k_medians_l1',
                                                               random_state=seed, true_centroids=centroids)
-                sc_kmeans_centroids, sc_kmeans_labels = sc_random(points, k=num_centroids, clustering_method='kmeans',
+                sc_kmeans_centroids, sc_kmeans_labels = sc_random(points, k=num_centroids, clustering_method='k_means',
                                                                   random_state=seed, true_centroids=centroids)
             else:
                 shape_ = lloydL1_labels.shape
@@ -185,22 +185,22 @@ for num_centroids in range(3,9,9):
 
             assert (points == orig_points).all()
             robust_sc_lloydL1_centroids, robust_sc_lloydL1_labels = robust_sc_random(points, k=num_centroids,
-                                                                                     clustering_method='lloydL1',
+                                                                                     clustering_method='k_medians_l2',
                                                                                      random_state=seed,
                                                                                      true_centroids=centroids,
-                                                                                     n_neighbours=n_neighbours)
+                                                                                     n_neighbors=n_neighbors)
             assert (points == orig_points).all()
             robust_sc_kmed_centroids, robust_sc_kmed_labels = robust_sc_random(points, k=num_centroids,
-                                                                               clustering_method='Kmed',
+                                                                               clustering_method='k_medians_l1',
                                                                                random_state=seed,
                                                                                true_centroids=centroids,
-                                                                               n_neighbours=n_neighbours)
+                                                                               n_neighbors=n_neighbors)
             assert (points == orig_points).all()
             robust_sc_kmeans_centroids, robust_sc_kmeans_labels = robust_sc_random(points, k=num_centroids,
-                                                                                   clustering_method='kmeans',
+                                                                                   clustering_method='k_means',
                                                                                    random_state=seed,
                                                                                    true_centroids=centroids,
-                                                                                   n_neighbours=n_neighbours)
+                                                                                   n_neighbors=n_neighbors)
 
 
             # print(lloydL1_labels)
@@ -220,26 +220,26 @@ for num_centroids in range(3,9,9):
 
             # Misclustering label estimation
 
-            lloydL1_misc.append(sum(lloydL1_labels[range(num_centroids*true_cluster_size)]!=true_labels)/len(true_labels))
+            lloydL1_misc.append(sum(lloydL1_labels[range(num_centroids*true_single_cluster_size)]!=true_labels)/len(true_labels))
 
-            kmed_misc.append(sum(kmed_labels[range(num_centroids*true_cluster_size)]!=true_labels)/len(true_labels))
+            kmed_misc.append(sum(kmed_labels[range(num_centroids*true_single_cluster_size)]!=true_labels)/len(true_labels))
 
-            kmeans_misc.append(sum(kmeans_labels[range(num_centroids*true_cluster_size)]!=true_labels)/len(true_labels))
+            kmeans_misc.append(sum(kmeans_labels[range(num_centroids*true_single_cluster_size)]!=true_labels)/len(true_labels))
 
             sc_lloydL1_misc.append(
-                sum(sc_lloydL1_labels[range(num_centroids * true_cluster_size)] != true_labels) / len(true_labels))
+                sum(sc_lloydL1_labels[range(num_centroids * true_single_cluster_size)] != true_labels) / len(true_labels))
             sc_kmed_misc.append(
-                sum(sc_kmed_labels[range(num_centroids * true_cluster_size)] != true_labels) / len(true_labels))
+                sum(sc_kmed_labels[range(num_centroids * true_single_cluster_size)] != true_labels) / len(true_labels))
             sc_kmeans_misc.append(
-                sum(sc_kmeans_labels[range(num_centroids * true_cluster_size)] != true_labels) / len(true_labels))
+                sum(sc_kmeans_labels[range(num_centroids * true_single_cluster_size)] != true_labels) / len(true_labels))
 
             robust_sc_lloydL1_misc.append(
-                sum(robust_sc_lloydL1_labels[range(num_centroids * true_cluster_size)] != true_labels) / len(
+                sum(robust_sc_lloydL1_labels[range(num_centroids * true_single_cluster_size)] != true_labels) / len(
                     true_labels))
             robust_sc_kmed_misc.append(
-                sum(robust_sc_kmed_labels[range(num_centroids * true_cluster_size)] != true_labels) / len(true_labels))
+                sum(robust_sc_kmed_labels[range(num_centroids * true_single_cluster_size)] != true_labels) / len(true_labels))
             robust_sc_kmeans_misc.append(
-                sum(robust_sc_kmeans_labels[range(num_centroids * true_cluster_size)] != true_labels) / len(
+                sum(robust_sc_kmeans_labels[range(num_centroids * true_single_cluster_size)] != true_labels) / len(
                     true_labels))
 
         # acd average and error bar
@@ -295,10 +295,10 @@ for num_centroids in range(3,9,9):
 
     data = {'props':props,'lloydL1ians misc':lloydL1_misc_avg,'lloydL1ians misc err_bar':lloydL1_misc_err,
             'lloydL1ians-L1 misc':kmed_misc_avg,'lloydL1ians-L1 misc err_bar':kmed_misc_err,
-            'kmeans misc':kmeans_misc_avg,'kmeans misc err_bar':kmeans_misc_err,
+            'k_means misc':kmeans_misc_avg,'k_means misc err_bar':kmeans_misc_err,
             'sc_lloydL1ians misc': sc_lloydL1_misc_avg, 'sc_lloydL1ians misc err_bar': sc_lloydL1_misc_err,
             'sc_lloydL1ians-L1 misc': sc_kmed_misc_avg, 'sc_lloydL1ians-L1 misc err_bar': sc_kmed_misc_err,
-            'sc_kmeans misc': sc_kmeans_misc_avg, 'sc_kmeans misc err_bar': sc_kmeans_misc_err,
+            'sc_k_means misc': sc_kmeans_misc_avg, 'sc_k_means misc err_bar': sc_kmeans_misc_err,
             'robust_sc_lloydL1ians misc': robust_sc_lloydL1_misc_avg,
             'robust_sc_lloydL1ians misc err_bar': robust_sc_lloydL1_misc_err,
             'robust_sc_lloydL1ians-L1 misc': robust_sc_kmed_misc_avg,
@@ -309,10 +309,10 @@ for num_centroids in range(3,9,9):
 
             'lloydL1ians acd': lloydL1_acd_avg, 'lloydL1ians acd err_bar': lloydL1_acd_err,
             'lloydL1ians-L1 acd': kmed_acd_avg, 'lloydL1ians-L1 acd err_bar': kmed_acd_err,
-            'kmeans acd': kmeans_acd_avg, 'kmeans acd err_bar': kmeans_acd_err,
+            'k_means acd': kmeans_acd_avg, 'k_means acd err_bar': kmeans_acd_err,
             'sc_lloydL1ians acd': sc_lloydL1_acd_avg, 'sc_lloydL1ians acd err_bar': sc_lloydL1_acd_err,
             'sc_lloydL1ians-L1 acd': sc_kmed_acd_avg, 'sc_lloydL1ians-L1 acd err_bar': sc_kmed_acd_err,
-            'sc_kmeans acd': sc_kmeans_acd_avg, 'sc_kmeans acd err_bar': sc_kmeans_acd_err,
+            'sc_k_means acd': sc_kmeans_acd_avg, 'sc_k_means acd err_bar': sc_kmeans_acd_err,
             }
     df = pd.DataFrame(data)
 
@@ -332,27 +332,27 @@ for num_centroids in range(3,9,9):
     plt.errorbar(props, kmed_misc_avg, yerr=kmed_misc_err, fmt='none', ecolor='black', capsize=3)
 
 
-    plt.plot(props, kmeans_misc_avg, '-', label='Llyod (k-means)',color="blue")
+    plt.plot(props, kmeans_misc_avg, '-', label='Llyod (k_means)',color="blue")
     plt.errorbar(props, kmeans_misc_avg, yerr=kmeans_misc_err, fmt='none', ecolor='black', capsize=3)
 
     if is_sc:
-        plt.plot(props, sc_lloydL1_misc_avg, '-.', label='SC-Lloyd-$L_1$', color="lightgreen")
+        plt.plot(props, sc_lloydL1_misc_avg, '-o', label='SC-Lloyd-$L_1$', color="lightgreen")
         plt.errorbar(props, sc_lloydL1_misc_avg, yerr=sc_lloydL1_misc_err, fmt='none', ecolor='black', capsize=3)
 
-        plt.plot(props, sc_kmed_misc_avg, '--', label='SC-k-median', color="violet")
+        plt.plot(props, sc_kmed_misc_avg, '-^', label='SC-k-median', color="violet")
         plt.errorbar(props, sc_kmed_misc_avg, yerr=sc_kmed_misc_err, fmt='none', ecolor='black', capsize=3)
 
-        plt.plot(props, sc_kmeans_misc_avg, '-', label='SC-Llyod (k-means)', color="skyblue")
+        plt.plot(props, sc_kmeans_misc_avg, '-s', label='SC-Llyod (k_means)', color="skyblue")
         plt.errorbar(props, sc_kmeans_misc_avg, yerr=sc_kmeans_misc_err, fmt='none', ecolor='black', capsize=3)
 
-    plt.plot(props, robust_sc_lloydL1_misc_avg, '-.', label='RSC-Lloyd-$L_1$', color="lime")
+    plt.plot(props, robust_sc_lloydL1_misc_avg, '-+', label='RSC-Lloyd-$L_1$', color="lime")
     plt.errorbar(props, robust_sc_lloydL1_misc_avg, yerr=robust_sc_lloydL1_misc_err, fmt='none', ecolor='black',
                  capsize=3)
 
-    plt.plot(props, robust_sc_kmed_misc_avg, '--', label='RSC-k-median', color="fuchsia")
+    plt.plot(props, robust_sc_kmed_misc_avg, '-x', label='RSC-k-median', color="fuchsia")
     plt.errorbar(props, robust_sc_kmed_misc_avg, yerr=robust_sc_kmed_misc_err, fmt='none', ecolor='black', capsize=3)
 
-    plt.plot(props, robust_sc_kmeans_misc_avg, '-', label='RSC-Llyod (k-means)', color="steelblue")
+    plt.plot(props, robust_sc_kmeans_misc_avg, '-p', label='RSC-Llyod (k_means)', color="steelblue")
     plt.errorbar(props, robust_sc_kmeans_misc_avg, yerr=robust_sc_kmeans_misc_err, fmt='none', ecolor='black',
                  capsize=3)
 

@@ -20,22 +20,23 @@
 - Pip3 22.1.2 # pip3 -V
 
 ## Installation  <a name="Installation"></a>
-  `$pip3 install -r requirements.txt`
+
+`$pip3 install -r requirements.txt`
 
 ## Project structure <a name="Project"></a>
 
 - docs
 - rkm
-  - datasets
-  - cluster
-  - utils
-  - vis
-  - out
+    - data
+    - cluster
+    - utils
+    - vis
+    - out
 - requirement.txt
 - README.md
 - UPDATE.md
 
-## Dataset:
+## Data:
 
 [//]: # (- GAUSSIAN3: _simulated 2 clusters from 2 Gaussian distributions._)
 
@@ -46,24 +47,42 @@
 ## Usage
 
 ```shell
-$ssh ky8517@nobel.princeton.edu
+$ssh ky8517@tiger.princeton.edu
 $tmux ls
 $tmux new -s rkm
 #tmux attach -t rkm
-$cd rkm/rkm_final/
-#$PYTHONPATH='..' python3 main_all.py
-./R_5000.sh
+$cd /scratch/gpfs/ky8517/rkm/src
+$module purge
+$module load anaconda3/2021.11
+#conda env list
+#conda create --name py3104_rkm python=3.10.4
+#conda activate py3104
+#pip install -r ../requirements.txt  # you should install in the login node (not in compute nodes)
+$python3 hpc_sbatch.py
 ```
-Note that in R_5000.sh, 
-_process_batch.py (for synthetic datasets) and  
-process_batch_real.py (for real-world datasets)_ 
 
-$ssh ky8517@nobel.princeton.edu
-$sshfs ky8517@nobel.princeton.edu:/u/ky8517/ nobel -o volname=nobel
-$killall -u ky8517
+[//]: # ()
 
-# download all from the remote server
-$rsync -azP ky8517@nobel.princeton.edu:/u/ky8517/rkm/rkm_final/out .
+[//]: # (Note that in R_5000.sh,)
+
+[//]: # (_process_batch.py &#40;for synthetic datasets&#41; and  )
+
+[//]: # (process_batch_real.py &#40;for real-world datasets&#41;_)
+
+[//]: # ()
+
+[//]: # ($ssh ky8517@nobel.princeton.edu)
+
+[//]: # ($sshfs ky8517@nobel.princeton.edu:/u/ky8517/ nobel -o volname=nobel)
+
+[//]: # ($killall -u ky8517)
+
+[//]: # (# download all from the remote server)
+
+[//]: # ()
+
+[//]: # ($rsync -azP ky8517@nobel.princeton.edu:/u/ky8517/rkm/rkm_final/out .)
+
 ## Update
 
 - All the update details can be seen in UPDATE.md
@@ -73,8 +92,13 @@ $rsync -azP ky8517@nobel.princeton.edu:/u/ky8517/rkm/rkm_final/out .
 - Email: kun88.yang@gmail.com
 
 [//]: #
+
 [//]: #
+
 [//]: #
+
 [//]: #
+
 [//]: #
+
 [//]: #

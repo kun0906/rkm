@@ -9,10 +9,7 @@
 
 .gitignore
 
-/rkm/datasets/3GAUSSIANS/
-/rkm_final/out/
-/rkm/datasets/NBAIOT/
-/legacy/
+rkm/src/out/
 
 
 

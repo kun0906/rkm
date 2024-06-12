@@ -392,7 +392,7 @@ def plot_xy(X, Y, random_state=42, true_centroids = None, title=''):
 
 
 def gen_data(data_name='letter_recognition', fake_label=True, n_clusters=4, each_cluster_size=100, prop=0.60,
-             with_outlier=True, random_state=42):
+             add_outlier=True, random_state=42):
     rng = np.random.RandomState(seed=random_state)
     # print(rng.choice(range(5), 4))
     # in_dir = 'data/letter_recognition'
@@ -402,7 +402,7 @@ def gen_data(data_name='letter_recognition', fake_label=True, n_clusters=4, each
     if data_name == 'letter_recognition':
         df, labels = letter_recognition(n_clusters=n_clusters)
         dim = df.shape[-1] - 1
-        if with_outlier:
+        if add_outlier:
             if fake_label == 'synthetic':
                 outlier_std = 10
 
@@ -441,7 +441,7 @@ def gen_data(data_name='letter_recognition', fake_label=True, n_clusters=4, each
     elif data_name == "biocoin_heist":
         df, labels = biocoin_heist(n_clusters=n_clusters)
         dim = df.shape[-1] - 1
-        if with_outlier:
+        if add_outlier:
             if fake_label=='synthetic':
                 mu = np.zeros(dim)
                 outlier_std = 5
@@ -467,7 +467,7 @@ def gen_data(data_name='letter_recognition', fake_label=True, n_clusters=4, each
     elif data_name == "pen_digits":
         df, labels = pen_digits(n_clusters=n_clusters)
         dim = df.shape[-1] - 1
-        if with_outlier:
+        if add_outlier:
             if fake_label== 'synthetic':
                 outlier_std = 500
                 mu = np.zeros(dim)
@@ -503,7 +503,7 @@ def gen_data(data_name='letter_recognition', fake_label=True, n_clusters=4, each
     elif data_name == "iot_intrusion":
         df, labels = iot_intrusion(n_clusters=n_clusters)
         dim = df.shape[-1] - 1
-        if with_outlier:
+        if add_outlier:
             if fake_label=='synthetic':
                 outlier_std = 3
                 outliers = rng.multivariate_normal(np.zeros(dim),
@@ -527,7 +527,7 @@ def gen_data(data_name='letter_recognition', fake_label=True, n_clusters=4, each
     elif data_name == "music_genre":
         df, labels = music_genre(n_clusters=n_clusters)
         dim = df.shape[-1] - 1
-        if with_outlier:
+        if add_outlier:
             if fake_label == 'synthetic':
                 outlier_std = 50
                 mu = np.zeros(dim)
@@ -563,7 +563,7 @@ def gen_data(data_name='letter_recognition', fake_label=True, n_clusters=4, each
     elif data_name == "credit_loan":
         df, labels = credit_loan(n_clusters=n_clusters)
         dim = df.shape[-1] - 1
-        if with_outlier:
+        if add_outlier:
             if fake_label=='synthetic':
                 outlier_std = 10
                 outliers = rng.multivariate_normal(np.zeros(dim),
@@ -587,7 +587,7 @@ def gen_data(data_name='letter_recognition', fake_label=True, n_clusters=4, each
     elif data_name == "cover_type":
         df, labels = cover_type(n_clusters=n_clusters)
         dim = df.shape[-1] - 1
-        if with_outlier:
+        if add_outlier:
             if fake_label:
                 # # outliers from any class (including the inlier classes)
                 # # outliers = df.values        # true label with random feature values

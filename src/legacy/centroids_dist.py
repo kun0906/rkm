@@ -26,17 +26,17 @@ def main(centroid_file):
 
     for col in df.columns:
         # print(f'column: {col}')
-        n_repeats = df.shape[0]
+        n_repetitions = df.shape[0]
         data = []
-        for i in range(n_repeats):
+        for i in range(n_repetitions):
             tmp = df.loc[i, col].replace('\n', '')[2:-2].split('] [') # transform the string to list
             tmp = np.asarray([[float(v) for v in l.split()] for l in tmp]) # transform the list to numpy array
             ds = cdist(tmp, tmp, metric='euclidean')
             ds = ds[np.triu_indices_from(ds, k=1)]    # k=1 means only exclude the main diagonal items.
             data.extend(ds.tolist())
         # 4! = 3*2*1 = 6
-        assert 6*n_repeats == len(data)
-        print(f'column: {col}, n_repeats: {n_repeats}, total_distances: {len(data)}')
+        assert 6*n_repetitions == len(data)
+        print(f'column: {col}, n_repetitions: {n_repetitions}, total_distances: {len(data)}')
         plot_hist(data, bins=10, title=col, centroid_file=centroid_file)
 
 

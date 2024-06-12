@@ -1,133 +1,121 @@
+v0.6.0: Refactor the entire library.
+
+1. Merge random and omniscient together
+2. Rename clustering name
+3. Rewrite the main framework
+
+
+
 v0.5.7: Add 'rbf' for RSC and remove zero eigenvectors from RSC.
 
-
-
-v0.5.6: Set v0 to robust_spectral_clustering.py to for reproducibility. 
+v0.5.6: Set v0 to robust_spectral_clustering.py to for reproducibility.
 
 1. Set v0 for RSC
    v0 = rng.rand(min(L.shape))   # avoid random initialization for eigsh()
    # solve the normal eigenvalue problem
    if self.laplacian == 0:
-       h, H = eigsh(L, self.k, which='SM', v0=v0)     # eigsh can involve random initialization
+   h, H = eigsh(L, self.k, which='SM', v0=v0)     # eigsh can involve random initialization
    # solve the generalized eigenvalue problem
    elif self.laplacian == 1:
-       h, H = eigsh(L, self.k, D, which='SM', v0=v0)    # tol=1e-6, add 1e-10 to the eigsh()
+   h, H = eigsh(L, self.k, D, which='SM', v0=v0)    # tol=1e-6, add 1e-10 to the eigsh()
 
 2. Set normalize=True.
-   RSC(k=k, nn=15, theta=50, m=n_neighbours/10,laplacian=1,  normalize=True, verbose=False, random_state=random_state)
-
+   RSC(k=k, nn=15, theta=50, m=n_neighbours/10,laplacian=1, normalize=True, verbose=False, random_state=random_state)
 
 v0.5.5: Add tol=1e-10 for robust_spectral_clustering.py
 
-  elif self.laplacian == 1:
-          h, H = eigsh(L, self.k, D, which='SM', tol=1e-10)    # add 1e-10 to the eigsh()
-
+elif self.laplacian == 1:
+h, H = eigsh(L, self.k, D, which='SM', tol=1e-10)    # add 1e-10 to the eigsh()
 
 v0.5.4: Update hpc_sbatch.py and submit to HPC.
 
 v0.5.3: Add Robust Spectral Clustering
 
-
-v0.5.2: Choose bandwidth and update plots 
+v0.5.2: Choose bandwidth and update plots
 
 1. Choose rbf bandwidth
-2. Update plots 
-3. Update bugs 
+2. Update plots
+3. Update bugs
 
-
-v0.5.1: Change rbf to knn for spectral clustering  
+v0.5.1: Change rbf to knn for spectral clustering
 
 1. Change rbf to knn for spectral clustering due to there are 0s for outliers when using rbf kernel.
-   Causing affinity_matrix has 0 for whole rows (except for diagonal), and Graph is not connected. "Graph is not fully connected, spectral embedding may not work as expected."
+   Causing affinity_matrix has 0 for whole rows (except for diagonal), and Graph is not connected. "Graph is not fully
+   connected, spectral embedding may not work as expected."
 2. Install threadpoolctl==3.1.0
-
 
 v0.5.0: Add spectral clustering
 
 1. Add spectral clustering for every experiment, e.g., sc_omniscient() and sc_random()
 2. Add more information for running the experiments in Readme.md.
 
-
 v0.4.1: Add synthetic datasets and try different setting for 'letter_recognition' and 'pen_digits'
 
-1. Add synthetic datasets 
-2. For each dataset, add random outliers and special outliers 
+1. Add synthetic datasets
+2. For each dataset, add random outliers and special outliers
 3. without_outliers in data_gen() can has different results due to the effect of rng.choice()
 4. Add centroids and colors for plot_data().
 
+v0.4.0: Add new datasets
 
-v0.4.0: Add new datasets 
-
-1. Add new datasets 
+1. Add new datasets
 2. Implement diffprop for the new datasets
 3. Add process_batch_real.py
 
-
-
-v0.3.6: Update diffrad 
+v0.3.6: Update diffrad
 
 1. Choose the random centroids on all data (including normal and outliers)
 2. Fix outlier std to 10
-3. Rerun all the cases. 
+3. Rerun all the cases.
 
+v0.3.5: Rerun all the cases
 
-v0.3.5: Rerun all the cases 
-
-1. Modify main_clustering_diffprop_random.py for random initialization. 
+1. Modify main_clustering_diffprop_random.py for random initialization.
 2. Update proess_batch.py with more stds
 
+v0.3.4: Change the std of normal data from 2 to 1 for all cases
 
+1. Change the std of normal data from 2 to 1 for all cases
+2. Add adjusted_text and plot_centroids
+3. Add std into args for all cases
 
-v0.3.4: Change the std of normal data from 2 to 1 for all cases 
+v0.3.3: Update the way to find the best centroids.
 
-1. Change the std of normal data from 2 to 1 for all cases 
-2. Add adjusted_text and plot_centroids 
-3. Add std into args for all cases 
-
-
-v0.3.3: Update the way to find the best centroids. 
-
-1. Update the way to find the best centroids by minimizing the misclustering proportion. 
+1. Update the way to find the best centroids by minimizing the misclustering proportion.
 2. Replace 'missc' with 'misc' in 'data'.
 3. Rerun everything and save centroids to disk.
 
-
-v0.3.3: Reduce the standard deviations for different noise radius. 
+v0.3.3: Reduce the standard deviations for different noise radius.
 
 1. Reduce the std from 2 to 1 for normal clusters.
 
-
-v0.3.2: Add different noise proportions 
+v0.3.2: Add different noise proportions
 
 1. Add diffprop
-2. Update paper_plot.py 
-3. Update R_5000.sh 
-
+2. Update paper_plot.py
+3. Update R_5000.sh
 
 v0.3.1: Rewrite bash by python
 
-1. Rewrite the bash with python3 
-   limit the number of spawned processes 
+1. Rewrite the bash with python3
+   limit the number of spawned processes
 2. Add for loop in the bash
 3. Generate results without outliers
 
-
-v0.2.0: Rewrite the codes with seperated python scripts. 
+v0.2.0: Rewrite the codes with seperated python scripts.
 
 v0.1.4: Use ground-truth for omniscient initialization
 
 1. Use ground-truth for omniscient initialization
-2. Don't need to align centroids for omniscient case when we plot. 
+2. Don't need to align centroids for omniscient case when we plot.
 3. Add different noise variances in main_all.py (gaussians10_ds)
 
-
-v0.1.3: Random sample data for an unit sphere (as true centroids) 
+v0.1.3: Random sample data for an unit sphere (as true centroids)
 
 1. Random sample n_clusters=2, 3 data points from an unit sphere (used as true centroids)
-2. Add hypersphere 
-3. Add hyperball 
+2. Add hypersphere
+3. Add hyperball
 4. Plotting takes too much time when n_clusters > 5 (because of align_centroids())
-
 
 v0.1.2: Change r.randint() to r.choice(replace=False)
 
@@ -136,45 +124,39 @@ v0.1.2: Change r.randint() to r.choice(replace=False)
 3. Update collect_results2.py (only show random + kmeans++)
 4. Remove X and y in seed_res.dat to save disk space.
 5. Error: Pycharm Failed to transfer file. Could not close the output stream for file.
-   There is no disk space in the remote server, please remove "files" in "out" directory to address this issue. 
+   There is no disk space in the remote server, please remove "files" in "out" directory to address this issue.
 
-   
 v0.1.1: Add Latex_tables
 
-1. Add Latex_tables to convert the csv and print out the latex tables 
-2. Add 10gaussians and update the corresponding functions. 
-3. Add collect_results.sh and add --mem=40G to address the out-of-memory issue killed by the host. 
+1. Add Latex_tables to convert the csv and print out the latex tables
+2. Add 10gaussians and update the corresponding functions.
+3. Add collect_results.sh and add --mem=40G to address the out-of-memory issue killed by the host.
 
-
-v0.1.0: Add spectral clustering 
+v0.1.0: Add spectral clustering
 
 1. reCompute E[ACD] instead of E[E[ACD]]  for plotting
    Using std error instead of std
-2. Add multiprocessing in main_all.py 
+2. Add multiprocessing in main_all.py
 3. Add a new dataset: diff3_outliers
-
 
 v0.0.9: Add multiprocessing and recompute E[ACD] for plotting
 
 1. reCompute E[ACD] instead of E[E[ACD]]  for plotting
    Using std error instead of std
-2. Add multiprocessing in main_all.py 
+2. Add multiprocessing in main_all.py
 3. Add a new dataset: diff3_outliers
-
 
 v0.0.8: Compute E[E[ACD]] instead of E[ACD] for plotting
 
 1. Compute E[E[ACD]] instead of E[ACD] for plotting
 2. Update plot_misclustered_errors for E[E[ACD]]
-3. Update the corresponding functions 
-
+3. Update the corresponding functions
 
 v0.0.7: Implement K-Median_L1
 
 1. Add a new dataset (diff2_outliers)
 2. Implement K-Median_L1
-3. Update the initialization 
-
+3. Update the initialization
 
 v0.0.6: Add a new dataset and centroid_diff as an evaluation metric
 

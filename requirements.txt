@@ -1,5 +1,5 @@
 # Author: Kun
-# Email: kun.bj@outlook.com
+# Email: kun88.yang@gmail.com
 
 ### System setting
 # Conda 4.10.3 # conda -V
@@ -33,3 +33,6 @@ threadpoolctl==3.1.0
 
 
 
+
+scipy~=1.9.1
+tqdm~=4.65.0

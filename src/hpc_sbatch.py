@@ -3,12 +3,12 @@ Run experiment on HPC
 
     ssh ky8517@tiger.princeton.edu
 
-    cd /scratch/gpfs/ky8517/rkm/rkm_final
+    cd /scratch/gpfs/ky8517/rkm/src
     module purge
     module load anaconda3/2021.11
     #conda env list
     #conda create --name py3104_rkm python=3.10.4
-    #conda activate py3104
+    conda activate py3104
     #pip install -r ../requirements.txt  # you should install in the login node (not in compute nodes)
 
     pwd
@@ -19,27 +19,25 @@ Run experiment on HPC
 
 
     # download the remote results to local
-    rsync -azP ky8517@tiger.princeton.edu:/scratch/gpfs/ky8517/rkm/rkm_final/out .
+    rsync -azP ky8517@tiger.princeton.edu:/scratch/gpfs/ky8517/rkm/src/out .
 
     squeue --format="%.18i %.9P %.60j %.8u %.8T %.10M %.9l %.6D %R" --me
 """
 
-import os.path
-import shutil
-import subprocess
-
 import argparse
 import os
+import os.path
 import subprocess
-from tqdm import tqdm
 from functools import partial
+
 import numpy as np
+
 print = partial(print, flush=True)
 
 parser = argparse.ArgumentParser()
 # parser.add_argument('--force', default=False,   # whether overwrite the previous results or not?
 #                     action='store_true', help='force')
-parser.add_argument("--n_repeats", type=int, default=1001)  #
+parser.add_argument("--n_repetitions", type=int, default=5000)  #
 args = parser.parse_args()
 print(args)
 
@@ -76,7 +74,7 @@ def generate_sh(name, cmd, log_file):
 
 date
 module purge
-cd /scratch/gpfs/ky8517/rkm/rkm_final
+cd /scratch/gpfs/ky8517/rkm/src
 module load anaconda3/2021.11
 #conda env list
 #conda create --name py3104_rkm python=3.10.4
@@ -90,7 +88,7 @@ uname -a
 
 {cmd} &> {log_file} 
 
-# python3 main_clustering_diffdim_random.py --n_repeats n_repeats --true_cluster_size true_cluster_size --init_method init_method &> 'out/main_clustering_diffdim_{name}.txt' & 
+# python3 main_diff_dim_random.py --n_repetitions n_repetitions --true_single_cluster_size true_single_cluster_size --init_method init_method &> 'out/main_clustering_diffdim_{name}.txt' & 
 # if you use & at the end of your command, your job cannot be seen by 'squeue -u'
 
 wait
@@ -112,35 +110,28 @@ def main():
     cnt = 0
     procs = set()
     # for synthetic datasets
-    for n_repeats in [args.n_repeats]:  # [5000]
-        for true_cluster_size in [100]:
+    for n_repetitions in [args.n_repetitions]:  # [5000]
+        for true_single_cluster_size in [100]:
             for std in [2]:  # [0.5, 1, 2]: #[0.1, 0.25, 0.5, 1, 0.1, 0.25, ]:
-                for n_neighbours in [0]:  # nn = [10, 25, 50, 100, 200], nn = [5, 10, 15, 20, 25, 50],  theta = [10, 50, 100, 250, 500], m = [0.1, 0.2, 0.3, 0.4, 0.5], projected_dimensional = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-                    for with_outlier in [True]:  # [True, False]:
+                for n_neighbors in [
+                    15]:  # nn = [10, 25, 50, 100, 200], nn = [5, 10, 15, 20, 25, 50],  theta = [10, 50, 100, 250, 500], m = [0.1, 0.2, 0.3, 0.4, 0.5], projected_dimensional = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+                    for add_outlier in [True]:  # [True, False]:
                         for init_method in ['random', 'omniscient']:  # ['omniscient', 'random']:
-                            if init_method == 'random':
-                                pys = [
-                                    "main_clustering_diffdim_random.py",
-                                    "main_clustering_diffrad_random.py",
-                                    "main_clustering_diffvar_random.py",
-                                    "main_clustering_diffprop_random.py",
-                                ]
-                            else:
-                                pys = [
-                                    "main_clustering_diffdim.py",
-                                    "main_clustering_diffrad.py",
-                                    "main_clustering_diffvar.py",
-                                    "main_clustering_diffprop.py",
-                                ]
+                            pys = [
+                                "main_diff_dim.py",
+                                "main_diff_rad.py",
+                                "main_diff_var.py",
+                                "main_diff_prop.py",
+                            ]
                             for py in pys:
                                 cnt += 1
                                 _std = str(std).replace('.', '')
-                                _out_dir = f"{OUT_DIR}/std_{_std}/R_{n_repeats}-S_{true_cluster_size}-O_{with_outlier}-B_{n_neighbours}/{init_method}/{py}".replace(
+                                _out_dir = f"{OUT_DIR}/cluster_std_{_std}/R_{n_repetitions}-S_{true_single_cluster_size}-O_{add_outlier}-B_{n_neighbors}/{init_method}/{py}".replace(
                                     '.', '_')
 
-                                cmd = f"python3 {py} --n_repeats {n_repeats} --true_cluster_size {true_cluster_size} " \
-                                      f"--with_outlier {with_outlier} --init_method {init_method} --out_dir {_out_dir} " \
-                                      f"--std {std} --n_neighbours {n_neighbours}"
+                                cmd = f"python3 {py} --n_repetitions {n_repetitions} --true_single_cluster_size {true_single_cluster_size} " \
+                                      f"--add_outlier {add_outlier} --init_method {init_method} --out_dir {_out_dir} " \
+                                      f"--cluster_std {std} --n_neighbors {n_neighbors}"
 
                                 log_file = f"{_out_dir}/log.txt"
 
@@ -148,7 +139,9 @@ def main():
                                 check_dir(os.path.dirname(log_file))
 
                                 # print(f"{cnt}: {cmd} > {log_file} &")
-                                name = f"R_{n_repeats}-S_{true_cluster_size}-Init_{init_method}-{py}"
+                                # name = f"R_{n_repetitions}-S_{true_single_cluster_size}-Init_{init_method}-{py}"
+                                name = py.split('_')[2]
+                                name = f"{name}-{init_method[:3]}-R{n_repetitions}"
                                 generate_sh(name, cmd, log_file)
 
     print(f'\n***total submitted jobs for synthetic datasets: {cnt}')
@@ -158,38 +151,34 @@ def main():
                       'pen_digits']:  # 'music_genre', 'iot_intrusion','iot_intrusion','pen_digits', 'biocoin_heist','letter_recognition']:
         for fake_label in ['random', 'special']:  # ['synthetic', 'random', 'special']:   # False
             out_dir = os.path.join(OUT_DIR, data_name, f'F_{fake_label}')
-            for n_repeats in [args.n_repeats]:  # [5000]
-                for true_cluster_size in [100]:
+            for n_repetitions in [args.n_repetitions]:  # [5000]
+                for true_single_cluster_size in [100]:
                     for std in [0]:  # [0.1, 0.25, 0.5, 1, 0.1, 0.25, ]:
-                        for n_neighbours in [0]:
-                            for with_outlier in [True]:  # [True, False]:
+                        for n_neighbors in [15]:
+                            for add_outlier in [True]:  # [True, False]:
                                 for init_method in ['random', 'omniscient']:  # ['omniscient', 'random']:
-                                    if init_method == 'random':
-                                        pys = [
-                                            "main_clustering_diffprop_random_real.py",
-                                            # "main_clustering_diffprop_random_real2.py",
-                                        ]
-                                    else:
-                                        pys = [
-                                            "main_clustering_diffprop_real.py",
-                                            # "main_clustering_diffprop_real2.py",
-                                        ]
+                                    pys = [
+                                        "main_diff_prop_real.py",
+                                        # "main_diffprop_real2.py",
+                                    ]
                                     for py in pys:
                                         cnt += 1
                                         _std = str(std).replace('.', '')
-                                        _out_dir = f"{out_dir}/std_{_std}/R_{n_repeats}-S_{true_cluster_size}-O_{with_outlier}-B_{n_neighbours}/{init_method}/{py}".replace(
+                                        _out_dir = f"{out_dir}/cluster_std_{_std}/R_{n_repetitions}-S_{true_single_cluster_size}-O_{add_outlier}-B_{n_neighbors}/{init_method}/{py}".replace(
                                             '.', '_')
 
-                                        cmd = f"python3 {py} --n_repeats {n_repeats} --true_cluster_size {true_cluster_size} " \
-                                              f"--with_outlier {with_outlier} --init_method {init_method} --out_dir {_out_dir} " \
-                                              f"--std {std} --data_name {data_name} --fake_label {fake_label} --n_neighbours {n_neighbours}"
+                                        cmd = f"python3 {py} --n_repetitions {n_repetitions} --true_single_cluster_size {true_single_cluster_size} " \
+                                              f"--add_outlier {add_outlier} --init_method {init_method} --out_dir {_out_dir} " \
+                                              f"--cluster_std {std} --data_name {data_name} --fake_label {fake_label} --n_neighbors {n_neighbors}"
 
                                         log_file = f"{_out_dir}/log.txt"
                                         # check if the given directory exists; otherwise, create
                                         check_dir(os.path.dirname(log_file))
 
                                         # print(f"{cnt}: {cmd} > {log_file} &")
-                                        name = f"R_{n_repeats}-S_{true_cluster_size}-Init_{init_method}-{py}"
+                                        # name = f"R_{n_repetitions}-S_{true_single_cluster_size}-Init_{init_method}-{py}"
+                                        name = py.split('_')[2]
+                                        name = f"{name}-{init_method[:3]}-R{n_repetitions}"
                                         generate_sh(name, cmd, log_file)
     print(f'\n***total submitted jobs for real datasets: {cnt}')
 

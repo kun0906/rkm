@@ -6,13 +6,14 @@ Source:
 """
 import numpy as np
 import scipy.sparse as sp
+import scipy.stats as stats
 from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import eigsh
-from sklearn.neighbors import kneighbors_graph
 from sklearn.cluster import k_means
-import scipy.stats as stats
 from sklearn.metrics import pairwise_distances
 from sklearn.metrics import pairwise_kernels
+from sklearn.neighbors import kneighbors_graph
+
 
 def compute_bandwidth(X):
     pd = pairwise_distances(X, Y=None, metric='euclidean')
@@ -25,6 +26,7 @@ def compute_bandwidth(X):
     bandwidth = np.quantile(qs, (1 - alpha)) / denominator
 
     return bandwidth
+
 
 def rbf_graph(points):
     params = {}  # default value in sklearn
@@ -42,6 +44,7 @@ def rbf_graph(points):
     )
 
     return affinity_matrix_
+
 
 class RSC:
     """
@@ -70,7 +73,7 @@ class RSC:
         :param m: minimum percentage of neighbours to keep per node (omega_i constraints)
         :param n_iter: number of iterations of the alternating optimization procedure
         :param laplacian: which graph Laplacian to use: 0: L, 1: L_rw, 2: L_sym
-        :param normalize: whether to row normalize the eigen vectors before performing k-means
+        :param normalize: whether to row normalize the eigen vectors before performing k_means
         :param verbose: verbosity
         """
 
@@ -98,7 +101,8 @@ class RSC:
     def __latent_decomposition(self, X):
         # Set random seed for reproducibility
         # rng = np.random.seed(self.random_state)   # set globally for all random number generation operations
-        rng = np.random.RandomState(seed=self.random_state) # creates a new instance of the random number generator with the specified seed value.
+        rng = np.random.RandomState(
+            seed=self.random_state)  # creates a new instance of the random number generator with the specified seed value.
         affinity = 'knn'
         if affinity == 'rbf':
             A = rbf_graph(X)
@@ -121,18 +125,18 @@ class RSC:
             D = sp.diags(Ag.sum(0).A1).tocsc()
             L = D - Ag
 
-            v0 = rng.rand(min(L.shape))   # avoid random initialization for eigsh(),
+            v0 = rng.rand(min(L.shape))  # avoid random initialization for eigsh(),
             # generate random samples from a uniform distribution over [0, 1).
             # solve the normal eigenvalue problem
             if self.laplacian == 0:
-                h, H = eigsh(L, min(self.k*2, N), which='SM', v0=v0)     # eigsh can involve random initialization
+                h, H = eigsh(L, min(self.k * 2, N), which='SM', v0=v0)  # eigsh can involve random initialization
             # solve the generalized eigenvalue problem
             elif self.laplacian == 1:
-                h, H = eigsh(L, min(self.k*2, N), D, which='SM', v0=v0)
+                h, H = eigsh(L, min(self.k * 2, N), D, which='SM', v0=v0)
                 if self.verbose:
                     print(list(h), sorted(h, key=lambda x: abs(x), reverse=False))
-                    print('h[i] - h[i-1] diff： ', [h[i] - h[i-1] for i in range(1, len(h))])
-                is_non_zero_eigen = False    # if True, we only use non_zero_eigenvalues and eigenvectors
+                    print('h[i] - h[i-1] diff： ', [h[i] - h[i - 1] for i in range(1, len(h))])
+                is_non_zero_eigen = False  # if True, we only use non_zero_eigenvalues and eigenvectors
                 if is_non_zero_eigen:
                     # Find top 2 non-zero eigenvalues
                     top_k_nonzero_indices = []
@@ -142,9 +146,9 @@ class RSC:
                         if not np.isclose(h[idx], 0, atol=1.e-10):  # Check if the eigenvalue is non-zero
                             top_k_nonzero_indices.append(idx)
                     # print(it, top_k_nonzero_indices, h, flush=True)
-                    h, H = h[top_k_nonzero_indices], H[:,top_k_nonzero_indices]
+                    h, H = h[top_k_nonzero_indices], H[:, top_k_nonzero_indices]
                 else:
-                    h, H = h[:self.k], H[:,:self.k]
+                    h, H = h[:self.k], H[:, :self.k]
                 self.h = h
             trace = h.sum()
 
@@ -193,7 +197,8 @@ class RSC:
 
             removed_edges = np.array(removed_edges)
             if removed_edges.shape[0] > 0:
-                Ac = sp.coo_matrix((np.ones(len(removed_edges)), (removed_edges[:, 0], removed_edges[:, 1])), shape=(N, N))
+                Ac = sp.coo_matrix((np.ones(len(removed_edges)), (removed_edges[:, 0], removed_edges[:, 1])),
+                                   shape=(N, N))
                 Ac = Ac.maximum(Ac.T)
                 Ag = A - Ac
             else:
@@ -204,7 +209,7 @@ class RSC:
 
         return Ag, Ac, H
 
-    def fit_predict(self, X):
+    def fit_predict(self, X, init="k-means++"):
         """
         :param X: array-like or sparse matrix, shape (n_samples, n_features)
         :return: cluster labels ndarray, shape (n_samples,)
@@ -219,7 +224,9 @@ class RSC:
         else:
             self.H = H
 
-        centroids, labels, *_ = k_means(X=self.H, n_clusters=self.k)
+        centroids, labels, *_ = k_means(X=self.H, n_clusters=self.k,
+                                        init=init, n_init=1,
+                                        random_state=self.random_state)
 
         self.centroids = centroids
         self.labels = labels
