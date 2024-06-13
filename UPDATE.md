@@ -1,3 +1,14 @@
+v0.6.1: sigma = 1.0 (not 2.0) for main_diff_rad.py
+
+1. In the paper results, we use sigma=1.0 for main_diff_rad.py.
+   For other cases (diff_var, prop, and dim), we use sigma = 2.0.
+  # sigma = args.cluster_std
+   sigma = 1.0
+2. Update paper_plot.py 
+3. 
+
+
+
 v0.6.0: Refactor the entire library.
 
 1. Merge random and omniscient together

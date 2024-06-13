@@ -43,7 +43,8 @@ LINESTYLES_COLORS_LABELS = {
 }
 
 
-def plot_result(df, out_dir, xlabel='', ylabel='', title=''):
+def plot_result(df, out_dir, out_name='mp', xlabel='', ylabel='', title='', show=False):
+    os.makedirs(out_dir, exist_ok=True)
     # Plot the line plot with error bars
     fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(15, 12))
 
@@ -98,10 +99,10 @@ def plot_result(df, out_dir, xlabel='', ylabel='', title=''):
     plt.tight_layout()
     # temp = time.time()
     # temp = 0
-    plt.savefig(f'{out_dir}/mp.png', dpi=300)
-    plt.show()
+    plt.savefig(f'{out_dir}/{out_name}.png', dpi=300)
+    if show: plt.show()
     # plt.pause(2)
-
+    plt.close()
 
 def compute_bandwidth(X):
     pd = pairwise_distances(X, Y=None, metric='euclidean')
@@ -143,8 +144,7 @@ def sc_projection(points, k, n_neighbors=10, affinity = 'knn', normalize=True, r
     else:
         # if affinity == "nearest_neighbors":
         connectivity = kneighbors_graph(
-            points, n_neighbors=n_neighbors, include_self=True, n_jobs=None
-        )
+            points, n_neighbors=n_neighbors, metric = 'euclidean', include_self = False, mode = 'connectivity')
         # affinity_matrix_ = 0.5 * (connectivity + connectivity.T).toarray()
         affinity_matrix_ = connectivity.maximum(connectivity.T).toarray()  # make the graph undirected
 

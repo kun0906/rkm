@@ -51,7 +51,8 @@ def main():
                 true_centroids /= np.linalg.norm(true_centroids, axis=1)[:, np.newaxis]
                 # centroids /= max(np.linalg.norm(centroids, axis=1)[:, np.newaxis])
                 radius = 5
-                sigma = args.cluster_std
+                # sigma = args.cluster_std
+                sigma = 1.0   # in the paper, we use sigma=1.0 for this case.
                 true_centroids *= radius
 
                 # True points
