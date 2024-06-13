@@ -14,7 +14,8 @@ def get_ith_results_random(points, init_centroids, true_centroids, true_labels, 
 
         if clustering_method.startswith('sc_'):
             # find the best one
-            nns = [5, 10]
+            # nns = [5, 10]
+            nns = [5, 10, 25, 50, 75, 100, 200]  #
             best_mp = np.inf
             for n_neighbors in nns:
                 # find the projected centroids
@@ -62,12 +63,12 @@ def get_ith_results_random(points, init_centroids, true_centroids, true_labels, 
                                           'mp': best_mp, 'acd': acd, 'params': best_params}
         elif clustering_method.startswith('rsc_'):
             # find the best one
-            nns = [5, 10]
-            thetas = [10, 50]
-            ms = [0.1, 0.2]
-            # nns = [5, 10, 25, 50, 75, 100, 200]
-            # thetas = [10, 50, 100, 250, 500]
-            # ms = [0.1, 0.2, 0.3, 0.4, 0.5]
+            # nns = [5, 10]
+            # thetas = [10]
+            # ms = [0.1]
+            nns = [5, 10, 25, 50, 75, 100, 200]
+            thetas = [10, 50, 100, 250, 500]
+            ms = [0.1, 0.2, 0.3, 0.4, 0.5]
             # Generate all combinations using itertools.product
             combinations = list(itertools.product(nns, thetas, ms))
             best_mp = np.inf

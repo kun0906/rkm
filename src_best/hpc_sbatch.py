@@ -75,7 +75,7 @@ def generate_sh(name, cmd, log_file):
 
 date
 module purge
-cd /scratch/gpfs/ky8517/rkm/src
+cd /scratch/gpfs/ky8517/rkm/src_best
 module load anaconda3/2021.11
 #conda env list
 #conda create --name py3104_rkm python=3.10.4
@@ -126,7 +126,7 @@ def main():
                         for py in pys:
                             cnt += 1
                             _std = str(std).replace('.', '')
-                            _out_dir = f"{OUT_DIR}/cluster_std_{_std}/R_{n_repetitions}-S_{true_single_cluster_size}-O_{add_outlier}-B_{n_neighbors}-t_{theta}-m-{m}/{init_method}/{py}".replace(
+                            _out_dir = f"{OUT_DIR}/cluster_std_{_std}/R_{n_repetitions}-S_{true_single_cluster_size}-O_{add_outlier}-B_{n_neighbors}-t_{theta}-m_{m}/{init_method}/{py}".replace(
                                 '.', '_')
 
                             cmd = f"python3 {py} --n_repetitions {n_repetitions} --true_single_cluster_size {true_single_cluster_size} " \
@@ -137,6 +137,7 @@ def main():
 
                             # check if the given directory exists; otherwise, create
                             check_dir(os.path.dirname(log_file))
+                            # os.makedirs(os.path.dirname(log_file), exist_ok=True)
 
                             # print(f"{cnt}: {cmd} > {log_file} &")
                             # name = f"R_{n_repetitions}-S_{true_single_cluster_size}-Init_{init_method}-{py}"
