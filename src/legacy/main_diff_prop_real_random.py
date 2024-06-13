@@ -4,11 +4,10 @@
 import argparse
 import os
 
-import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from base import compute_ith_avg, plot_result
+from clustering_random import *
 from data.gen_data import gen_data
 
 
@@ -18,22 +17,18 @@ def main():
     #                     action='store_true', help='force')
     parser.add_argument("--n_repetitions", type=int, default=2)  #
     parser.add_argument("--true_single_cluster_size", type=int, default=100)
-    parser.add_argument("--init_method", type=str, default='omniscient')
+    parser.add_argument("--init_method", type=str, default='random')
     parser.add_argument("--add_outlier", type=str, default='True')
     parser.add_argument("--out_dir", type=str, default='out')
     parser.add_argument("--data_name", type=str, default='pen_digits')
     parser.add_argument("--fake_label", type=str, default='special')
-    parser.add_argument("--cluster_std", type=float, default=1)  # sigma of outliers, not used in real data.
+    parser.add_argument("--cluster_std", type=float, default=0)
     parser.add_argument("--n_neighbors", type=int, default=15)
-    parser.add_argument("--theta", type=int, default=50,
-                        help='Number of edges will be removed when computing robust spectral clustering (RSC).')
-    parser.add_argument("--m", type=float, default=0.5,
-                        help='For node i, percentage of neighbor nodes will be ignored '
-                             'when computing robust spectral clustering (RSC).')
     args = parser.parse_args()
     args.add_outlier = False if args.add_outlier == 'False' else True
     print(args)
 
+    # num_repeat = 400
     n_repetitions = args.n_repetitions
     init_method = args.init_method
     true_single_cluster_size = args.true_single_cluster_size
@@ -41,18 +36,10 @@ def main():
     data_name = args.data_name
     fake_label = args.fake_label
     n_neighbors = args.n_neighbors
-    theta = args.theta
-    m = args.m
     # out_dir = f'{args.out_dir}/diffdim/{init_method}/R_{num_repeat}-S_{true_single_cluster_size}'
     out_dir = args.out_dir
-    print(out_dir)
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
-
-    if init_method == 'random':
-        from clustering_random import get_ith_results_random
-    else:
-        from clustering import get_ith_results
 
     for n_centroids in range(3, 9, 9):
         # True labels
@@ -110,16 +97,14 @@ def main():
                 if init_method == 'random':
                     indices = rng.choice(range(len(points)), size=n_centroids, replace=False)
                     init_centroids = points[indices, :]
-                    ith_repeat_results = get_ith_results_random(points, init_centroids,
-                                                                true_centroids, true_labels, true_single_cluster_size,
-                                                                n_centroids,
-                                                                n_neighbors=n_neighbors, theta=theta, m=m,
-                                                                out_dir=out_dir, x_axis=prop, random_state=seed)
+                    # init_centroids = np.copy(centroids)
                 else:
-                    ith_repeat_results = get_ith_results(points, true_centroids, true_labels, true_single_cluster_size,
-                                                         n_centroids,
-                                                         n_neighbors=n_neighbors, theta=theta, m=m,
-                                                         out_dir=out_dir, x_axis=prop, random_state=seed)
+                    pass
+
+                ith_repeat_results = get_ith_results_random(points, init_centroids,
+                                                            true_centroids, true_labels, true_single_cluster_size,
+                                                            n_centroids, n_neighbors=n_neighbors,
+                                                            random_state=seed)
                 ith_prop_results.append(ith_repeat_results)
 
             # Compute mean and error bar for ith_prop_results

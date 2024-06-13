@@ -13,7 +13,7 @@ print = partial(print, flush=True)
 parser = argparse.ArgumentParser()
 # parser.add_argument('--force', default=False,   # whether overwrite the previous results or not?
 #                     action='store_true', help='force')
-parser.add_argument("--n_repeats", type=int, default=2)  #
+parser.add_argument("--n_repetitions", type=int, default=2)  #
 args = parser.parse_args()
 print(args)
 
@@ -44,10 +44,10 @@ def main():
     out_dir = "out"
     cnt = 0
     procs = set()
-    for n_repeats in [args.n_repeats]: #[5000]
-        for true_cluster_size in [100]:
+    for n_repetitions in [args.n_repetitions]: #[5000]
+        for true_single_cluster_size in [100]:
             for std in [2]: #[0.5, 1, 2]: #[0.1, 0.25, 0.5, 1, 0.1, 0.25, ]:
-                for with_outlier in [True]:  # [True, False]:
+                for add_outlier in [True]:  # [True, False]:
                     for init_method in ['random', 'omniscient']:  # ['omniscient', 'random']:
                         if init_method == 'random':
                             pys = [
@@ -66,12 +66,12 @@ def main():
                         for py in pys:
                             cnt += 1
                             _std = str(std).replace('.', '')
-                            _out_dir = f"{out_dir}/std_{_std}/R_{n_repeats}-S_{true_cluster_size}-O_{with_outlier}/{init_method}/{py}".replace(
+                            _out_dir = f"{out_dir}/std_{_std}/R_{n_repetitions}-S_{true_single_cluster_size}-O_{add_outlier}/{init_method}/{py}".replace(
                                 '.', '_')
 
-                            cmd = f"python3 {py} --n_repeats {n_repeats} --true_cluster_size {true_cluster_size} " \
-                                  f"--with_outlier {with_outlier} --init_method {init_method} --out_dir {_out_dir} " \
-                                  f"--std {std}"
+                            cmd = f"python3 {py} --n_repetitions {n_repetitions} --true_single_cluster_size {true_single_cluster_size} " \
+                                  f"--add_outlier {add_outlier} --init_method {init_method} --out_dir {_out_dir} " \
+                                  f"--cluster_std {std}"
 
                             log_file = f"{_out_dir}/log.txt"
 

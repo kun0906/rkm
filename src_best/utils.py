@@ -28,11 +28,11 @@ def parse_arguments():
     parser.add_argument("--out_dir", type=str, default='out')
     parser.add_argument("--cluster_std", type=float, default=2,
                         help='Standard deviation of each cluster (not outlier standard deviation).')
-    parser.add_argument("--n_neighbors", type=int, default=100,
+    parser.add_argument("--n_neighbors", type=int, default=0,
                         help='Number of neighbors to consider when computing robust spectral clustering (RSC).')
-    parser.add_argument("--theta", type=int, default=50,
+    parser.add_argument("--theta", type=int, default=0,
                         help='Number of edges will be removed when computing robust spectral clustering (RSC).')
-    parser.add_argument("--m", type=float, default=0.5,
+    parser.add_argument("--m", type=float, default=0,
                         help='For node i, percentage of neighbor nodes will be ignored '
                              'when computing robust spectral clustering (RSC).')
     return parser.parse_args()

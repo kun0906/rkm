@@ -23,18 +23,18 @@ def plot_diffprop(f, out_dir='', out_name='diffprop_random_mp', fontsize=10):
 
     # lloydL1_misc_avg, lloydL1_misc_err = df['lloydL1ians misc'], df['lloydL1ians misc err_bar']
     # kmed_misc_avg, kmed_misc_err = df['lloydL1ians-L1 misc'], df['lloydL1ians-L1 misc err_bar']
-    # kmeans_misc_avg, kmeans_misc_err = df['kmeans misc'], df['kmeans misc err_bar']
+    # kmeans_misc_avg, kmeans_misc_err = df['k_means misc'], df['k_means misc err_bar']
     #
     # lloydL1_acd_avg, lloydL1_acd_err = df['lloydL1ians acd'], df['lloydL1ians acd err_bar']
     # kmed_acd_avg, kmed_acd_err = df['lloydL1ians-L1 acd'], df['lloydL1ians-L1 acd err_bar']
-    # kmeans_acd_avg, kmeans_acd_err = df['kmeans acd'], df['kmeans acd err_bar']
+    # kmeans_acd_avg, kmeans_acd_err = df['k_means acd'], df['k_means acd err_bar']
 
     lloydL1_misc_avg, lloydL1_misc_err = df['lloydL1ians misc'], df['lloydL1ians misc err_bar']
     kmed_misc_avg, kmed_misc_err = df['lloydL1ians-L1 misc'], df['lloydL1ians-L1 misc err_bar']
-    kmeans_misc_avg, kmeans_misc_err = df['kmeans misc'], df['kmeans misc err_bar']
+    kmeans_misc_avg, kmeans_misc_err = df['k_means misc'], df['k_means misc err_bar']
     sc_lloydL1_misc_avg, sc_lloydL1_misc_err = df['sc_lloydL1ians misc'], df['sc_lloydL1ians misc err_bar']
     sc_kmed_misc_avg, sc_kmed_misc_err = df['sc_lloydL1ians-L1 misc'], df['sc_lloydL1ians-L1 misc err_bar']
-    sc_kmeans_misc_avg, sc_kmeans_misc_err = df['sc_kmeans misc'], df['sc_kmeans misc err_bar']
+    sc_kmeans_misc_avg, sc_kmeans_misc_err = df['sc_k_means misc'], df['sc_k_means misc err_bar']
     if is_robust:
         robust_sc_lloydL1_misc_avg, robust_sc_lloydL1_misc_err = df['robust_sc_lloydL1ians misc'], df[
             'robust_sc_lloydL1ians misc err_bar']
@@ -45,10 +45,10 @@ def plot_diffprop(f, out_dir='', out_name='diffprop_random_mp', fontsize=10):
 
     lloydL1_acd_avg, lloydL1_acd_err = df['lloydL1ians acd'], df['lloydL1ians acd err_bar']
     kmed_acd_avg, kmed_acd_err = df['lloydL1ians-L1 acd'], df['lloydL1ians-L1 acd err_bar']
-    kmeans_acd_avg, kmeans_acd_err = df['kmeans acd'], df['kmeans acd err_bar']
+    kmeans_acd_avg, kmeans_acd_err = df['k_means acd'], df['k_means acd err_bar']
     sc_lloydL1_acd_avg, sc_lloydL1_acd_err = df['sc_lloydL1ians acd'], df['sc_lloydL1ians acd err_bar']
     sc_kmed_acd_avg, sc_kmed_acd_err = df['sc_lloydL1ians-L1 acd'], df['sc_lloydL1ians-L1 acd err_bar']
-    sc_kmeans_acd_avg, sc_kmeans_acd_err = df['sc_kmeans acd'], df['sc_kmeans acd err_bar']
+    sc_kmeans_acd_avg, sc_kmeans_acd_err = df['sc_k_means acd'], df['sc_k_means acd err_bar']
 
     figsize = (8, 6)
     fig, ax = plt.subplots()
@@ -81,7 +81,7 @@ def plot_diffprop(f, out_dir='', out_name='diffprop_random_mp', fontsize=10):
         plt.errorbar(tot_props, robust_sc_kmed_misc_avg, yerr=robust_sc_kmed_misc_err, fmt='none', ecolor='black',
                      capsize=3)
 
-        plt.plot(tot_props, robust_sc_kmeans_misc_avg, '-p', label='RSC-Llyod (k-means)', color="steelblue")
+        plt.plot(tot_props, robust_sc_kmeans_misc_avg, '-p', label='RSC-Llyod (k_means)', color="steelblue")
         plt.errorbar(tot_props, robust_sc_kmeans_misc_avg, yerr=robust_sc_kmeans_misc_err, fmt='none', ecolor='black',
                      capsize=3)
     # plt.ylim(0,0.5)

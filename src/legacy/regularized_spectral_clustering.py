@@ -5,7 +5,7 @@
 
 import numpy as np
 import scipy as sp
-from scipy.cluster.vq import whiten, kmeans
+from scipy.cluster.vq import whiten, k_means
 from numpy import linalg as LA
 # from networkx.algorithms.cuts import conductance
 from scipy.sparse.linalg import eigsh
@@ -23,7 +23,7 @@ def spectral_clust(A, k=2):
 
     rows_norm = np.linalg.norm(Z, axis=1, ord=2)
     Y = (Z.T / rows_norm).T
-    centroids, distortion = kmeans(Y, k)
+    centroids, distortion = k_means(Y, k)
 
     y_hat = np.zeros(n, dtype=int)
     for i in range(n):
@@ -40,7 +40,7 @@ def spectral_clust_chauduri(A, tau, k=2):
 
     rows_norm = np.linalg.norm(Z, axis=1, ord=2)
     Y = (Z.T / rows_norm).T
-    centroids, distortion = kmeans(Y, k)
+    centroids, distortion = k_means(Y, k)
 
     y_hat = np.zeros(n, dtype=int)
     for i in range(n):

@@ -1,6 +1,7 @@
 """
 
 """
+import copy
 import os
 
 import numpy as np
@@ -43,7 +44,7 @@ LINESTYLES_COLORS_LABELS = {
 }
 
 
-def plot_result(df, out_dir, out_name='mp', xlabel='', ylabel='', title='', show=False):
+def plot_result(df, out_dir, out_name='mp', xlabel='', ylabel='', title='', show=True):
     os.makedirs(out_dir, exist_ok=True)
     # Plot the line plot with error bars
     fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(15, 12))
@@ -212,16 +213,32 @@ def compute_ith_avg(ith_prop_results, prop):
             scores_ = [res[clustering_method][metric] for res in ith_prop_results]
             mu_ = np.mean(scores_)
             std_ = 1.96 * np.std(scores_) / np.sqrt(len(scores_))
-            if mu_ >= 0.5:
-                print(clustering_method, prop, scores_, mu_, std_,
-                      [res[clustering_method]['labels'] for res in ith_prop_results])
+            # if mu_ >= 0.5:
+            #     print(clustering_method, prop, scores_, mu_, std_,
+            #           [res[clustering_method]['labels'] for res in ith_prop_results])
             column_name = f'{clustering_method}_{metric}_mu'
             ith_avg_results[column_name] = mu_
             column_name = f'{clustering_method}_{metric}_std'
             ith_avg_results[column_name] = std_
 
     return ith_avg_results
-
+#
+# def find_min_mp(ith_avg_best, ith_avg_results, ith_params):
+#     if len(ith_avg_best) == 0:
+#         return copy.deepcopy(ith_avg_results)
+#
+#     for clustering_method in CLUSTERING_METHODS:
+#         for metric in ['mp']:
+#             column_name = f'{clustering_method}_{metric}_mu'
+#             if ith_avg_best[column_name] > ith_avg_results[column_name]:
+#                 print(f'{column_name}: {ith_avg_best[column_name]}, {ith_avg_results[column_name]}', flush=True)
+#                 ith_avg_best[column_name] = ith_avg_results[column_name]
+#                 column_name = f'{clustering_method}_{metric}_std'
+#                 ith_avg_best[column_name] = ith_avg_results[column_name]
+#                 ith_avg_best[f'{clustering_method}_best_params'] = copy.deepcopy(ith_params)
+#
+#     return ith_avg_best
+#
 
 def plot_projected_data(points, projected_points, cluster_size=100, clustering_method='k_means',
                         centroids=None, projected_centroids=None, n_clusters=4,

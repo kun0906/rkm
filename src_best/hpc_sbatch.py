@@ -38,7 +38,7 @@ print = partial(print, flush=True)
 parser = argparse.ArgumentParser()
 # parser.add_argument('--force', default=False,   # whether overwrite the previous results or not?
 #                     action='store_true', help='force')
-parser.add_argument("--n_repetitions", type=int, default=500)  #
+parser.add_argument("--n_repetitions", type=int, default=100)  #
 args = parser.parse_args()
 print(args)
 
@@ -115,39 +115,34 @@ def main():
         for true_single_cluster_size in [100]:
             for std in [2]:  # [0.5, 1, 2]: #[0.1, 0.25, 0.5, 1, 0.1, 0.25, ]:
                 for add_outlier in [True]:  # [True, False]:
+                    n_neighbors, theta, m = 0, 0, 0
                     for init_method in ['random', 'omniscient']:  # ['omniscient', 'random']:
-                        nns = [5, 10, 25, 50, 75, 100,200]
-                        thetas = [10, 50, 100, 250, 500]
-                        ms = [0.1, 0.2, 0.3, 0.4, 0.5]
-                        # Generate all combinations using itertools.product
-                        combinations = list(itertools.product(nns, thetas, ms))
-                        for n_neighbors, theta, m in combinations: # , projected_dimensional = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-                            pys = [
-                                "main_diff_dim.py",
-                                "main_diff_rad.py",
-                                "main_diff_var.py",
-                                "main_diff_prop.py",
-                            ]
-                            for py in pys:
-                                cnt += 1
-                                _std = str(std).replace('.', '')
-                                _out_dir = f"{OUT_DIR}/cluster_std_{_std}/R_{n_repetitions}-S_{true_single_cluster_size}-O_{add_outlier}-B_{n_neighbors}-t_{theta}-m-{m}/{init_method}/{py}".replace(
-                                    '.', '_')
+                        pys = [
+                            "main_diff_dim.py",
+                            "main_diff_rad.py",
+                            "main_diff_var.py",
+                            "main_diff_prop.py",
+                        ]
+                        for py in pys:
+                            cnt += 1
+                            _std = str(std).replace('.', '')
+                            _out_dir = f"{OUT_DIR}/cluster_std_{_std}/R_{n_repetitions}-S_{true_single_cluster_size}-O_{add_outlier}-B_{n_neighbors}-t_{theta}-m-{m}/{init_method}/{py}".replace(
+                                '.', '_')
 
-                                cmd = f"python3 {py} --n_repetitions {n_repetitions} --true_single_cluster_size {true_single_cluster_size} " \
-                                      f"--add_outlier {add_outlier} --init_method {init_method} --out_dir {_out_dir} " \
-                                      f"--cluster_std {std} --n_neighbors {n_neighbors} --theta {theta} --m {m}"
+                            cmd = f"python3 {py} --n_repetitions {n_repetitions} --true_single_cluster_size {true_single_cluster_size} " \
+                                  f"--add_outlier {add_outlier} --init_method {init_method} --out_dir {_out_dir} " \
+                                  f"--cluster_std {std} --n_neighbors {n_neighbors} --theta {theta} --m {m}"
 
-                                log_file = f"{_out_dir}/log.txt"
+                            log_file = f"{_out_dir}/log.txt"
 
-                                # check if the given directory exists; otherwise, create
-                                check_dir(os.path.dirname(log_file))
+                            # check if the given directory exists; otherwise, create
+                            check_dir(os.path.dirname(log_file))
 
-                                # print(f"{cnt}: {cmd} > {log_file} &")
-                                # name = f"R_{n_repetitions}-S_{true_single_cluster_size}-Init_{init_method}-{py}"
-                                name = py.split('_')[2]
-                                name = f"{name}-{init_method[:3]}-R{n_repetitions}"
-                                generate_sh(name, cmd, log_file)
+                            # print(f"{cnt}: {cmd} > {log_file} &")
+                            # name = f"R_{n_repetitions}-S_{true_single_cluster_size}-Init_{init_method}-{py}"
+                            name = py.split('_')[2]
+                            name = f"{name}-{init_method[:3]}-R{n_repetitions}"
+                            generate_sh(name, cmd, log_file)
 
     print(f'\n***total submitted jobs for synthetic datasets: {cnt}')
 

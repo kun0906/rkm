@@ -1,19 +1,28 @@
-"""The impact of different locations of outliers for different clustering methods.
+"""The impact of different proportions of outliers for different clustering methods.
 
 """
+import argparse
 import math
 import os
 
-import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from base import compute_ith_avg, plot_result
-from utils import parse_arguments
+from clustering_random import *
 
 
 def main():
-    args = parse_arguments()
+    parser = argparse.ArgumentParser()
+    # parser.add_argument('--force', default=False,   # whether overwrite the previous results or not?
+    #                     action='store_true', help='force')
+    parser.add_argument("--n_repetitions", type=int, default=10)  #
+    parser.add_argument("--true_single_cluster_size", type=int, default=100)
+    parser.add_argument("--init_method", type=str, default='random')
+    parser.add_argument("--add_outlier", type=str, default='True')
+    parser.add_argument("--out_dir", type=str, default='out')
+    parser.add_argument("--cluster_std", type=float, default=1)
+    parser.add_argument("--n_neighbors", type=int, default=15)
+    args = parser.parse_args()
     args.add_outlier = False if args.add_outlier == 'False' else True
     print(args)
 
@@ -22,24 +31,16 @@ def main():
     true_single_cluster_size = args.true_single_cluster_size
     add_outlier = args.add_outlier
     n_neighbors = args.n_neighbors
-    theta = args.theta
-    m = args.m
-    # out_dir = f'{args.out_dir}/diffdim/{init_method}/R_{n_repetitions}-S_{true_single_cluster_size}'
+    # out_dir = f'{args.out_dir}/diffdim/{init_method}/R_{num_repeat}-S_{true_single_cluster_size}'
     out_dir = args.out_dir
-    print(out_dir)
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
-    if init_method == 'random':
-        from clustering_random import get_ith_results_random
-    else:
-        from clustering import get_ith_results
-
-    for n_centroids in range(4, 9, 6):
+    for n_centroids in range(4, 9, 5):
         # True labels
         true_labels = np.concatenate([np.ones(true_single_cluster_size) * i for i in range(n_centroids)]).astype(int)
         dim = 10
-        rad_out_vec = np.trunc(np.linspace(0, 100, 11)) # choose 11 values from [0, 100]
+        rad_out_vec = np.trunc(np.linspace(0, 100, 11))
         rad_results = []
         for rad_out in tqdm(rad_out_vec):
             ith_rad_results = []
@@ -53,15 +54,13 @@ def main():
                 true_centroids /= np.linalg.norm(true_centroids, axis=1)[:, np.newaxis]
                 # centroids /= max(np.linalg.norm(centroids, axis=1)[:, np.newaxis])
                 radius = 5
-                # sigma = args.cluster_std
-                sigma = 1.0   # in the paper, we use sigma=1.0 for this case.
+                sigma = args.cluster_std
                 true_centroids *= radius
 
                 # True points
                 # Set means and covariance matrices
                 true_points = np.concatenate(
-                    [rng.multivariate_normal(mean, np.identity(dim) * sigma ** 2, size=true_single_cluster_size) for
-                     mean in
+                    [rng.multivariate_normal(mean, np.identity(dim) * sigma ** 2, size=true_single_cluster_size) for mean in
                      true_centroids])
 
                 # Fraction of outliers
@@ -88,16 +87,13 @@ def main():
                 if init_method == 'random':
                     indices = rng.choice(range(len(points)), size=n_centroids, replace=False)
                     init_centroids = points[indices, :]
-                    ith_repeat_results = get_ith_results_random(points, init_centroids,
-                                                                true_centroids, true_labels, true_single_cluster_size,
-                                                                n_centroids,
-                                                                n_neighbors=n_neighbors, theta=theta, m=m,
-                                                                out_dir=out_dir, x_axis=rad_out, random_state=seed)
                 else:
-                    ith_repeat_results = get_ith_results(points, true_centroids, true_labels, true_single_cluster_size,
-                                                         n_centroids,
-                                                         n_neighbors=n_neighbors, theta=theta, m=m,
-                                                         out_dir=out_dir, x_axis=rad_out, random_state=seed)
+                    pass
+
+                ith_repeat_results = get_ith_results_random(points, init_centroids,
+                                                            true_centroids, true_labels, true_single_cluster_size,
+                                                            n_centroids, n_neighbors=n_neighbors,
+                                                            random_state=seed)
                 ith_rad_results.append(ith_repeat_results)
 
             # Compute mean and error bar for ith_rad_results

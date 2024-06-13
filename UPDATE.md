@@ -1,3 +1,6 @@
+v0.6.2: Tune parameters for sc and rsc using src_best or src
+
+
 v0.6.1: sigma = 1.0 (not 2.0) for main_diff_rad.py
 
 1. In the paper results, we use sigma=1.0 for main_diff_rad.py.
