@@ -1,8 +1,6 @@
-"""The impact of different dimensions for different clustering methods.
+"""The impact of different locations of outliers for different clustering methods.
 
 """
-import copy
-import itertools
 import math
 import os
 
@@ -19,13 +17,13 @@ def main():
     args.add_outlier = False if args.add_outlier == 'False' else True
     print(args)
 
-    n_repetitions = args.n_repetitions
+    n_repetitions = 2
     init_method = args.init_method
     true_single_cluster_size = args.true_single_cluster_size
     add_outlier = args.add_outlier
-    # n_neighbors = args.n_neighbors
-    # theta = args.theta
-    # m = args.m
+    n_neighbors = args.n_neighbors
+    theta = args.theta
+    m = args.m
     # out_dir = f'{args.out_dir}/diffdim/{init_method}/R_{n_repetitions}-S_{true_single_cluster_size}'
     out_dir = args.out_dir
     print(out_dir)
@@ -37,15 +35,17 @@ def main():
     else:
         from clustering import get_ith_results
 
-    for n_centroids in range(4, 9, 5):
+    for n_centroids in range(3, 9, 8):
         # True labels
         true_labels = np.concatenate([np.ones(true_single_cluster_size) * i for i in range(n_centroids)]).astype(int)
-        dims = np.linspace(2, 20, 10).astype(int)
-        dim_results = []
-        for dim in tqdm(dims):
+        dim = 2
+        rad_out_vec = [10] # np.trunc(np.linspace(0, 100, 11)) # choose 11 values from [0, 100]
+        rad_results = []
+        for rad_out in tqdm(rad_out_vec):
+
             # Generate data first
             datasets = []
-            for i in range(n_repetitions):
+            for i in range(1, n_repetitions+1):
                 # random seed
                 seed = i
                 rng = np.random.RandomState(seed=seed)
@@ -54,28 +54,35 @@ def main():
                 true_centroids = rng.normal(size=(n_centroids, dim))
                 true_centroids /= np.linalg.norm(true_centroids, axis=1)[:, np.newaxis]
                 # centroids /= max(np.linalg.norm(centroids, axis=1)[:, np.newaxis])
+                radius = 10
+                # sigma = args.cluster_std
+                sigma = 1.0   # in the paper, we use sigma=1.0 for this case.
+                true_centroids *= radius
 
                 # True points
-                radius = args.radius
-                sigma = args.cluster_std  # 1
-                true_centroids *= radius
                 # Set means and covariance matrices
-                cov = np.identity(dim)
                 true_points = np.concatenate(
-                    [rng.multivariate_normal(mean, cov * (sigma ** 2), size=true_single_cluster_size) for mean in
+                    [rng.multivariate_normal(mean, np.identity(dim) * sigma ** 2, size=true_single_cluster_size) for
+                     mean in
                      true_centroids])
 
                 # Fraction of outliers
-                prop = 0.60
-                outlier_std = 10
-                # outlier_std = 2
-                outliers = rng.multivariate_normal(np.ones(dim) * 0,
-                                                   np.eye(dim) * outlier_std ** 2,
-                                                   size=math.floor(true_single_cluster_size * prop))
+                # prop = 0.6
+                # sigma_out = 10      # for testing
+                prop = 0.4
+                sigma_out = 1
+                # outliers = rad_out/np.sqrt(dim) + sigma_out * rng.multivariate_normal(np.zeros(dim), np.eye(dim),
+                #                                                      size = math.floor(true_single_cluster_size * prop))
+                centroids_out_dir = rng.multivariate_normal(np.zeros(dim), np.eye(dim), size=1)
+                centroids_out_dir /= np.linalg.norm(centroids_out_dir, axis=1)[:, np.newaxis]
+                # outlier_mean = rad_out / np.sqrt(dim) * centroids_out_dir[0]
+                outlier_mean = rad_out * centroids_out_dir[0]
+                outliers = outlier_mean + rng.multivariate_normal(np.zeros(dim), np.eye(dim) * sigma_out ** 2,
+                                                                  size=math.floor(true_single_cluster_size * prop))
+
                 # Final points
                 if add_outlier:
                     points = np.concatenate((true_points, outliers), axis=0)
-                    # labels = np.concatenate([true_labels, 10 * np.ones((outliers.shape[0],))])
                 else:
                     # Without outliers
                     points = true_points
@@ -95,27 +102,27 @@ def main():
                 }
                 datasets.append(data)
             if init_method == 'random':
-                ith_dim_results = get_ith_results_random(datasets, out_dir=out_dir, x_axis=dim)
+                ith_dim_results = get_ith_results_random(datasets, out_dir=out_dir, x_axis=rad_out)
             else:
-                ith_dim_results = get_ith_results(datasets, out_dir=out_dir, x_axis=dim)
+                ith_dim_results = get_ith_results(datasets, out_dir=out_dir, x_axis=rad_out)
 
-            dim_results.append(ith_dim_results)
+            rad_results.append(ith_dim_results)
 
         # Collect all the results togather
-        avg_results = {'x_axis':dims}
-        for cluster_method in dim_results[0].keys():
+        avg_results = {'x_axis': rad_out_vec}
+        for cluster_method in rad_results[0].keys():
             for metric in ['mp', 'acd']:
                 mu_ = f'{cluster_method}_{metric}_mu'
-                avg_results[mu_] = [dim_results[i_][cluster_method][f'{metric}_mu'] for i_ in range(len(dims))]
+                avg_results[mu_] = [rad_results[i_][cluster_method][f'{metric}_mu'] for i_ in range(len(rad_out_vec))]
                 std_ = f'{cluster_method}_{metric}_std'
-                avg_results[std_] = [dim_results[i_][cluster_method][f'{metric}_std'] for i_ in range(len(dims))]
+                avg_results[std_] = [rad_results[i_][cluster_method][f'{metric}_std'] for i_ in range(len(rad_out_vec))]
 
         df = pd.DataFrame(avg_results)
         # Save data to CSV file
         df.to_csv(f'{out_dir}/data_%g_clusters.csv' % n_centroids, index=False)
 
-        title = "Plot of mp: %g_clusters_rad_%g_out_%g_sigma_%g" % (n_centroids, radius, prop, sigma)
-        plot_result(df, out_dir, xlabel='Dimensions', ylabel="Misclustering proportion (MP)", title=title)
+        title = "Plot of mp: %g_clusters_rad_%g_out_%g_dim_%g" % (n_centroids, radius, prop, dim)
+        plot_result(df, out_dir, xlabel="Outlier rad", ylabel="Misclustering proportion (MP)", title=title)
 
 
 if __name__ == '__main__':

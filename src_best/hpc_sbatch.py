@@ -113,10 +113,11 @@ def main():
     # for synthetic datasets
     for n_repetitions in [args.n_repetitions]:  # [5000]
         for true_single_cluster_size in [100]:
-            for std in [2]:  # [0.5, 1, 2]: #[0.1, 0.25, 0.5, 1, 0.1, 0.25, ]:
+            # for std in [2]:  # [0.5, 1, 2]: #[0.1, 0.25, 0.5, 1, 0.1, 0.25, ]:
+            for std in [2, 5, 10, 20]:  # [0.5, 1, 2]: #[0.1, 0.25, 0.5, 1, 0.1, 0.25, ]:
                 for add_outlier in [True]:  # [True, False]:
                     n_neighbors, theta, m = 0, 0, 0
-                    for init_method in ['random', 'omniscient']:  # ['omniscient', 'random']:
+                    for init_method in ['random']:  # ['omniscient', 'random']:
                         pys = [
                             "main_diff_dim.py",
                             "main_diff_rad.py",
@@ -131,7 +132,7 @@ def main():
 
                             cmd = f"python3 {py} --n_repetitions {n_repetitions} --true_single_cluster_size {true_single_cluster_size} " \
                                   f"--add_outlier {add_outlier} --init_method {init_method} --out_dir {_out_dir} " \
-                                  f"--cluster_std {std} --n_neighbors {n_neighbors} --theta {theta} --m {m}"
+                                  f"--cluster_std 2 --radius {std} --n_neighbors {n_neighbors} --theta {theta} --m {m}"
 
                             log_file = f"{_out_dir}/log.txt"
 

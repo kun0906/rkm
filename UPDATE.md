@@ -1,5 +1,7 @@
 v0.6.2: Tune parameters for sc and rsc using src_best or src
 
+1. Add tun parameters and n_init for random initialization
+
 
 v0.6.1: sigma = 1.0 (not 2.0) for main_diff_rad.py
 

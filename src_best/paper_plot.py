@@ -83,11 +83,18 @@ def merge_images(imgs, out_dir):
     plt.show()
 
 
-if __name__ == '__main__':
-    R = 500  # 5000  # number of repeats
+def main(tuning_param):
+    R = 100  # 5000  # number of repeats
     S = 100  # each cluster size
     # in_dir = f'out-20240608-m_normalization=True/std_2/R_{R}-S_100-O_True-B_9' # for different m (percentage): 0.1 to 0.9
-    in_dir = f'out-R_500/cluster_std_2/R_{R}-S_100-O_True-B_75'  # for different projected_k    : 1 to 9
+    # in_dir = f'out_best_results_cluster_std=2/cluster_std_10/R_{R}-S_100-O_True-B_0-t_0-m_0'  # for different projected_k    : 1 to 9
+
+    # cluster_std 2 and  different radius of sphere for normal data    : 2, 5, 10, 20
+    in_dir = f'out_default_parameters/cluster_std_{tuning_param}/R_{R}-S_100-O_True-B_0-t_0-m_0'
+    #
+    # in_dir = f'out_best_results_cluster_std=2/cluster_std_{tuning_param}/R_{R}-S_100-O_True-B_0-t_0-m_0'
+    # in_dir = f'out_best_results_cluster_std=10/cluster_std_{tuning_param}/R_{R}-S_100-O_True-B_0-t_0-m_0'
+
     out_dir = f'{in_dir}/paper_plot'
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
@@ -96,7 +103,7 @@ if __name__ == '__main__':
     for alg_method in ['diff_dim', 'diff_rad', 'diff_var',
                        'diff_prop']:  # ['diffdim', 'diffrad', 'diffvar', 'diffprop']:
         img_lst = []
-        for init_method in ['omniscient', 'random']:
+        for init_method in ['omniscient', 'random']:  # 'omniscient',
             py = f"main_{alg_method}_py"
             # if alg_method=='diffrad':
             #     py = py + '-std_01'
@@ -121,12 +128,18 @@ if __name__ == '__main__':
                             title=f'{alg_method}_{init_method}_indiv', xlabel=xlabel, show=False)
                 img = plot_results(f, out_dir=out_dir, out_name=f'{alg_method}_{init_method}', xlabel=xlabel,
                                    fontsize=fontsize, show=False)
-                img_lst.append(img)
             except Exception as e:
                 traceback.print_exc()
+
+            img_lst.append(img)
 
         imgs.append([alg_method] + img_lst)
 
     merge_images(imgs, out_dir)
 
     print('finished')
+
+
+if __name__ == '__main__':
+    for tuning_param in [2, 5, 10, 20]:
+        main(tuning_param)

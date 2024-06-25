@@ -44,7 +44,8 @@ def main():
 
         sigma_results = []
         for sigma_out in tqdm(sigma_out_vec):
-            ith_sigma_results = []
+            # Generate data first
+            datasets = []
             for i in range(n_repetitions):
 
                 # random seed
@@ -57,8 +58,8 @@ def main():
                 # centroids /= max(np.linalg.norm(centroids, axis=1)[:, np.newaxis])
 
                 # True points
-                radius = 5
-                sigma = args.cluster_std  # 1
+                radius = args.radius     # 5
+                sigma = args.cluster_std  # 2
                 true_centroids *= radius
                 # Set means and covariance matrices
                 cov = np.identity(dim)
@@ -75,6 +76,7 @@ def main():
                 # Final points
                 if add_outlier:
                     points = np.concatenate((true_points, outliers), axis=0)
+                    # labels = np.concatenate([true_labels, 10 * np.ones((outliers.shape[0],))])
                 else:
                     # Without outliers
                     points = true_points
@@ -82,26 +84,33 @@ def main():
                 if init_method == 'random':
                     indices = rng.choice(range(len(points)), size=n_centroids, replace=False)
                     init_centroids = points[indices, :]
-                    ith_repeat_results = get_ith_results_random(points, init_centroids,
-                                                                true_centroids, true_labels, true_single_cluster_size,
-                                                                n_centroids,
-                                                                n_neighbors=n_neighbors, theta=theta, m=m,
-                                                                out_dir=out_dir, x_axis=sigma_out, random_state=seed)
                 else:
-                    ith_repeat_results = get_ith_results(points, true_centroids, true_labels, true_single_cluster_size,
-                                                         n_centroids,
-                                                         n_neighbors=n_neighbors, theta=theta, m=m,
-                                                         out_dir=out_dir, x_axis=sigma_out, random_state=seed)
-                ith_sigma_results.append(ith_repeat_results)
+                    init_centroids = true_centroids
+                data = {
+                    "true_centroids": true_centroids, "true_labels": true_labels,
+                    "true_single_cluster_size": true_single_cluster_size,
+                    "n_centroids": n_centroids,
+                    'points': points,
+                    'init_centroids': init_centroids,
+                    "random_state": seed
+                }
+                datasets.append(data)
+            if init_method == 'random':
+                ith_sigma_results = get_ith_results_random(datasets, out_dir=out_dir, x_axis=sigma_out)
+            else:
+                ith_sigma_results = get_ith_results(datasets, out_dir=out_dir, x_axis=sigma_out)
 
-            # Compute mean and error bar for ith_sigma_results
-            ith_avg_results = compute_ith_avg(ith_sigma_results, sigma_out)
-            sigma_results.append(ith_avg_results)
+            sigma_results.append(ith_sigma_results)
 
         # Collect all the results togather
-        avg_results = {}
-        for key in sigma_results[0].keys():
-            avg_results[key] = [sigma_results[i_][key] for i_ in range(len(sigma_out_vec))]
+        avg_results = {'x_axis': sigma_out_vec}
+        for cluster_method in sigma_results[0].keys():
+            for metric in ['mp', 'acd']:
+                mu_ = f'{cluster_method}_{metric}_mu'
+                avg_results[mu_] = [sigma_results[i_][cluster_method][f'{metric}_mu'] for i_ in range(len(sigma_out_vec))]
+                std_ = f'{cluster_method}_{metric}_std'
+                avg_results[std_] = [sigma_results[i_][cluster_method][f'{metric}_std'] for i_ in range(len(sigma_out_vec))]
+
         df = pd.DataFrame(avg_results)
         # Save data to CSV file
         df.to_csv(f'{out_dir}/data_%g_clusters.csv' % n_centroids, index=False)

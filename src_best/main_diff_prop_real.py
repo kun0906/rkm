@@ -62,7 +62,8 @@ def main():
         props = [0.0, 0.2, 0.4, 0.6, 0.8]
         prop_results = []
         for prop in tqdm(props):
-            ith_prop_results = []
+            # Generate data first
+            datasets = []
             for i in range(n_repetitions):
                 # random seed
                 seed = i
@@ -110,26 +111,32 @@ def main():
                 if init_method == 'random':
                     indices = rng.choice(range(len(points)), size=n_centroids, replace=False)
                     init_centroids = points[indices, :]
-                    ith_repeat_results = get_ith_results_random(points, init_centroids,
-                                                                true_centroids, true_labels, true_single_cluster_size,
-                                                                n_centroids,
-                                                                n_neighbors=n_neighbors, theta=theta, m=m,
-                                                                out_dir=out_dir, x_axis=prop, random_state=seed)
                 else:
-                    ith_repeat_results = get_ith_results(points, true_centroids, true_labels, true_single_cluster_size,
-                                                         n_centroids,
-                                                         n_neighbors=n_neighbors, theta=theta, m=m,
-                                                         out_dir=out_dir, x_axis=prop, random_state=seed)
-                ith_prop_results.append(ith_repeat_results)
+                    init_centroids = true_centroids
+                data = {
+                    "true_centroids": true_centroids, "true_labels": true_labels,
+                    "true_single_cluster_size": true_single_cluster_size,
+                    "n_centroids": n_centroids,
+                    'points': points,
+                    'init_centroids': init_centroids,
+                    "random_state": seed
+                }
+                datasets.append(data)
+            if init_method == 'random':
+                ith_prop_results = get_ith_results_random(datasets, out_dir=out_dir, x_axis=prop)
+            else:
+                ith_prop_results = get_ith_results(datasets, out_dir=out_dir, x_axis=prop)
 
-            # Compute mean and error bar for ith_prop_results
-            ith_avg_results = compute_ith_avg(ith_prop_results, prop)
-            prop_results.append(ith_avg_results)
+            prop_results.append(ith_prop_results)
 
         # Collect all the results togather
-        avg_results = {}
-        for key in prop_results[0].keys():
-            avg_results[key] = [prop_results[i_][key] for i_ in range(len(props))]
+        avg_results = {'x_axis': props}
+        for cluster_method in prop_results[0].keys():
+            for metric in ['mp', 'acd']:
+                mu_ = f'{cluster_method}_{metric}_mu'
+                avg_results[mu_] = [prop_results[i_][cluster_method][f'{metric}_mu'] for i_ in range(len(props))]
+                std_ = f'{cluster_method}_{metric}_std'
+                avg_results[std_] = [prop_results[i_][cluster_method][f'{metric}_std'] for i_ in range(len(props))]
         df = pd.DataFrame(avg_results)
         # Save data to CSV file
         df.to_csv(f'{out_dir}/data_%g_clusters.csv' % n_centroids, index=False)

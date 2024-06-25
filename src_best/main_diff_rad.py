@@ -42,7 +42,9 @@ def main():
         rad_out_vec = np.trunc(np.linspace(0, 100, 11)) # choose 11 values from [0, 100]
         rad_results = []
         for rad_out in tqdm(rad_out_vec):
-            ith_rad_results = []
+
+            # Generate data first
+            datasets = []
             for i in range(n_repetitions):
                 # random seed
                 seed = i
@@ -52,7 +54,7 @@ def main():
                 true_centroids = rng.normal(size=(n_centroids, dim))
                 true_centroids /= np.linalg.norm(true_centroids, axis=1)[:, np.newaxis]
                 # centroids /= max(np.linalg.norm(centroids, axis=1)[:, np.newaxis])
-                radius = 5
+                radius = args.radius
                 # sigma = args.cluster_std
                 sigma = 1.0   # in the paper, we use sigma=1.0 for this case.
                 true_centroids *= radius
@@ -81,6 +83,7 @@ def main():
                 # Final points
                 if add_outlier:
                     points = np.concatenate((true_points, outliers), axis=0)
+                    # labels = np.concatenate([true_labels, 10 * np.ones((outliers.shape[0],))])
                 else:
                     # Without outliers
                     points = true_points
@@ -88,26 +91,33 @@ def main():
                 if init_method == 'random':
                     indices = rng.choice(range(len(points)), size=n_centroids, replace=False)
                     init_centroids = points[indices, :]
-                    ith_repeat_results = get_ith_results_random(points, init_centroids,
-                                                                true_centroids, true_labels, true_single_cluster_size,
-                                                                n_centroids,
-                                                                n_neighbors=n_neighbors, theta=theta, m=m,
-                                                                out_dir=out_dir, x_axis=rad_out, random_state=seed)
                 else:
-                    ith_repeat_results = get_ith_results(points, true_centroids, true_labels, true_single_cluster_size,
-                                                         n_centroids,
-                                                         n_neighbors=n_neighbors, theta=theta, m=m,
-                                                         out_dir=out_dir, x_axis=rad_out, random_state=seed)
-                ith_rad_results.append(ith_repeat_results)
+                    init_centroids = true_centroids
+                data = {
+                    "true_centroids": true_centroids, "true_labels": true_labels,
+                    "true_single_cluster_size": true_single_cluster_size,
+                    "n_centroids": n_centroids,
+                    'points': points,
+                    'init_centroids': init_centroids,
+                    "random_state": seed
+                }
+                datasets.append(data)
+            if init_method == 'random':
+                ith_dim_results = get_ith_results_random(datasets, out_dir=out_dir, x_axis=rad_out)
+            else:
+                ith_dim_results = get_ith_results(datasets, out_dir=out_dir, x_axis=rad_out)
 
-            # Compute mean and error bar for ith_rad_results
-            ith_avg_results = compute_ith_avg(ith_rad_results, rad_out)
-            rad_results.append(ith_avg_results)
+            rad_results.append(ith_dim_results)
 
         # Collect all the results togather
-        avg_results = {}
-        for key in rad_results[0].keys():
-            avg_results[key] = [rad_results[i_][key] for i_ in range(len(rad_out_vec))]
+        avg_results = {'x_axis': rad_out_vec}
+        for cluster_method in rad_results[0].keys():
+            for metric in ['mp', 'acd']:
+                mu_ = f'{cluster_method}_{metric}_mu'
+                avg_results[mu_] = [rad_results[i_][cluster_method][f'{metric}_mu'] for i_ in range(len(rad_out_vec))]
+                std_ = f'{cluster_method}_{metric}_std'
+                avg_results[std_] = [rad_results[i_][cluster_method][f'{metric}_std'] for i_ in range(len(rad_out_vec))]
+
         df = pd.DataFrame(avg_results)
         # Save data to CSV file
         df.to_csv(f'{out_dir}/data_%g_clusters.csv' % n_centroids, index=False)

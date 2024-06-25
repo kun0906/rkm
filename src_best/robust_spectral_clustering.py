@@ -46,6 +46,71 @@ def rbf_graph(points):
     return affinity_matrix_
 
 
+def plot_matrix(adjacency_matrix):
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    # # Convert the sparse matrix to a dense format (adjacency matrix)
+    # adjacency_matrix = connectivity.toarray()
+
+    # Visualize the adjacency matrix as a heatmap
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(adjacency_matrix, annot=True, cmap='viridis', cbar=False)
+    plt.title('k-Nearest Neighbors Graph as Adjacency Matrix')
+    plt.xlabel('Node Index')
+    plt.ylabel('Node Index')
+    plt.show()
+
+
+def is_symmetric(matrix):
+    """
+    Check if a given csr_matrix is symmetric.
+
+    Parameters:
+    matrix (csr_matrix): The matrix to check for symmetry.
+
+    Returns:
+    bool: True if the matrix is symmetric, False otherwise.
+    """
+    if not isinstance(matrix, csr_matrix):
+        raise ValueError("Input must be a csr_matrix")
+
+    # Convert the matrix to its transpose
+    matrix_transpose = matrix.transpose()
+
+    # Check if the matrix is equal to its transpose
+    is_symmetric = (matrix != matrix_transpose).nnz == 0
+
+    return is_symmetric
+
+import numpy as np
+
+def verify_laplacian(L):
+    # Check symmetry
+    if not np.allclose(L, L.T):
+        print("Matrix is not symmetric.")
+        return False
+
+    # Check non-positivity of off-diagonal elements
+    if not np.all(L[np.triu_indices_from(L, 1)] <= 0):
+        print("Off-diagonal elements are not non-positive.")
+        return False
+
+    # Check sum of rows (should be zero)
+    row_sums = np.sum(L, axis=1)
+    if not np.allclose(row_sums, 0):
+        print("Row sums are not zero.")
+        return False
+
+    # # Check positive semi-definiteness
+    # eigenvalues = np.linalg.eigvalsh(L)
+    # if not np.all(eigenvalues >= -1e-10):  # allow small numerical errors
+    #     print("Matrix is not positive semi-definite.")
+    #     return False
+
+    # print("Matrix is a valid Laplacian matrix.")
+    return True
+
+
 class RSC:
     """
     Implementation of the method proposed in the paper:
@@ -64,7 +129,8 @@ class RSC:
     Technical University of Munich, Germany
     """
 
-    def __init__(self, k, nn=15, theta=20, m=0.5, laplacian=1, n_iter=50, normalize=False, verbose=False,
+    def __init__(self, k, nn=15, theta=20, m=0.5, laplacian=1, n_iter=50, affinity='rbf',
+                 normalize=False, verbose=False,
                  random_state=42):
         """
         :param k: number of clusters
@@ -86,6 +152,7 @@ class RSC:
         self.verbose = verbose
         self.laplacian = laplacian
         self.random_state = random_state
+        self.affinity=affinity
 
         if laplacian == 0:
             if self.verbose:
@@ -103,8 +170,8 @@ class RSC:
         # rng = np.random.seed(self.random_state)   # set globally for all random number generation operations
         rng = np.random.RandomState(
             seed=self.random_state)  # creates a new instance of the random number generator with the specified seed value.
-        affinity = 'knn'
-        if affinity == 'rbf':
+        # affinity = 'rbf'
+        if self.affinity == 'rbf':
             A = rbf_graph(X)
             # Convert the numpy array to a csr_matrix
             A = csr_matrix(A)
@@ -112,6 +179,8 @@ class RSC:
             # compute the KNN graph
             A = kneighbors_graph(X=X, n_neighbors=self.nn, metric='euclidean', include_self=False, mode='connectivity')
         A = A.maximum(A.T)  # make the graph undirected
+
+        # plot_matrix(A.toarray())
 
         N = A.shape[0]  # number of nodes
         deg = A.sum(0).A1  # node degrees,  Return `self` as a flattened `ndarray`.
@@ -122,31 +191,39 @@ class RSC:
         for it in range(self.n_iter):
 
             # form the unnormalized Laplacian
-            D = sp.diags(Ag.sum(0).A1).tocsc()
+            D = sp.diags(Ag.sum(0).A1).tocsr()
             L = D - Ag
+            if not verify_laplacian(L.toarray()):
+                print(f'{it}th iteration, L is not a valid Laplacian matrix.', flush=True)
 
             v0 = rng.rand(min(L.shape))  # avoid random initialization for eigsh(),
             # generate random samples from a uniform distribution over [0, 1).
             # solve the normal eigenvalue problem
             if self.laplacian == 0:
-                h, H = eigsh(L, min(self.k * 2, N), which='SM', v0=v0)  # eigsh can involve random initialization
+                h, H = eigsh(L, min(self.k, N), which='SM', v0=v0)  # eigsh can involve random initialization
             # solve the generalized eigenvalue problem
             elif self.laplacian == 1:
-                h, H = eigsh(L, min(self.k * 2, N), D, which='SM', v0=v0)
+                try:
+                    h, H = eigsh(L, min(self.k, N), D, which='SM', v0=v0)
+                    # print(self.k*2, flush=True)
+                except Exception as e:
+                    print(f'{it}th iteration, eigsh() fails.')
+                    Ac = sp.coo_matrix((N, N), [np.int])
+                    break
                 if self.verbose:
                     print(list(h), sorted(h, key=lambda x: abs(x), reverse=False))
                     print('h[i] - h[i-1] diff： ', [h[i] - h[i - 1] for i in range(1, len(h))])
-                is_non_zero_eigen = False  # if True, we only use non_zero_eigenvalues and eigenvectors
-                if is_non_zero_eigen:
-                    # Find top 2 non-zero eigenvalues
-                    top_k_nonzero_indices = []
-                    for idx in range(len(h)):
-                        if len(top_k_nonzero_indices) >= self.k:
-                            break
-                        if not np.isclose(h[idx], 0, atol=1.e-10):  # Check if the eigenvalue is non-zero
-                            top_k_nonzero_indices.append(idx)
-                    # print(it, top_k_nonzero_indices, h, flush=True)
-                    h, H = h[top_k_nonzero_indices], H[:, top_k_nonzero_indices]
+                # is_non_zero_eigen = False  # if True, we only use non_zero_eigenvalues and eigenvectors
+                # if is_non_zero_eigen:
+                #     # Find top 2 non-zero eigenvalues
+                #     top_k_nonzero_indices = []
+                #     for idx in range(len(h)):
+                #         if len(top_k_nonzero_indices) >= self.k:
+                #             break
+                #         if not np.isclose(h[idx], 0, atol=1.e-10):  # Check if the eigenvalue is non-zero
+                #             top_k_nonzero_indices.append(idx)
+                #     # print(it, top_k_nonzero_indices, h, flush=True)
+                #     h, H = h[top_k_nonzero_indices], H[:, top_k_nonzero_indices]
                 else:
                     h, H = h[:self.k], H[:, :self.k]
                 self.h = h
@@ -189,7 +266,7 @@ class RSC:
 
                 # remove the edge if it satisfies the constraints
                 if allowed_to_remove_per_node[e_i] > 0 and allowed_to_remove_per_node[e_j] > 0 and p_e > 0:
-                    allowed_to_remove_per_node[e_i] -= 1
+                    allowed_to_remove_per_node[e_i] -= 1        # not work for rbf, only works for knn
                     allowed_to_remove_per_node[e_j] -= 1
                     removed_edges.append((e_i, e_j))
                     if len(removed_edges) == self.theta:
@@ -198,7 +275,7 @@ class RSC:
             removed_edges = np.array(removed_edges)
             if removed_edges.shape[0] > 0:
                 Ac = sp.coo_matrix((np.ones(len(removed_edges)), (removed_edges[:, 0], removed_edges[:, 1])),
-                                   shape=(N, N))
+                                   shape=(N, N)).tocsr()
                 Ac = Ac.maximum(Ac.T)
                 Ag = A - Ac
             else:
@@ -225,6 +302,7 @@ class RSC:
         else:
             self.H = H
 
+        # from _kmeans import k_means
         centroids, labels, *_ = k_means(X=self.H, n_clusters=self.k,
                                         init=init, n_init=1,
                                         random_state=self.random_state)
