@@ -1,3 +1,9 @@
+v0.6.3: update omniscient initialization for sc and rsc. 
+
+1. Add tun parameters and n_init for random initialization
+2. Add partial outliers
+
+
 v0.6.2: Tune parameters for sc and rsc using src_best or src
 
 1. Add tun parameters and n_init for random initialization

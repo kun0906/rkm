@@ -67,18 +67,37 @@ def main():
                      true_centroids])
 
                 # Fraction of outliers
-                # prop = 0.6
-                # sigma_out = 10      # for testing
-                prop = 0.4
-                sigma_out = 1
-                # outliers = rad_out/np.sqrt(dim) + sigma_out * rng.multivariate_normal(np.zeros(dim), np.eye(dim),
-                #                                                      size = math.floor(true_single_cluster_size * prop))
-                centroids_out_dir = rng.multivariate_normal(np.zeros(dim), np.eye(dim), size=1)
-                centroids_out_dir /= np.linalg.norm(centroids_out_dir, axis=1)[:, np.newaxis]
-                # outlier_mean = rad_out / np.sqrt(dim) * centroids_out_dir[0]
-                outlier_mean = rad_out * centroids_out_dir[0]
-                outliers = outlier_mean + rng.multivariate_normal(np.zeros(dim), np.eye(dim) * sigma_out ** 2,
-                                                                  size=math.floor(true_single_cluster_size * prop))
+                adding_partial_direction_oultiers = True
+                if adding_partial_direction_oultiers:
+                    # prop = 0.6
+                    # sigma_out = 10      # for testing
+                    prop = 0.4
+                    sigma_out = 1
+                    m = math.floor(true_single_cluster_size * prop)
+                    m_cols = dim // 2 + 1
+                    # outliers = rad_out/np.sqrt(dim) + sigma_out * rng.multivariate_normal(np.zeros(dim), np.eye(dim),
+                    #                                                      size = math.floor(true_single_cluster_size * prop))
+                    centroids_out_dir = rng.multivariate_normal(np.zeros(dim), np.eye(dim), size=1)
+                    centroids_out_dir /= np.linalg.norm(centroids_out_dir, axis=1)[:, np.newaxis]
+                    # outlier_mean = rad_out / np.sqrt(dim) * centroids_out_dir[0]
+                    outlier_mean = rad_out * centroids_out_dir[0]
+                    outliers = outlier_mean + rng.multivariate_normal(np.zeros(dim), np.eye(dim) * sigma_out ** 2,
+                                                                      size=m)
+                    outliers[:, m_cols:] = np.zeros((outliers.shape[0], dim - m_cols))
+
+                else:
+                    # prop = 0.6
+                    # sigma_out = 10      # for testing
+                    prop = 0.4
+                    sigma_out = 1
+                    # outliers = rad_out/np.sqrt(dim) + sigma_out * rng.multivariate_normal(np.zeros(dim), np.eye(dim),
+                    #                                                      size = math.floor(true_single_cluster_size * prop))
+                    centroids_out_dir = rng.multivariate_normal(np.zeros(dim), np.eye(dim), size=1)
+                    centroids_out_dir /= np.linalg.norm(centroids_out_dir, axis=1)[:, np.newaxis]
+                    # outlier_mean = rad_out / np.sqrt(dim) * centroids_out_dir[0]
+                    outlier_mean = rad_out * centroids_out_dir[0]
+                    outliers = outlier_mean + rng.multivariate_normal(np.zeros(dim), np.eye(dim) * sigma_out ** 2,
+                                                                      size=math.floor(true_single_cluster_size * prop))
 
                 # Final points
                 if add_outlier:

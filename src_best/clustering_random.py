@@ -10,7 +10,7 @@ from base import *
 # Filter or ignore the RuntimeWarning
 # warnings.filterwarnings("error", category=RuntimeWarning)
 
-def get_ith_results_random(datasets, out_dir='', x_axis='', affinity = 'knn', tuning=0, show=1, n_init=5, normalize_project=True):
+def get_ith_results_random(datasets, out_dir='', x_axis='', affinity = 'knn', tuning=0, show=0, n_init=5, normalize_project=True):
     results = {}
     for clustering_method in CLUSTERING_METHODS:
 

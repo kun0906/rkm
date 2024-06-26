@@ -127,7 +127,7 @@ def main():
                         for py in pys:
                             cnt += 1
                             _std = str(std).replace('.', '')
-                            _out_dir = f"{OUT_DIR}/cluster_std_{_std}/R_{n_repetitions}-S_{true_single_cluster_size}-O_{add_outlier}-B_{n_neighbors}-t_{theta}-m_{m}/{init_method}/{py}".replace(
+                            _out_dir = f"{OUT_DIR}/cluster_std_2_radius_{_std}/R_{n_repetitions}-S_{true_single_cluster_size}-O_{add_outlier}-B_{n_neighbors}-t_{theta}-m_{m}/{init_method}/{py}".replace(
                                 '.', '_')
 
                             cmd = f"python3 {py} --n_repetitions {n_repetitions} --true_single_cluster_size {true_single_cluster_size} " \

@@ -10,16 +10,15 @@ from base import *
 
 
 def get_ith_results(datasets, out_dir='', x_axis='', tuning=0):
-
     results = {}
     for clustering_method in CLUSTERING_METHODS:
         if clustering_method.startswith('sc_'):
             if tuning:
                 # find the best one
                 # nns = [5, 10]
-                nns = [2, 5, 10, 50, 100]
+                nns = [10, 50, 100, 200]
             else:
-                nns = [10]
+                nns = [100]
             best_mp = np.inf
             best_ = (np.inf, np.inf)
             for n_neighbors in nns:
@@ -30,20 +29,32 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0):
                         n_centroids = data['n_centroids']
                         points = data['points']
                         true_labels = data['true_labels']
-                        true_single_cluster_size=data['true_single_cluster_size']
+                        true_single_cluster_size = data['true_single_cluster_size']
                         random_state = data['random_state']
                         # find the projected centroids
                         k = n_centroids
-                        X = np.concatenate([true_centroids, points], axis=0)
-                        X_projected = sc_projection(X, k, affinity='knn', n_neighbors=n_neighbors, random_state=random_state)
-                        # X_projected = np.concatenate([true_centroids, points], axis=0)
-                        projected_true_centroids = X_projected[:k, :]
-                        projected_points = X_projected[k:, :]
+                        using_label_in_initialization = True
+                        if using_label_in_initialization:
+                            projected_points = sc_projection(points, k, affinity='knn', n_neighbors=n_neighbors,
+                                                             random_state=random_state)
+                            projected_true_centroids = np.zeros(true_centroids.shape)
+                            ls, cs = np.unique(true_labels, return_counts=True)
+                            for i, l in enumerate(ls):
+                                mask = true_labels == l
+                                cluster = projected_points[mask]
+                                projected_true_centroids[i] = np.mean(cluster, axis=0)
+                        else:
+                            X = np.concatenate([true_centroids, points], axis=0)
+                            X_projected = sc_projection(X, k, affinity='knn', n_neighbors=n_neighbors,
+                                                        random_state=random_state)
+                            # X_projected = np.concatenate([true_centroids, points], axis=0)
+                            projected_true_centroids = X_projected[:k, :]
+                            projected_points = X_projected[k:, :]
+
                         # if clustering_method == 'sc_k_medians_l2':
                         #     plot_projected_data(points, X_projected, cluster_size=100, clustering_method=clustering_method,
                         #                     centroids=true_centroids, projected_centroids=projected_true_centroids,
                         #                     n_clusters=k, out_dir = out_dir, x_axis=x_axis, random_state=random_state)
-
 
                         if clustering_method == 'sc_k_medians_l2':
                             centroids_, labels_ = sc_k_medians_l2(projected_points, points, k, projected_true_centroids,
@@ -66,7 +77,8 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0):
                         labels_ = align_labels(labels_, true_labels)
 
                         # print(clustering_method, len(labels_), flush=True)
-                        mp = sum(labels_[range(n_centroids * true_single_cluster_size)] != true_labels) / len(true_labels)
+                        mp = sum(labels_[range(n_centroids * true_single_cluster_size)] != true_labels) / len(
+                            true_labels)
                         acd = 0  # np.sum((centroids_ - true_centroids) ** 2) / n_centroids
                         mps.append(mp)
                     except Exception as e:
@@ -78,23 +90,23 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0):
                 if best_mp > mean_:
                     best_mp = mean_
                     best_ = (mean_, std_)
-                    best_params = {'neighbors': n_neighbors,}
-            results[clustering_method] = { f'mp_mu': best_[0],
-                                           f'mp_std': best_[1],
-                                           f'acd_mu': 0,
-                                           f'acd_std': 1,
-                                           'params': best_params}
+                    best_params = {'neighbors': n_neighbors, }
+            results[clustering_method] = {f'mp_mu': best_[0],
+                                          f'mp_std': best_[1],
+                                          f'acd_mu': 0,
+                                          f'acd_std': 1,
+                                          'params': best_params}
         elif clustering_method.startswith('rsc_'):
             if tuning:
                 # find the best one
                 # nns = [5, 10]
                 # thetas = [10]
                 # ms = [0.1]
-                nns = [2, 5, 10, 50, 100]
-                thetas = [0, 50, 100]
-                ms = [0.1, 0.25, 0.5]
+                nns = [10, 50, 100, 200]
+                thetas = [50]
+                ms = [0.5]
             else:
-                nns = [10]
+                nns = [100]
                 thetas = [50]
                 ms = [0.5]
             # Generate all combinations using itertools.product
@@ -113,10 +125,21 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0):
                         random_state = data['random_state']
                         # find the projected centroids
                         k = n_centroids
-                        X = np.concatenate([true_centroids, points], axis=0)
-                        X_projected = rsc_projection(X, k, n_neighbors, theta=theta, m=m,random_state=random_state)
-                        projected_true_centroids = X_projected[:k, :]
-                        projected_points = X_projected[k:, :]
+                        using_label_in_initialization = True
+                        if using_label_in_initialization:
+                            projected_points = rsc_projection(points, k, n_neighbors, theta=theta, m=m,
+                                                              random_state=random_state)
+                            projected_true_centroids = np.zeros(true_centroids.shape)
+                            ls, cs = np.unique(true_labels, return_counts=True)
+                            for i, l in enumerate(ls):
+                                mask = true_labels == l
+                                cluster = projected_points[mask]
+                                projected_true_centroids[i] = np.mean(cluster, axis=0)
+                        else:
+                            X = np.concatenate([true_centroids, points], axis=0)
+                            X_projected = rsc_projection(X, k, n_neighbors, theta=theta, m=m, random_state=random_state)
+                            projected_true_centroids = X_projected[:k, :]
+                            projected_points = X_projected[k:, :]
                         # if clustering_method == 'rsc_k_medians_l2':
                         #     plot_projected_data(points, X_projected, cluster_size=100, clustering_method=clustering_method,
                         #                     centroids=true_centroids, projected_centroids=projected_true_centroids,
@@ -134,7 +157,8 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0):
                                                              max_iterations=300,
                                                              true_centroids=None, true_labels=true_labels)
                         elif clustering_method == 'rsc_k_means_orig':  # robust k_means from the original api
-                            rsc = RSC(k=k, nn=n_neighbors, theta=theta, m=m, laplacian=1, normalize=False, verbose=False,
+                            rsc = RSC(k=k, nn=n_neighbors, theta=theta, m=m, laplacian=1, normalize=False,
+                                      verbose=False,
                                       random_state=random_state)
                             labels_ = rsc.fit_predict(points, init=projected_true_centroids)
                             # # rsc.fit_predict uses k-means with random initialization on the eigenvectors,
@@ -156,7 +180,8 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0):
                         labels_ = align_labels(labels_, true_labels)
 
                         # print(clustering_method, len(labels_), flush=True)
-                        mp = sum(labels_[range(n_centroids * true_single_cluster_size)] != true_labels) / len(true_labels)
+                        mp = sum(labels_[range(n_centroids * true_single_cluster_size)] != true_labels) / len(
+                            true_labels)
                         acd = 0  # np.sum((centroids_ - true_centroids) ** 2) / n_centroids
                         mps.append(mp)
                     except Exception as e:
@@ -168,7 +193,7 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0):
                 if best_mp > mean_:
                     best_mp = mean_
                     best_ = (mean_, std_)
-                    best_params = {'neighbors': n_neighbors, 'theta': theta, 'm':m}
+                    best_params = {'neighbors': n_neighbors, 'theta': theta, 'm': m}
             results[clustering_method] = {f'mp_mu': best_[0],
                                           f'mp_std': best_[1],
                                           f'acd_mu': 0,
@@ -211,7 +236,6 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0):
                                           f'acd_mu': 0,
                                           f'acd_std': 1,
                                           'params': {}}
-
 
     return results
 

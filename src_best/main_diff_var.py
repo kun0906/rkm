@@ -68,10 +68,20 @@ def main():
                      true_centroids])
 
                 # Fraction of outliers
-                prop = 0.60
-                outliers = rng.multivariate_normal(np.ones(dim) * 0,
-                                                   np.eye(dim) * sigma_out ** 2,
-                                                   size=math.floor(true_single_cluster_size * prop))
+                adding_partial_direction_oultiers = True
+                if adding_partial_direction_oultiers:
+                    prop = 0.60
+                    m = math.floor(true_single_cluster_size * prop)
+                    outliers = np.zeros((m, dim))
+                    m_cols = dim // 2 + 1
+                    partial_outliers = rng.normal(loc=0, scale=sigma_out, size=(m, m_cols))
+                    outliers[:, :m_cols] = partial_outliers
+                else:
+                    # Fraction of outliers
+                    prop = 0.60
+                    outliers = rng.multivariate_normal(np.ones(dim) * 0,
+                                                       np.eye(dim) * sigma_out ** 2,
+                                                       size=math.floor(true_single_cluster_size * prop))
 
                 # Final points
                 if add_outlier:

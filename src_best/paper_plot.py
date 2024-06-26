@@ -95,6 +95,8 @@ def main(tuning_param):
     # in_dir = f'out_best_results_cluster_std=2/cluster_std_{tuning_param}/R_{R}-S_100-O_True-B_0-t_0-m_0'
     # in_dir = f'out_best_results_cluster_std=10/cluster_std_{tuning_param}/R_{R}-S_100-O_True-B_0-t_0-m_0'
 
+    in_dir = f'out_best_results/cluster_std_{tuning_param}/R_{R}-S_100-O_True-B_0-t_0-m_0'
+
     out_dir = f'{in_dir}/paper_plot'
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
