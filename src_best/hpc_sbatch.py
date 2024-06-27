@@ -117,7 +117,7 @@ def main():
             for std in [2, 5, 10, 20]:  # [0.5, 1, 2]: #[0.1, 0.25, 0.5, 1, 0.1, 0.25, ]:
                 for add_outlier in [True]:  # [True, False]:
                     n_neighbors, theta, m = 0, 0, 0
-                    for init_method in ['random']:  # ['omniscient', 'random']:
+                    for init_method in ['omniscient', 'random']:  # ['omniscient', 'random']:
                         pys = [
                             "main_diff_dim.py",
                             "main_diff_rad.py",

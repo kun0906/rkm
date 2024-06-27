@@ -129,7 +129,7 @@ class RSC:
     Technical University of Munich, Germany
     """
 
-    def __init__(self, k, nn=15, theta=20, m=0.5, laplacian=1, n_iter=50, affinity='rbf',
+    def __init__(self, k, nn=15, theta=20, m=0.5, laplacian=1, n_iter=50, affinity='knn',
                  normalize=False, verbose=False,
                  random_state=42):
         """
@@ -172,9 +172,11 @@ class RSC:
             seed=self.random_state)  # creates a new instance of the random number generator with the specified seed value.
         # affinity = 'rbf'
         if self.affinity == 'rbf':
-            A = rbf_graph(X)
-            # Convert the numpy array to a csr_matrix
-            A = csr_matrix(A)
+            # # this method doesn't work for rbf when we do Ag = A - Ac
+            # A = rbf_graph(X)
+            # # Convert the numpy array to a csr_matrix
+            # A = csr_matrix(A)
+            raise ValueError("This method doesn't work for rbf when we do Ag = A - Ac")
         else:
             # compute the KNN graph
             A = kneighbors_graph(X=X, n_neighbors=self.nn, metric='euclidean', include_self=False, mode='connectivity')
@@ -278,6 +280,10 @@ class RSC:
                                    shape=(N, N)).tocsr()
                 Ac = Ac.maximum(Ac.T)
                 Ag = A - Ac
+                if np.min(Ag) < 0:
+                    print(f'iter:{it}, np.min(Ag):{np.min(Ag)} < 0')
+                    # Replace negative values with 0
+                    Ag.data[Ag.data < 0] = 0
             else:
                 Ac = None
                 # use the previous results

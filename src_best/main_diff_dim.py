@@ -85,7 +85,7 @@ def main():
                 # Final points
                 if add_outlier:
                     points = np.concatenate((true_points, outliers), axis=0)
-                    # labels = np.concatenate([true_labels, 10 * np.ones((outliers.shape[0],))])
+                    labels = np.concatenate([true_labels, n_centroids * np.ones((outliers.shape[0],))])
                 else:
                     # Without outliers
                     points = true_points
@@ -99,7 +99,7 @@ def main():
                     "true_centroids": true_centroids, "true_labels": true_labels,
                     "true_single_cluster_size": true_single_cluster_size,
                     "n_centroids": n_centroids,
-                    'points': points,
+                    'points': points, 'labels': labels,
                     'init_centroids': init_centroids,
                     "random_state": seed
                 }

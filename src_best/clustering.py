@@ -9,7 +9,7 @@ import numpy as np
 from base import *
 
 
-def get_ith_results(datasets, out_dir='', x_axis='', tuning=0):
+def get_ith_results(datasets, out_dir='', x_axis='', tuning=0, affinity='knn'):
     results = {}
     for clustering_method in CLUSTERING_METHODS:
         if clustering_method.startswith('sc_'):
@@ -35,17 +35,17 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0):
                         k = n_centroids
                         using_label_in_initialization = True
                         if using_label_in_initialization:
-                            projected_points = sc_projection(points, k, affinity='knn', n_neighbors=n_neighbors,
+                            projected_points = sc_projection(points, k, affinity=affinity, n_neighbors=n_neighbors,
                                                              random_state=random_state)
-                            projected_true_centroids = np.zeros(true_centroids.shape)
+                            projected_true_centroids = np.zeros((n_centroids, k))
                             ls, cs = np.unique(true_labels, return_counts=True)
                             for i, l in enumerate(ls):
                                 mask = true_labels == l
-                                cluster = projected_points[mask]
+                                cluster = projected_points[:len(true_labels),:][mask]
                                 projected_true_centroids[i] = np.mean(cluster, axis=0)
                         else:
                             X = np.concatenate([true_centroids, points], axis=0)
-                            X_projected = sc_projection(X, k, affinity='knn', n_neighbors=n_neighbors,
+                            X_projected = sc_projection(X, k, affinity=affinity, n_neighbors=n_neighbors,
                                                         random_state=random_state)
                             # X_projected = np.concatenate([true_centroids, points], axis=0)
                             projected_true_centroids = X_projected[:k, :]
@@ -127,17 +127,17 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0):
                         k = n_centroids
                         using_label_in_initialization = True
                         if using_label_in_initialization:
-                            projected_points = rsc_projection(points, k, n_neighbors, theta=theta, m=m,
+                            projected_points = rsc_projection(points, k, n_neighbors, theta=theta, m=m, affinity=affinity,
                                                               random_state=random_state)
-                            projected_true_centroids = np.zeros(true_centroids.shape)
+                            projected_true_centroids = np.zeros((n_centroids, k))
                             ls, cs = np.unique(true_labels, return_counts=True)
                             for i, l in enumerate(ls):
                                 mask = true_labels == l
-                                cluster = projected_points[mask]
+                                cluster = projected_points[:len(true_labels),:][mask]
                                 projected_true_centroids[i] = np.mean(cluster, axis=0)
                         else:
                             X = np.concatenate([true_centroids, points], axis=0)
-                            X_projected = rsc_projection(X, k, n_neighbors, theta=theta, m=m, random_state=random_state)
+                            X_projected = rsc_projection(X, k, n_neighbors, theta=theta, m=m, affinity=affinity, random_state=random_state)
                             projected_true_centroids = X_projected[:k, :]
                             projected_points = X_projected[k:, :]
                         # if clustering_method == 'rsc_k_medians_l2':
@@ -157,16 +157,21 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0):
                                                              max_iterations=300,
                                                              true_centroids=None, true_labels=true_labels)
                         elif clustering_method == 'rsc_k_means_orig':  # robust k_means from the original api
-                            rsc = RSC(k=k, nn=n_neighbors, theta=theta, m=m, laplacian=1, normalize=False,
-                                      verbose=False,
-                                      random_state=random_state)
-                            labels_ = rsc.fit_predict(points, init=projected_true_centroids)
-                            # # rsc.fit_predict uses k-means with random initialization on the eigenvectors,
-                            # # so we should align the final labels
-                            # from clustering_random import align_labels
-                            # must align the labels with true_labels, we did this at the bottom
-                            # labels_ = align_labels(labels_, true_labels)
-                            centroids_ = np.zeros((k, points.shape[1]))
+                            # rsc = RSC(k=k, nn=n_neighbors, theta=theta, m=m, laplacian=1, normalize=False,
+                            #           verbose=False,
+                            #           random_state=random_state)
+                            # labels_ = rsc.fit_predict(points, init=projected_true_centroids)
+                            # # # rsc.fit_predict uses k-means with random initialization on the eigenvectors,
+                            # # # so we should align the final labels
+                            # # from clustering_random import align_labels
+                            # # must align the labels with true_labels, we did this at the bottom
+                            # # labels_ = align_labels(labels_, true_labels)
+
+                            from _kmeans import k_means as sklearn_k_means
+                            centroids_, labels_, inertia_, *_ = sklearn_k_means(X=projected_points, n_clusters=k,
+                                                                                   init=projected_true_centroids,
+                                                                                   n_init=1,
+                                                                                   random_state=random_state)
                             # X_projected = rsc.H
                             # plot_projected_data(points, X_projected, cluster_size=100, clustering_method=clustering_method,
                             #                     centroids=true_centroids, projected_centroids=projected_true_centroids,
