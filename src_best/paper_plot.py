@@ -84,19 +84,20 @@ def merge_images(imgs, out_dir):
 
 
 def main(tuning_param):
-    R = 100  # 5000  # number of repeats
+    R = 50  # 5000  # number of repeats
     S = 100  # each cluster size
     # in_dir = f'out-20240608-m_normalization=True/std_2/R_{R}-S_100-O_True-B_9' # for different m (percentage): 0.1 to 0.9
     # in_dir = f'out_best_results_cluster_std=2/cluster_std_10/R_{R}-S_100-O_True-B_0-t_0-m_0'  # for different projected_k    : 1 to 9
 
     # cluster_std 2 and  different radius of sphere for normal data    : 2, 5, 10, 20
-    in_dir = f'out_default_parameters/cluster_std_{tuning_param}/R_{R}-S_100-O_True-B_0-t_0-m_0'
+    # in_dir = f'out_default_parameters/cluster_std_{tuning_param}/R_{R}-S_100-O_True-B_0-t_0-m_0'
     #
     # in_dir = f'out_best_results_cluster_std=2/cluster_std_{tuning_param}/R_{R}-S_100-O_True-B_0-t_0-m_0'
     # in_dir = f'out_best_results_cluster_std=10/cluster_std_{tuning_param}/R_{R}-S_100-O_True-B_0-t_0-m_0'
 
-    in_dir = f'out_best_params/cluster_std_2_radius_{tuning_param}/R_{R}-S_100-O_True-B_0-t_0-m_0'
+    # in_dir = f'out_best_params/cluster_std_2_radius_{tuning_param}/R_{R}-S_100-O_True-B_0-t_0-m_0'
     # in_dir = f'out_default_params/cluster_std_2_radius_{tuning_param}/R_{R}-S_100-O_True-B_0-t_0-m_0'
+    in_dir = f'out_rbf/cluster_std_2_radius_{tuning_param}/R_{R}-S_100-O_True-B_0-t_0-m_0'
 
     out_dir = f'{in_dir}/paper_plot'
     if not os.path.exists(out_dir):
@@ -144,5 +145,5 @@ def main(tuning_param):
 
 
 if __name__ == '__main__':
-    for tuning_param in [2, 5, 10, 20]:
+    for tuning_param in [5]: #: [2, 5, 10, 20]:
         main(tuning_param)

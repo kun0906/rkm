@@ -65,7 +65,7 @@ def main():
 
 
                 # Fraction of outliers
-                adding_partial_direction_oultiers = True
+                adding_partial_direction_oultiers = False
                 if adding_partial_direction_oultiers:
                     outlier_std = 10
                     m = math.floor(true_single_cluster_size * prop)

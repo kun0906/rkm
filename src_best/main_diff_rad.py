@@ -69,12 +69,12 @@ def main():
 
 
                 # Fraction of outliers
-                adding_partial_direction_oultiers = True
+                adding_partial_direction_oultiers = False
                 if adding_partial_direction_oultiers:
                     # prop = 0.6
                     # sigma_out = 10      # for testing
                     prop = 0.4
-                    sigma_out = 1
+                    sigma_out = 2.0
                     m = math.floor(true_single_cluster_size * prop)
                     m_cols = dim // 2 + 1
                     # outliers = rad_out/np.sqrt(dim) + sigma_out * rng.multivariate_normal(np.zeros(dim), np.eye(dim),
@@ -91,7 +91,7 @@ def main():
                     # prop = 0.6
                     # sigma_out = 10      # for testing
                     prop = 0.4
-                    sigma_out = 2
+                    sigma_out = 2.0
                     # outliers = rad_out/np.sqrt(dim) + sigma_out * rng.multivariate_normal(np.zeros(dim), np.eye(dim),
                     #                                                      size = math.floor(true_single_cluster_size * prop))
                     centroids_out_dir = rng.multivariate_normal(np.zeros(dim), np.eye(dim), size=1)

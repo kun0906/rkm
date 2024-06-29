@@ -1,8 +1,15 @@
+v0.6.5: Use rbf for sc and rsc. 
+
+1. Only using affinity='rbf' for sc and rsc will ignore the oultier impact, so we use rbf.
+2. rsc needs to be verified on 'rbf'.
+3. Not using partial outliers.
+
+
 v0.6.4: fix bugs in omniscient initialization for sc and rsc. 
 
 1. Only use normal data for omniscient initialization
 2. Only use affinity='knn' for sc and rsc. 
-3. Rsc won't work worith affinity='rbf' when we update Ag = A - Ac 
+3. Rsc won't work worth affinity='rbf' when we update Ag = A - Ac 
 
 
 v0.6.3: update omniscient initialization for sc and rsc. 

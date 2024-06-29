@@ -162,6 +162,7 @@ def sc_projection(points, k, n_neighbors=10, affinity = 'knn', normalize=False, 
         eigen_solver=eigen_solver,
         random_state=random_state,
         eigen_tol=eigen_tol,
+        norm_laplacian=True,
         drop_first=False,
     )
     # print(np.min(points), np.max(points), np.min(affinity_matrix_), np.max(affinity_matrix_), np.min(maps), np.max(maps), flush=True)
@@ -177,7 +178,7 @@ def sc_projection(points, k, n_neighbors=10, affinity = 'knn', normalize=False, 
     return projected_points
 
 
-def rsc_projection(points, k, n_neighbors=15, theta=50, m=0.5, affinity='knn', normalize = False, random_state=42):
+def rsc_projection(points, k, n_neighbors=15, theta=50, m=0.5, affinity='rbf', normalize = False, random_state=42):
     """ Robust Spectral clustering
         https://github.com/abojchevski/rsc/tree/master
 

@@ -68,7 +68,7 @@ def main():
                      true_centroids])
 
                 # Fraction of outliers
-                adding_partial_direction_oultiers = True
+                adding_partial_direction_oultiers = False
                 if adding_partial_direction_oultiers:
                     prop = 0.60
                     m = math.floor(true_single_cluster_size * prop)

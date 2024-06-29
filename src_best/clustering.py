@@ -9,7 +9,7 @@ import numpy as np
 from base import *
 
 
-def get_ith_results(datasets, out_dir='', x_axis='', tuning=0, affinity='knn'):
+def get_ith_results(datasets, out_dir='', x_axis='', tuning=0, show = 0, affinity='rbf'):
     results = {}
     for clustering_method in CLUSTERING_METHODS:
         if clustering_method.startswith('sc_'):
@@ -51,10 +51,13 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0, affinity='knn'):
                             projected_true_centroids = X_projected[:k, :]
                             projected_points = X_projected[k:, :]
 
-                        # if clustering_method == 'sc_k_medians_l2':
-                        #     plot_projected_data(points, X_projected, cluster_size=100, clustering_method=clustering_method,
-                        #                     centroids=true_centroids, projected_centroids=projected_true_centroids,
-                        #                     n_clusters=k, out_dir = out_dir, x_axis=x_axis, random_state=random_state)
+                        if show and clustering_method == 'sc_k_medians_l2' :
+                            plot_projected_data(points, projected_points, cluster_size=100,
+                                                clustering_method=clustering_method,
+                                                centroids=true_centroids,
+                                                projected_centroids=projected_true_centroids,
+                                                title=f'{clustering_method}, nn:{n_neighbors}',
+                                                out_dir=out_dir, x_axis=x_axis, random_state=random_state)
 
                         if clustering_method == 'sc_k_medians_l2':
                             centroids_, labels_ = sc_k_medians_l2(projected_points, points, k, projected_true_centroids,
@@ -83,7 +86,7 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0, affinity='knn'):
                         mps.append(mp)
                     except Exception as e:
                         print(n_neighbors, clustering_method, e)
-
+                print(clustering_method, mps, x_axis)
                 mean_, std_ = np.mean(mps), 1.96 * np.std(mps) / np.sqrt(len(mps))
                 if len(mps) != len(datasets):
                     print(clustering_method, len(mps), len(datasets))
@@ -140,10 +143,13 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0, affinity='knn'):
                             X_projected = rsc_projection(X, k, n_neighbors, theta=theta, m=m, affinity=affinity, random_state=random_state)
                             projected_true_centroids = X_projected[:k, :]
                             projected_points = X_projected[k:, :]
-                        # if clustering_method == 'rsc_k_medians_l2':
-                        #     plot_projected_data(points, X_projected, cluster_size=100, clustering_method=clustering_method,
-                        #                     centroids=true_centroids, projected_centroids=projected_true_centroids,
-                        #                     n_clusters=k, out_dir=out_dir, x_axis=x_axis, random_state=random_state)
+                        if show and clustering_method == 'rsc_k_medians_l2':
+                            plot_projected_data(points, projected_points, cluster_size=100,
+                                                clustering_method=clustering_method,
+                                                centroids=true_centroids,
+                                                projected_centroids=projected_true_centroids,
+                                                title=f'x_axis:{x_axis},  nn:{n_neighbors}, theta:{theta}, m:{m}',
+                                                out_dir=out_dir, x_axis=x_axis, random_state=random_state)
                         if clustering_method == 'rsc_k_medians_l2':
                             centroids_, labels_ = sc_k_medians_l2(projected_points, points, k, projected_true_centroids,
                                                                   max_iterations=300,
@@ -191,7 +197,7 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0, affinity='knn'):
                         mps.append(mp)
                     except Exception as e:
                         print(n_neighbors, theta, m, clustering_method, e)
-
+                print(clustering_method, mps, x_axis)
                 mean_, std_ = np.mean(mps), 1.96 * np.std(mps) / np.sqrt(len(mps))
                 if len(mps) != len(datasets):
                     print(clustering_method, len(mps), len(datasets))
@@ -234,6 +240,7 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0, affinity='knn'):
                 mp = sum(labels_[range(n_centroids * true_single_cluster_size)] != true_labels) / len(true_labels)
                 acd = 0  # np.sum((centroids_ - true_centroids) ** 2) / n_centroids
                 mps.append(mp)
+            print(clustering_method, mps, x_axis)
             mean_, std_ = np.mean(mps), 1.96 * np.std(mps) / np.sqrt(len(mps))
             best_ = (mean_, std_)
             results[clustering_method] = {f'mp_mu': best_[0],

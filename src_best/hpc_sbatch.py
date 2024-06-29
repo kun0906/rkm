@@ -38,7 +38,7 @@ print = partial(print, flush=True)
 parser = argparse.ArgumentParser()
 # parser.add_argument('--force', default=False,   # whether overwrite the previous results or not?
 #                     action='store_true', help='force')
-parser.add_argument("--n_repetitions", type=int, default=100)  #
+parser.add_argument("--n_repetitions", type=int, default=1000)  #
 args = parser.parse_args()
 print(args)
 
@@ -114,7 +114,7 @@ def main():
     for n_repetitions in [args.n_repetitions]:  # [5000]
         for true_single_cluster_size in [100]:
             # for std in [2]:  # [0.5, 1, 2]: #[0.1, 0.25, 0.5, 1, 0.1, 0.25, ]:
-            for std in [2, 5, 10, 20]:  # [0.5, 1, 2]: #[0.1, 0.25, 0.5, 1, 0.1, 0.25, ]:
+            for std in [5]: #[2, 5, 10, 20]:  # [0.5, 1, 2]: #[0.1, 0.25, 0.5, 1, 0.1, 0.25, ]:
                 for add_outlier in [True]:  # [True, False]:
                     n_neighbors, theta, m = 0, 0, 0
                     for init_method in ['omniscient', 'random']:  # ['omniscient', 'random']:

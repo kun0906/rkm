@@ -4,6 +4,8 @@ Robust Spectral Clustering
 Source:
     https://github.com/abojchevski/rsc/tree/master
 """
+import warnings
+
 import numpy as np
 import scipy.sparse as sp
 import scipy.stats as stats
@@ -42,7 +44,8 @@ def rbf_graph(points):
     affinity_matrix_ = pairwise_kernels(
         points, metric='rbf', filter_params=True, **params,
     )
-
+    # Set the diagonal values to NaN or 0
+    np.fill_diagonal(affinity_matrix_, 0)  # Use np.nan or 0 to exclude, inplace = True
     return affinity_matrix_
 
 
@@ -172,11 +175,11 @@ class RSC:
             seed=self.random_state)  # creates a new instance of the random number generator with the specified seed value.
         # affinity = 'rbf'
         if self.affinity == 'rbf':
-            # # this method doesn't work for rbf when we do Ag = A - Ac
-            # A = rbf_graph(X)
-            # # Convert the numpy array to a csr_matrix
-            # A = csr_matrix(A)
-            raise ValueError("This method doesn't work for rbf when we do Ag = A - Ac")
+            # this method doesn't work for rbf when we do Ag = A - Ac
+            A = rbf_graph(X)
+            # Convert the numpy array to a csr_matrix
+            A = csr_matrix(A)
+            # raise ValueError("This method doesn't work for rbf when we do Ag = A - Ac")
         else:
             # compute the KNN graph
             A = kneighbors_graph(X=X, n_neighbors=self.nn, metric='euclidean', include_self=False, mode='connectivity')
@@ -189,7 +192,7 @@ class RSC:
 
         prev_trace = np.inf  # keep track of the trace for convergence
         Ag = A.copy()
-
+        Ac = None
         for it in range(self.n_iter):
 
             # form the unnormalized Laplacian
@@ -209,8 +212,8 @@ class RSC:
                     h, H = eigsh(L, min(self.k, N), D, which='SM', v0=v0)
                     # print(self.k*2, flush=True)
                 except Exception as e:
-                    print(f'{it}th iteration, eigsh() fails.')
-                    Ac = sp.coo_matrix((N, N), [np.int])
+                    warnings.warn(f'{it}th iteration, eigsh() fails.')
+                    h, H, Ac, Ag = pre_h, pre_H, pre_Ac, pre_Ag
                     break
                 if self.verbose:
                     print(list(h), sorted(h, key=lambda x: abs(x), reverse=False))
@@ -226,24 +229,27 @@ class RSC:
                 #             top_k_nonzero_indices.append(idx)
                 #     # print(it, top_k_nonzero_indices, h, flush=True)
                 #     h, H = h[top_k_nonzero_indices], H[:, top_k_nonzero_indices]
-                else:
-                    h, H = h[:self.k], H[:, :self.k]
+                # else:
+                #     h, H = h[:self.k], H[:, :self.k]
                 self.h = h
             trace = h.sum()
-
+            pre_h, pre_H, pre_Ac, pre_Ag = h, H, Ac, Ag
             if self.verbose:
                 print('Iter: {}, prev_trace - trace: {}, Trace: {:.4f} h: {}'.format(it, prev_trace - trace, trace, h))
 
             if self.theta == 0:
                 # no edges are removed
-                Ac = sp.coo_matrix((N, N), [np.int])
+                Ac = None
                 break
 
             if prev_trace - trace < 1e-10:
                 # we have converged
                 break
 
-            allowed_to_remove_per_node = (deg * self.m).astype(np.int)
+            if self.affinity == 'rbf':
+                allowed_to_remove_per_node = (deg * self.m)
+            else:
+                allowed_to_remove_per_node = (deg * self.m).astype(np.int64)
             prev_trace = trace
 
             # consider only the edges on the lower triangular part since we are symmetric
@@ -268,18 +274,34 @@ class RSC:
 
                 # remove the edge if it satisfies the constraints
                 if allowed_to_remove_per_node[e_i] > 0 and allowed_to_remove_per_node[e_j] > 0 and p_e > 0:
-                    allowed_to_remove_per_node[e_i] -= 1        # not work for rbf, only works for knn
-                    allowed_to_remove_per_node[e_j] -= 1
+                    if self.affinity == 'rbf':
+                        a_ij = Ag[e_i,e_j]
+                    else:
+                        a_ij = 1
+                    allowed_to_remove_per_node[e_i] -= a_ij
+                    allowed_to_remove_per_node[e_j] -= a_ij
                     removed_edges.append((e_i, e_j))
                     if len(removed_edges) == self.theta:
                         break
 
             removed_edges = np.array(removed_edges)
             if removed_edges.shape[0] > 0:
-                Ac = sp.coo_matrix((np.ones(len(removed_edges)), (removed_edges[:, 0], removed_edges[:, 1])),
-                                   shape=(N, N)).tocsr()
-                Ac = Ac.maximum(Ac.T)
-                Ag = A - Ac
+                if self.affinity == 'rbf':
+                    # Ac = None
+                    vs = []
+                    for edge in removed_edges:
+                        a, b = edge
+                        # print(a, b)
+                        # Ag[a,b] = A[a, b] - Ag[a,b]
+                        # Ag[b,a] = A[b, a] - Ag[b,a]
+                        vs.append(A[a, b])
+                    Ac = sp.coo_matrix((vs, (removed_edges[:, 0], removed_edges[:, 1])),
+                                       shape=(N, N)).tocsr()
+                else:
+                    Ac = sp.coo_matrix((np.ones(len(removed_edges)), (removed_edges[:, 0], removed_edges[:, 1])),
+                                       shape=(N, N)).tocsr()
+                    Ac = Ac.maximum(Ac.T)
+                    Ag = A - Ac
                 if np.min(Ag) < 0:
                     print(f'iter:{it}, np.min(Ag):{np.min(Ag)} < 0')
                     # Replace negative values with 0
@@ -290,7 +312,7 @@ class RSC:
                 if self.verbose:
                     print(removed_edges.shape, flush=True)
                 break
-
+            pre_Ac = Ac
         return Ag, Ac, H
 
     def fit_predict(self, X, init="k-means++"):
