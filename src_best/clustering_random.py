@@ -19,11 +19,14 @@ def get_ith_results_random(datasets, out_dir='', x_axis='', affinity = 'rbf', tu
                 # find the best one
                 # nns = [5, 10]
                 nns = [10, 50, 100, 200]
+                qs = [0.1, 0.3, 0.5]
             else:
                 nns = [100]
+                qs = [0.3]
             best_mp = np.inf
             best_ = (np.inf, np.inf)
-            for n_neighbors in nns:
+            for q in qs:
+                n_neighbors = 15
                 mps = []
                 for data in datasets:
                     try:
@@ -36,7 +39,8 @@ def get_ith_results_random(datasets, out_dir='', x_axis='', affinity = 'rbf', tu
                         # init_centroids = data['init_centroids']
                         # find the projected centroids
                         k = n_centroids
-                        projected_points = sc_projection(points, k, affinity=affinity, n_neighbors=n_neighbors, normalize=normalize_project,
+                        projected_points = sc_projection(points, k, affinity=affinity, n_neighbors=n_neighbors,
+                                                         normalize=normalize_project, q = q,
                                                          random_state=random_state)
                         # projected_points = points
                         best_inertia  = np.inf
@@ -49,7 +53,7 @@ def get_ith_results_random(datasets, out_dir='', x_axis='', affinity = 'rbf', tu
                             if show and clustering_method == 'sc_k_medians_l2' and seed == 1:
                                 plot_projected_data(points, projected_points, cluster_size=100, clustering_method=clustering_method,
                                                     centroids=true_centroids, projected_centroids=projected_init_centroids_0,
-                                                    title=f'{clustering_method}, seed: {random_state * seed}, inertia_0:{inertia_0},nn:{n_neighbors}',
+                                                    title=f'{clustering_method}, seed: {random_state * seed}, inertia_0:{inertia_0},nn:{n_neighbors}, q:{q}',
                                                     out_dir = out_dir, x_axis = x_axis, random_state=random_state)
                             # align the labels with true_labels
                             if clustering_method == 'sc_k_medians_l2':
@@ -78,6 +82,12 @@ def get_ith_results_random(datasets, out_dir='', x_axis='', affinity = 'rbf', tu
                         # After sc_project, it's better to align the labels with true_labels.
                         from clustering_random import align_labels
                         labels_ = align_labels(labels_, true_labels)
+                        if show and clustering_method == 'sc_k_medians_l2' and seed == 1:
+                            y_sc = labels_
+                            X_sc = points
+                            plt.scatter(X_sc[:, 0], X_sc[:, 1], c=y_sc, cmap='Accent', linewidths=0)
+                            plt.title(f'labels obtained by {clustering_method}, seed: {seed}')
+                            plt.show()
 
                         # print(clustering_method, len(labels_), flush=True)
                         mp = sum(labels_[range(n_centroids * true_single_cluster_size)] != true_labels) / len(true_labels)
@@ -110,17 +120,20 @@ def get_ith_results_random(datasets, out_dir='', x_axis='', affinity = 'rbf', tu
                 # thetas = [10]
                 # ms = [0.1]
                 nns = [10, 50, 100, 200]
+                qs = [0.1, 0.3, 0.5]
                 thetas = [50]
                 ms = [0.5]
             else:
                 nns = [100]
+                qs = [0.3]
                 thetas = [50]
                 ms = [0.5]
             # Generate all combinations using itertools.product
-            combinations = list(itertools.product(nns, thetas, ms))
+            combinations = list(itertools.product(qs, thetas, ms))
             best_mp = np.inf
             best_ = (np.inf, np.inf)
-            for n_neighbors, theta, m in combinations:
+            for q, theta, m in combinations:
+                n_neighbors = 15
                 mps = []
                 for data in datasets:
                     try:
@@ -133,7 +146,7 @@ def get_ith_results_random(datasets, out_dir='', x_axis='', affinity = 'rbf', tu
                         init_centroids = data['init_centroids']
                         # find the projected centroids
                         k = n_centroids
-                        projected_points = rsc_projection(points, k, n_neighbors, theta=theta, m=m,
+                        projected_points = rsc_projection(points, k, n_neighbors, theta=theta, m=m, q = q,
                                                           normalize=normalize_project, affinity=affinity,
                                                           random_state=random_state)
                         # projected_points  = points
@@ -147,7 +160,7 @@ def get_ith_results_random(datasets, out_dir='', x_axis='', affinity = 'rbf', tu
                             if show and clustering_method == 'rsc_k_medians_l2' and seed == 1:
                                 plot_projected_data(points, projected_points, cluster_size=100, clustering_method=clustering_method,
                                                     centroids=true_centroids, projected_centroids=projected_init_centroids_0,
-                                                    title=f'x_axis:{x_axis}, n_init:{seed}, nn:{n_neighbors}, theta:{theta}, m:{m}',
+                                                    title=f'x_axis:{x_axis}, n_init:{seed}, nn:{n_neighbors}, theta:{theta}, m:{m}, q:{q}',
                                                     out_dir = out_dir, x_axis = x_axis, random_state=random_state)
                             # align the labels with true_labels
                             if clustering_method == 'rsc_k_medians_l2':
@@ -172,7 +185,7 @@ def get_ith_results_random(datasets, out_dir='', x_axis='', affinity = 'rbf', tu
                                 # centroids_ = rsc.centroids
                                 from _kmeans import k_means as sklearn_k_means
                                 centroids_0, labels_0, inertia_0, *_ = sklearn_k_means(X=projected_points, n_clusters=k,
-                                                                init=projected_init_centroids_0, n_init=1,
+                                                                init=projected_init_centroids_0, n_init=n_init,
                                                                 random_state=random_state)
                             else:
                                 raise NotImplementedError()
@@ -193,6 +206,13 @@ def get_ith_results_random(datasets, out_dir='', x_axis='', affinity = 'rbf', tu
                         from clustering_random import align_labels
                         labels_ = align_labels(labels_, true_labels)
 
+                        if show and clustering_method == 'rsc_k_medians_l2' and seed == 1:
+                            y_rsc = labels_
+                            X_rsc = points
+                            plt.scatter(X_rsc[:, 0], X_rsc[:, 1], c=y_rsc, cmap='Accent', linewidths=0)
+                            plt.title(f'labels obtained by {clustering_method}, seed: {seed}')
+                            plt.show()
+
                         # print(clustering_method, len(labels_), flush=True)
                         mp = sum(labels_[range(n_centroids * true_single_cluster_size)] != true_labels) / len(true_labels)
                         acd = 0  # np.sum((centroids_ - true_centroids) ** 2) / n_centroids
@@ -201,11 +221,11 @@ def get_ith_results_random(datasets, out_dir='', x_axis='', affinity = 'rbf', tu
                         print(n_neighbors, theta, m, clustering_method, e)
                         # traceback.print_exc()
 
-                    if show and clustering_method.startswith('rsc_'):
-                        plot_centroids(projected_points, cluster_size=100, clustering_method=clustering_method,
-                                       init_centroids=projected_init_centroids_,
-                                       final_centroids=centroids_, final_labels=labels_, title='final',
-                                       out_dir=out_dir, x_axis=x_axis, random_state=random_state)
+                    # if show and clustering_method.startswith('rsc_'):
+                    #     plot_centroids(projected_points, cluster_size=100, clustering_method=clustering_method,
+                    #                    init_centroids=projected_init_centroids_,
+                    #                    final_centroids=centroids_, final_labels=labels_, title='final',
+                    #                    out_dir=out_dir, x_axis=x_axis, random_state=random_state)
                 print(clustering_method, mps, x_axis)
                 mean_, std_ = np.mean(mps), 1.96 * np.std(mps) / np.sqrt(len(mps))
                 if len(mps) != len(datasets):

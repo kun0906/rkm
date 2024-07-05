@@ -39,7 +39,7 @@ def main():
         # True labels
         true_labels = np.concatenate([np.ones(true_single_cluster_size) * i for i in range(n_centroids)]).astype(int)
         dim = 10
-        props = [0., 0.2, 0.4, 0.6, 0.8]
+        props = [0, 0.2, 0.4, 0.6, 0.8]
         prop_results = []
         for prop in tqdm(props):
             # Generate data first

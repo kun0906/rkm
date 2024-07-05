@@ -17,11 +17,14 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0, show = 0, affinit
                 # find the best one
                 # nns = [5, 10]
                 nns = [10, 50, 100, 200]
+                qs=[0.1, 0.3, 0.5]
             else:
                 nns = [100]
+                qs = [0.3]
             best_mp = np.inf
             best_ = (np.inf, np.inf)
-            for n_neighbors in nns:
+            for q in qs:
+                n_neighbors = 0
                 mps = []
                 for data in datasets:
                     try:
@@ -35,7 +38,7 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0, show = 0, affinit
                         k = n_centroids
                         using_label_in_initialization = True
                         if using_label_in_initialization:
-                            projected_points = sc_projection(points, k, affinity=affinity, n_neighbors=n_neighbors,
+                            projected_points = sc_projection(points, k, affinity=affinity, q=q, n_neighbors=n_neighbors,
                                                              random_state=random_state)
                             projected_true_centroids = np.zeros((n_centroids, k))
                             ls, cs = np.unique(true_labels, return_counts=True)
@@ -45,7 +48,7 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0, show = 0, affinit
                                 projected_true_centroids[i] = np.mean(cluster, axis=0)
                         else:
                             X = np.concatenate([true_centroids, points], axis=0)
-                            X_projected = sc_projection(X, k, affinity=affinity, n_neighbors=n_neighbors,
+                            X_projected = sc_projection(X, k, affinity=affinity, n_neighbors=n_neighbors, q = q,
                                                         random_state=random_state)
                             # X_projected = np.concatenate([true_centroids, points], axis=0)
                             projected_true_centroids = X_projected[:k, :]
@@ -56,7 +59,7 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0, show = 0, affinit
                                                 clustering_method=clustering_method,
                                                 centroids=true_centroids,
                                                 projected_centroids=projected_true_centroids,
-                                                title=f'{clustering_method}, nn:{n_neighbors}',
+                                                title=f'{clustering_method}, nn:{n_neighbors}, q:{q}',
                                                 out_dir=out_dir, x_axis=x_axis, random_state=random_state)
 
                         if clustering_method == 'sc_k_medians_l2':
@@ -106,17 +109,20 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0, show = 0, affinit
                 # thetas = [10]
                 # ms = [0.1]
                 nns = [10, 50, 100, 200]
+                qs = [0.1, 0.3, 0.5]
                 thetas = [50]
                 ms = [0.5]
             else:
                 nns = [100]
+                qs = [0.3]
                 thetas = [50]
                 ms = [0.5]
             # Generate all combinations using itertools.product
-            combinations = list(itertools.product(nns, thetas, ms))
+            combinations = list(itertools.product(qs, thetas, ms))
             best_mp = np.inf
             best_ = (np.inf, np.inf)
-            for n_neighbors, theta, m in combinations:
+            for q, theta, m in combinations:
+                n_neighbors = 0
                 mps = []
                 for data in datasets:
                     try:
@@ -131,7 +137,7 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0, show = 0, affinit
                         using_label_in_initialization = True
                         if using_label_in_initialization:
                             projected_points = rsc_projection(points, k, n_neighbors, theta=theta, m=m, affinity=affinity,
-                                                              random_state=random_state)
+                                                              q = q, random_state=random_state)
                             projected_true_centroids = np.zeros((n_centroids, k))
                             ls, cs = np.unique(true_labels, return_counts=True)
                             for i, l in enumerate(ls):
@@ -140,7 +146,8 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0, show = 0, affinit
                                 projected_true_centroids[i] = np.mean(cluster, axis=0)
                         else:
                             X = np.concatenate([true_centroids, points], axis=0)
-                            X_projected = rsc_projection(X, k, n_neighbors, theta=theta, m=m, affinity=affinity, random_state=random_state)
+                            X_projected = rsc_projection(X, k, n_neighbors, theta=theta, m=m, affinity=affinity,
+                                                         q = q, random_state=random_state)
                             projected_true_centroids = X_projected[:k, :]
                             projected_points = X_projected[k:, :]
                         if show and clustering_method == 'rsc_k_medians_l2':
@@ -148,7 +155,7 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0, show = 0, affinit
                                                 clustering_method=clustering_method,
                                                 centroids=true_centroids,
                                                 projected_centroids=projected_true_centroids,
-                                                title=f'x_axis:{x_axis},  nn:{n_neighbors}, theta:{theta}, m:{m}',
+                                                title=f'x_axis:{x_axis},  nn:{n_neighbors}, theta:{theta}, m:{m}, q:{q}',
                                                 out_dir=out_dir, x_axis=x_axis, random_state=random_state)
                         if clustering_method == 'rsc_k_medians_l2':
                             centroids_, labels_ = sc_k_medians_l2(projected_points, points, k, projected_true_centroids,

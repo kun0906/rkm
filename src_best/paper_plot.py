@@ -14,7 +14,7 @@ from base import *
 
 CLUSTERING_METHODS = ['k_medians_l2', 'k_medians_l1', 'k_means',
                       'sc_k_medians_l2', 'sc_k_medians_l1', 'sc_k_means',
-                      'rsc_k_medians_l2', 'rsc_k_medians_l1', 'rsc_k_means',
+                      # 'rsc_k_medians_l2', 'rsc_k_medians_l1', 'rsc_k_means',
                       # 'rsc_k_means_orig'  # robust k_means from the original api
                       ]
 
@@ -84,7 +84,7 @@ def merge_images(imgs, out_dir):
 
 
 def main(tuning_param):
-    R = 50  # 5000  # number of repeats
+    R = 5000  # 5000  # number of repeats
     S = 100  # each cluster size
     # in_dir = f'out-20240608-m_normalization=True/std_2/R_{R}-S_100-O_True-B_9' # for different m (percentage): 0.1 to 0.9
     # in_dir = f'out_best_results_cluster_std=2/cluster_std_10/R_{R}-S_100-O_True-B_0-t_0-m_0'  # for different projected_k    : 1 to 9
@@ -97,7 +97,7 @@ def main(tuning_param):
 
     # in_dir = f'out_best_params/cluster_std_2_radius_{tuning_param}/R_{R}-S_100-O_True-B_0-t_0-m_0'
     # in_dir = f'out_default_params/cluster_std_2_radius_{tuning_param}/R_{R}-S_100-O_True-B_0-t_0-m_0'
-    in_dir = f'out_rbf/cluster_std_2_radius_{tuning_param}/R_{R}-S_100-O_True-B_0-t_0-m_0'
+    in_dir = f'out_sc/cluster_std_2_radius_{tuning_param}/R_{R}-S_100-O_True-B_0-t_0-m_0'
 
     out_dir = f'{in_dir}/paper_plot'
     if not os.path.exists(out_dir):
@@ -133,7 +133,10 @@ def main(tuning_param):
                 img = plot_results(f, out_dir=out_dir, out_name=f'{alg_method}_{init_method}', xlabel=xlabel,
                                    fontsize=fontsize, show=False)
             except Exception as e:
-                traceback.print_exc()
+                # traceback.print_exc()
+                print(alg_method, init_method, e)
+                # img = img_lst[-1]
+                continue
 
             img_lst.append(img)
 

@@ -6,6 +6,7 @@ import os
 
 import numpy as np
 import scipy.stats as stats
+from scipy.linalg import eig
 from sklearn.metrics import pairwise_distances
 from sklearn.neighbors import kneighbors_graph
 
@@ -23,8 +24,8 @@ import matplotlib.pyplot as plt
 
 CLUSTERING_METHODS = ['k_medians_l2', 'k_medians_l1', 'k_means',
                       'sc_k_medians_l2', 'sc_k_medians_l1', 'sc_k_means',
-                      'rsc_k_medians_l2', 'rsc_k_medians_l1', 'rsc_k_means',
-                      'rsc_k_means_orig'  # robust k_means from the original api
+                      # 'rsc_k_medians_l2', 'rsc_k_medians_l1', 'rsc_k_means',
+                      # 'rsc_k_means_orig'  # robust k_means from the original api
                       ]
 
 LINESTYLES_COLORS_LABELS = {
@@ -53,6 +54,8 @@ def plot_result(df, out_dir, out_name='mp', xlabel='', ylabel='', title='', show
 
     for clustering_method in ['k_medians_l2', 'k_medians_l1', 'k_means']:
         ls, color, label = LINESTYLES_COLORS_LABELS[clustering_method]
+        if f'{clustering_method}_mp_mu' not in df.columns:
+            continue
         y, yerr = df[f'{clustering_method}_mp_mu'], df[f'{clustering_method}_mp_std']
         ax[0, 0].plot(X_axis, y, ls, label=label, color=color)
         ax[0, 0].errorbar(X_axis, y, yerr=yerr, fmt='none', ecolor='black', capsize=3)
@@ -64,6 +67,8 @@ def plot_result(df, out_dir, out_name='mp', xlabel='', ylabel='', title='', show
 
     for clustering_method in ['sc_k_medians_l2', 'sc_k_medians_l1', 'sc_k_means']:
         ls, color, label = LINESTYLES_COLORS_LABELS[clustering_method]
+        if f'{clustering_method}_mp_mu' not in df.columns:
+            continue
         y, yerr = df[f'{clustering_method}_mp_mu'], df[f'{clustering_method}_mp_std']
         ax[0, 1].plot(X_axis, y, ls, label=label, color=color)
         ax[0, 1].errorbar(X_axis, y, yerr=yerr, fmt='none', ecolor='black', capsize=3)
@@ -73,8 +78,10 @@ def plot_result(df, out_dir, out_name='mp', xlabel='', ylabel='', title='', show
         ax[0, 1].set_ylabel(ylabel)
         ax[0, 1].legend(loc='upper left')
 
-    for clustering_method in ['rsc_k_medians_l2', 'rsc_k_medians_l1', 'rsc_k_means', 'rsc_k_means_orig']:
+    for clustering_method in ['rsc_k_medians_l2', 'rsc_k_medians_l1', 'rsc_k_means']: # 'rsc_k_means_orig'
         ls, color, label = LINESTYLES_COLORS_LABELS[clustering_method]
+        if f'{clustering_method}_mp_mu' not in df.columns:
+            continue
         y, yerr = df[f'{clustering_method}_mp_mu'], df[f'{clustering_method}_mp_std']
         ax[1, 0].plot(X_axis, y, ls, label=label, color=color)
         ax[1, 0].errorbar(X_axis, y, yerr=yerr, fmt='none', ecolor='black', capsize=3)
@@ -105,10 +112,10 @@ def plot_result(df, out_dir, out_name='mp', xlabel='', ylabel='', title='', show
     # plt.pause(2)
     plt.close()
 
-def compute_bandwidth(X):
+def compute_bandwidth(X, q =0.3):
     pd = pairwise_distances(X, Y=None, metric='euclidean')
-    beta = 0.3
-    qs = np.quantile(pd, q=beta, axis=1)
+
+    qs = np.quantile(pd, q=q, axis=1)
     alpha = 0.01
     n, d = X.shape
     df = d  # degrees of freedom
@@ -119,7 +126,42 @@ def compute_bandwidth(X):
 
 
 # @timer
-def sc_projection(points, k, n_neighbors=10, affinity = 'knn', normalize=False, random_state=42):
+def sc_projection(points, k, n_neighbors=10, affinity = 'knn', q=0.3, normalize=False, random_state=42):
+    """
+    Löffler, M., Zhang, A. Y., & Zhou, H. H. (2021). Optimality of spectral clustering in the Gaussian mixture model.
+    Annals of Statistics, 49(5), 2506–2530. https://doi.org/10.1214/20-AOS2044
+    Parameters
+    ----------
+    points
+    k
+    n_neighbors
+    affinity
+    q
+    normalize
+    random_state
+
+    Returns
+    -------
+
+    """
+    X = points.T    #  # points.T is a p x n matrix
+    U, S, VT = np.linalg.svd(points.T)
+    # U is a p x p matrix, S is a p x 1 vector, and VT is a n x n matrix
+    # Reconstruct the original matrix
+    # Sigma = np.zeros((X.shape[0], X.shape[1]))
+    # np.fill_diagonal(Sigma, S)
+    # X_reconstructed = np.dot(U, np.dot(Sigma, VT))
+    # print(X_reconstructed)
+
+    X_sc = U[:, :k].T @  X     # kxp @ pxn -> X_sc is a k x n matrix
+    projected_points = X_sc.T
+
+    return projected_points
+
+
+
+# @timer
+def sc_projection_sklearn(points, k, n_neighbors=10, affinity = 'knn', q=0.3, normalize=False, random_state=42):
     from sklearn.metrics import pairwise_kernels
     params = {}  # default value in slkearn
     # https://github.com/scikit-learn/scikit-learn/blob/872124551/sklearn/cluster/_spectral.py#L667
@@ -130,17 +172,15 @@ def sc_projection(points, k, n_neighbors=10, affinity = 'knn', normalize=False, 
     # affinity = 'rbf'  # affinity str or callable, default =’rbf’
     if affinity == 'rbf':
         # params["gamma"] = 1.0  # ?
-        sigma = compute_bandwidth(points)
-        params["gamma"] = 1 / (2 * sigma ** 2)
+        sigma = compute_bandwidth(points, q=q)
+        gamma = 1 / (2 * sigma ** 2)
 
-        params["degree"] = 3
-        params["coef0"] = 1
         # eigen_solver{‘arpack’, ‘lobpcg’, ‘amg’}, default=None
         # The eigenvalue decomposition strategy to use. AMG requires pyamg to be installed.
         # It can be faster on very large, sparse problems, but may also lead to instabilities.
         # If None, then 'arpack' is used. See [4] for more details regarding 'lobpcg'.
         affinity_matrix_ = pairwise_kernels(
-            points, metric=affinity, filter_params=True, **params,
+            points, metric=affinity, filter_params=True,gamma=gamma,
         )
     else:
         # if affinity == "nearest_neighbors":
@@ -178,7 +218,7 @@ def sc_projection(points, k, n_neighbors=10, affinity = 'knn', normalize=False, 
     return projected_points
 
 
-def rsc_projection(points, k, n_neighbors=15, theta=50, m=0.5, affinity='rbf', normalize = False, random_state=42):
+def rsc_projection(points, k, n_neighbors=15, theta=50, m=0.5, affinity='rbf', q=0.3, normalize = False, random_state=42):
     """ Robust Spectral clustering
         https://github.com/abojchevski/rsc/tree/master
 
@@ -188,7 +228,7 @@ def rsc_projection(points, k, n_neighbors=15, theta=50, m=0.5, affinity='rbf', n
         m is minimum  percentage of neighbours will be removed for each node (omega_i constraints)
 
         """
-    rsc = RSC(k=k, nn=n_neighbors, theta=theta, m=m, laplacian=1, affinity=affinity, normalize=normalize, verbose=False,
+    rsc = RSC(k=k, nn=n_neighbors, theta=theta, m=m, laplacian=1, affinity=affinity,q=q, normalize=normalize, verbose=False,
               random_state=random_state)
     # y_rsc = rsc.fit_predict(X)
     Ag, Ac, H = rsc._RSC__latent_decomposition(points)

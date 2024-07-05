@@ -365,159 +365,6 @@ def compare_sc_rsc():
         plt.show()
 
 
-def rsc_embedding(X, k=2, affinity = 'knn', n_neighbors=5, theta=0, m =0, random_state=42, verbose=0):
-    nn = n_neighbors
-    # Set random seed for reproducibility
-    # rng = np.random.seed(self.random_state)   # set globally for all random number generation operations
-    rng = np.random.RandomState(seed=random_state)  # creates a new instance of the random number generator with the specified seed value.
-    # affinity = 'rbf'
-    if affinity == 'rbf':
-        # # this method doesn't work for rbf when we do Ag = A - Ac
-        A = rbf_graph(X)
-        # Convert the numpy array to a csr_matrix
-        A = csr_matrix(A)
-        # raise ValueError("This method doesn't work for rbf when we do Ag = A - Ac")
-    else:
-        # compute the KNN graph
-        A = kneighbors_graph(X=X, n_neighbors=nn, metric='euclidean', include_self=False, mode='connectivity')
-    A = A.maximum(A.T)  # make the graph undirected
-
-    # plot_matrix(A.toarray())
-
-    N = A.shape[0]  # number of nodes
-    deg = A.sum(0).A1  # node degrees,  Return `self` as a flattened `ndarray`.
-
-    prev_trace = np.inf  # keep track of the trace for convergence
-    Ag = A.copy()
-
-    n_iter = 10
-    laplacian=1
-    Ac = None
-    for it in range(n_iter):
-        print(it, Ag.toarray())
-        # form the unnormalized Laplacian
-        D = sp.diags(Ag.sum(0).A1).tocsr()
-        L = D - Ag
-        # if not verify_laplacian(L.toarray()):
-        #     print(f'{it}th iteration, L is not a valid Laplacian matrix.', flush=True)
-
-        v0 = rng.rand(min(L.shape))  # avoid random initialization for eigsh(),
-        print(it, v0)
-        # generate random samples from a uniform distribution over [0, 1).
-        # solve the normal eigenvalue problem
-        if laplacian == 0:
-            h, H = eigsh(L, min(k, N), which='SM', v0=v0)  # eigsh can involve random initialization
-        # solve the generalized eigenvalue problem
-        elif laplacian == 1:
-            try:
-                h, H = eigsh(L, min(k, N), D, which='SM', v0=v0)
-                # print(self.k*2, flush=True)
-            except Exception as e:
-                warnings.warn(f'{it}th iteration, eigsh() fails.')
-                h, H, Ac, Ag = pre_h, pre_H, pre_Ac, pre_Ag
-                break
-            if verbose:
-                print(list(h), sorted(h, key=lambda x: abs(x), reverse=False))
-                print('h[i] - h[i-1] diff： ', [h[i] - h[i - 1] for i in range(1, len(h))])
-            # is_non_zero_eigen = False  # if True, we only use non_zero_eigenvalues and eigenvectors
-            # if is_non_zero_eigen:
-            #     # Find top 2 non-zero eigenvalues
-            #     top_k_nonzero_indices = []
-            #     for idx in range(len(h)):
-            #         if len(top_k_nonzero_indices) >= self.k:
-            #             break
-            #         if not np.isclose(h[idx], 0, atol=1.e-10):  # Check if the eigenvalue is non-zero
-            #             top_k_nonzero_indices.append(idx)
-            #     # print(it, top_k_nonzero_indices, h, flush=True)
-            #     h, H = h[top_k_nonzero_indices], H[:, top_k_nonzero_indices]
-            # else:
-            #     h, H = h[:k], H[:, :k]
-            h = h
-        pre_h, pre_H, pre_Ac, pre_Ag = h, H, Ac, Ag
-        trace = h.sum()
-        print(f'it: {it}, h:{h}, H:{H}')
-        if verbose:
-            print('Iter: {}, prev_trace - trace: {}, Trace: {:.4f} h: {}'.format(it, prev_trace - trace, trace, h))
-
-        if theta == 0:
-            # no edges are removed
-            Ac = None
-            break
-
-        if prev_trace - trace < 1e-10:
-            # we have converged
-            break
-        if affinity=='rbf':
-            allowed_to_remove_per_node = (deg * m)
-        else:
-            allowed_to_remove_per_node = (deg * m).astype(np.int64)
-        prev_trace = trace
-
-        # consider only the edges on the lower triangular part since we are symmetric
-        edges = sp.tril(A).nonzero()
-        removed_edges = []
-
-        if laplacian == 1:
-            # fix for potential numerical instability of the eigenvalues computation
-            h[np.isclose(h, 0)] = 0
-            # equation (5) in the paper
-            p = np.linalg.norm(H[edges[0]] - H[edges[1]], axis=1) ** 2 \
-                - np.linalg.norm(H[edges[0]] * np.sqrt(h), axis=1) ** 2 \
-                - np.linalg.norm(H[edges[1]] * np.sqrt(h), axis=1) ** 2
-        else:
-            # equation (4) in the paper
-            p = np.linalg.norm(H[edges[0]] - H[edges[1]], axis=1) ** 2
-
-        # greedly remove the worst edges
-        for ind in p.argsort()[::-1]:
-            e_i, e_j, p_e = edges[0][ind], edges[1][ind], p[ind]
-
-            # remove the edge if it satisfies the constraints
-            if allowed_to_remove_per_node[e_i] > 0 and allowed_to_remove_per_node[e_j] > 0 and p_e > 0:
-                if affinity=='rbf':
-                    a_ij = Ag[e_i,e_j]
-                    allowed_to_remove_per_node[e_i] -= a_ij  # not work for rbf, only works for knn
-                    allowed_to_remove_per_node[e_j] -= a_ij
-                else:
-                    allowed_to_remove_per_node[e_i] -= 1
-                    allowed_to_remove_per_node[e_j] -= 1
-                removed_edges.append((e_i, e_j))
-                if len(removed_edges) == theta:
-                    break
-
-        removed_edges = np.array(removed_edges)
-        if removed_edges.shape[0] > 0:
-            if affinity == 'rbf':
-                # Ac = None
-                vs = []
-                for edge in removed_edges:
-                    a, b = edge
-                    print(a, b)
-                    # Ag[a,b] = A[a, b] - Ag[a,b]
-                    # Ag[b,a] = A[b, a] - Ag[b,a]
-                    vs.append(A[a, b])
-                Ac = sp.coo_matrix((vs, (removed_edges[:, 0], removed_edges[:, 1])),
-                                   shape=(N, N)).tocsr()
-            else:
-                Ac = sp.coo_matrix((np.ones(len(removed_edges)), (removed_edges[:, 0], removed_edges[:, 1])),
-                                   shape=(N, N)).tocsr()
-            Ac = Ac.maximum(Ac.T)
-            Ag = A - Ac
-            if np.min(Ag) < 0:
-                print(f'iter:{it}, np.min(Ag):{np.min(Ag)} < 0')
-                # Replace negative values with 0
-                Ag.data[Ag.data < 0] = 0
-        else:
-            Ac = None
-            # use the previous results
-            if verbose:
-                print(removed_edges.shape, flush=True)
-            break
-        pre_Ac = Ac
-    return Ag, Ac, H
-
-
-
 
 def plot_Xs(Xs, title='', nrows=1, ncols=5, random_state=42):
     # Create a color map for 5 classes
@@ -643,7 +490,8 @@ def analyze_rsc():
     X_projs = []
     for q in [0.1, 0.25, 0.5, 1, 5]:
         # X_ = sc_embedding(X, k, affinity='rbf', q=q, n_neighbors=0, normalize=False, random_state=42)
-        Ag, Ac, X_ = rsc_embedding(X, k, affinity='rbf', n_neighbors=n_neighbors, theta=4, m=0.5, random_state=42)
+        rsc = RSC(X, nn=n_neighbors, affinity='rbf', theta=4, m=0.5, random_state=42)
+        Ag, Ac, X_ = rsc._RSC__latent_decomposition(X)
         # for nn in [1, 2, 3]:
         #     X_ = sc_embedding(X, k, affinity='knn', q=0.2, n_neighbors=nn, normalize=False, random_state=42)
         X_projs.append(X_)
@@ -666,4 +514,71 @@ def analyze_rsc():
     #                         n_clusters=k, out_dir="", x_axis='location', random_state=42)
 
 
-analyze_rsc()
+# analyze_rsc()
+
+def eigen_decomposition():
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    # Seed for reproducibility
+    np.random.seed(0)
+
+    # Generate a clean dataset
+    mean1 = [0, 0]
+    cov1 = [[1, 0.], [0., 1]]  # diagonal covariance
+    data1 = np.random.multivariate_normal(mean1, cov1, 50)
+
+    mean2 = [0, 5]
+    cov2 = [[1, 0.], [0., 1]]  # diagonal covariance
+    data2 = np.random.multivariate_normal(mean2, cov2, 50)
+
+    # Combine the datasets
+    clean_data = np.vstack((data1, data2))
+
+    # Plot the clean data
+    plt.scatter(clean_data[:, 0], clean_data[:, 1])
+    plt.title('Clean Data')
+    plt.show()
+
+    from sklearn.decomposition import PCA
+
+    # Perform PCA
+    pca_clean = PCA(n_components=2)
+    pca_clean.fit(clean_data)
+    components_clean = pca_clean.components_
+    print(pca_clean.singular_values_, pca_clean.components_, np.linalg.norm(pca_clean.components_, axis=1))
+
+    # Plot PCA components
+    plt.scatter(clean_data[:, 0], clean_data[:, 1])
+    for component in components_clean:
+        plt.quiver(0, 0, component[0], component[1], angles='xy', scale_units='xy', scale=1, color='r')
+    plt.title('PCA on Clean Data')
+    plt.show()
+
+    # Add outliers
+    outliers = np.array([[10, 10], [12, 12], [15, 15]])
+    data_with_outliers = np.vstack((clean_data, outliers))
+
+    # # Add noise
+    # noise = np.random.normal(0, 0.5, data_with_outliers.shape)
+    # data_with_noise = data_with_outliers + noise
+
+    # Plot data with outliers and noise
+    plt.scatter(data_with_outliers[:, 0], data_with_outliers[:, 1])
+    plt.title('Data with Outliers and Noise')
+    plt.show()
+
+    # Perform PCA
+    pca_noisy = PCA(n_components=2)
+    pca_noisy.fit(data_with_outliers)
+    components_noisy = pca_noisy.components_
+    print(pca_noisy.singular_values_, pca_noisy.components_,np.linalg.norm(pca_noisy.components_, axis=1))
+
+    # Plot PCA components
+    plt.scatter(data_with_outliers[:, 0], data_with_outliers[:, 1])
+    for component in components_noisy:
+        plt.quiver(0, 0, component[0], component[1], angles='xy', scale_units='xy', scale=1, color='r')
+    plt.title('PCA on Data with Outliers and Noise')
+    plt.show()
+
+eigen_decomposition()

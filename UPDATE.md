@@ -1,3 +1,11 @@
+v0.6.6: Add new spectral embedding 
+
+1. New spectral embedding from: Löffler, M., Zhang, A. Y., & Zhou, H. H. (2021). Optimality of spectral clustering in the Gaussian mixture model.
+    Annals of Statistics, 49(5), 2506–2530. https://doi.org/10.1214/20-AOS2044
+
+2. Rename the old sc_projection() as sc_projection_sklearn()
+
+
 v0.6.5: Use rbf for sc and rsc. 
 
 1. Only using affinity='rbf' for sc and rsc will ignore the oultier impact, so we use rbf.

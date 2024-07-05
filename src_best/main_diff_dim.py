@@ -40,7 +40,7 @@ def main():
     for n_centroids in range(4, 9, 5):
         # True labels
         true_labels = np.concatenate([np.ones(true_single_cluster_size) * i for i in range(n_centroids)]).astype(int)
-        dims = np.linspace(2, 20, 10).astype(int)
+        dims = np.linspace(4, 20, 10).astype(int)
         dim_results = []
         for dim in tqdm(dims):
             # Generate data first
