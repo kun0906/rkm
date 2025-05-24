@@ -235,6 +235,9 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0, show = 0, affinit
                 elif clustering_method == 'k_means':
                     centroids_, labels_ = k_means(points, centroids_input=true_centroids,
                                                   k=n_centroids)
+                elif clustering_method == 'k_means_sdp':
+                    centroids_, labels_ = regularised_k_means_SDP(points, centroids_input=true_centroids,
+                                                                  k=n_centroids)
                 else:
                     raise NotImplementedError(clustering_method)
 
@@ -259,7 +262,7 @@ def get_ith_results(datasets, out_dir='', x_axis='', tuning=0, show = 0, affinit
     return results
 
 
-def k_means(points, k, centroids_input, max_iterations=tot_iterate):
+def k_means(points, centroids_input, k, max_iterations=tot_iterate):
     new_centroids = np.copy(centroids_input)
 
     for i in range(max_iterations):
@@ -458,4 +461,27 @@ def geom_kmed(points, k, centroids_input, max_iterations=tot_iterate, true_centr
     distances = np.sum(np.abs(points[:, np.newaxis, :] - new_centroids[np.newaxis, :, :]), axis=2)
     labels = np.argmin(distances, axis=1)
 
+    return new_centroids, labels
+
+
+
+def regularised_k_means_SDP(X, centroids_input, k, max_iterations=tot_iterate,
+                            lambda_=0.5, threshold=0.5):
+    from sdp_lp_relaxation import compute_z_y, filter_noise
+    Z, y = compute_z_y(X, k, lambda_)
+    X_reduced, Z_reduced, C_k_plus_1 = filter_noise(Z, y, X, threshold)
+
+    # Compute X^T Z_reduced and transpose for clustering columns
+    X2 = (X_reduced.T @ Z_reduced).T
+
+    # run Kmeans only on the reduced X
+    # # k-means clustering on columns of X^T Z_reduced
+    # from sklearn.cluster import KMeans
+    # kmeans = KMeans(n_clusters=k, random_state=random_state).fit(X2)
+    # labels = kmeans.labels_
+    new_centroids, labels = k_means(X2, k, centroids_input, max_iterations)
+
+    # reassign all the points to its nearest centroid.
+    distances = np.sqrt(np.sum((X[:, np.newaxis, :] - new_centroids[np.newaxis, :, :]) ** 2, axis=2))
+    labels = np.argmin(distances, axis=1)
     return new_centroids, labels

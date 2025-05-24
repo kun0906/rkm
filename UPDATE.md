@@ -1,3 +1,11 @@
+v0.6.7: sdp_lp_relaxation.py
+   
+   1. prob.solve(solver=cp.SCS, warm_start=True)
+      very slow even for 400 points 
+   2. prob.solve(solver=cp.CVXOPT, warm_start=True)
+   # cvxopt==1.3.2   # verflowError: number of elements exceeds INT_MAX even for 400 points
+
+
 v0.6.6: Add new spectral embedding 
 
 1. New spectral embedding from: Löffler, M., Zhang, A. Y., & Zhou, H. H. (2021). Optimality of spectral clustering in the Gaussian mixture model.

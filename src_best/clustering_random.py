@@ -274,6 +274,10 @@ def get_ith_results_random(datasets, out_dir='', x_axis='', affinity = 'rbf', tu
                     elif clustering_method == 'k_means':
                         centroids_0, labels_0, inertia_0 = k_means(points, centroids_input=init_centroids_0,
                                                       k=n_centroids, true_centroids=true_centroids)
+                    elif clustering_method == 'k_means_sdp':
+                        centroids_0, labels_0, inertia_0 = regularised_k_means_SDP(points,
+                                                                                   centroids_input=init_centroids_0,
+                                                                      k=n_centroids, true_centroids=true_centroids)
                     else:
                         raise NotImplementedError()
                     # if show and clustering_method.startswith('k_'):
@@ -693,3 +697,30 @@ def robust_sc_random(points, k, max_iterations=tot_iterate, clustering_method='k
         raise NotImplemented(f'{clustering_method}')
 
     return centroids, labels
+
+
+
+
+def regularised_k_means_SDP(X, centroids_input, k, max_iterations=tot_iterate,
+                            true_centroids=None, true_labels=None,
+                            lambda_=0.5, threshold=0.5):
+    from sdp_lp_relaxation import compute_z_y, filter_noise
+    Z, y = compute_z_y(X, k, lambda_)
+    X_reduced, Z_reduced, C_k_plus_1 = filter_noise(Z, y, X, threshold)
+
+    # Compute X^T Z_reduced and transpose for clustering columns
+    X2 = (X_reduced.T @ Z_reduced).T
+
+    # run Kmeans only on the reduced X
+    # # k-means clustering on columns of X^T Z_reduced
+    # from sklearn.cluster import KMeans
+    # kmeans = KMeans(n_clusters=k, random_state=random_state).fit(X2)
+    # labels = kmeans.labels_
+    new_centroids, labels, _ = k_means(X2, k, centroids_input, max_iterations, true_centroids)
+
+    # reassign all the points to its nearest centroid.
+    distances = np.sqrt(np.sum((X[:, np.newaxis, :] - new_centroids[np.newaxis, :, :]) ** 2, axis=2))
+    labels = np.argmin(distances, axis=1)
+
+    inertia = np.sum(np.min(distances, axis=1))
+    return new_centroids, labels, inertia

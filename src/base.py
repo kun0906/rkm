@@ -16,15 +16,15 @@ tolerance = 1e-4
 import matplotlib.pyplot as plt
 
 # for testing
-# CLUSTERING_METHODS = [
-#                       'rsc_k_means_orig' # robust k_means from the original api
-#                       ]
-
-CLUSTERING_METHODS = ['k_medians_l2', 'k_medians_l1', 'k_means',
-                      'sc_k_medians_l2', 'sc_k_medians_l1', 'sc_k_means',
-                      'rsc_k_medians_l2', 'rsc_k_medians_l1', 'rsc_k_means',
-                      'rsc_k_means_orig'  # robust k_means from the original api
+CLUSTERING_METHODS = ['k_means_sdp'
+                      # 'rsc_k_means_orig' # robust k_means from the original api
                       ]
+#
+# CLUSTERING_METHODS = ['k_medians_l2', 'k_medians_l1', 'k_means', 'k_means_sdp',
+#                       'sc_k_medians_l2', 'sc_k_medians_l1', 'sc_k_means',
+#                       'rsc_k_medians_l2', 'rsc_k_medians_l1', 'rsc_k_means',
+#                       'rsc_k_means_orig'  # robust k_means from the original api
+#                       ]
 
 LINESTYLES_COLORS_LABELS = {
     'k_medians_l2': ('-.', 'green', '$k$-medians-hybrid'),  # linestyle, color, label
