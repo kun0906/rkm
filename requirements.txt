@@ -14,7 +14,7 @@
 # (https://jhooq.com/pip-install-connection-error/)
 
 ### Library requirement
-numpy==1.22.1
+numpy==1.22.4
 matplotlib
 scikit-learn==1.0.2
 ruamel.yaml==0.17.21
