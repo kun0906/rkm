@@ -1,17 +1,19 @@
 import argparse
 import time
 from functools import wraps
-
+import datetime
 
 def timer(func):
     @wraps(func)
     def timeit_wrapper(*args, **kwargs):
+        print(datetime.datetime.now().strftime('%H:%M:%S'))
         start_time = time.perf_counter()
         result = func(*args, **kwargs)
         end_time = time.perf_counter()
         total_time = end_time - start_time
         # print(f'{func.__name__}{args} {kwargs} Took {total_time:.4f} seconds')
         print(f'{func.__name__} Took {total_time:.4f} seconds')
+        print(datetime.datetime.now().strftime('%H:%M:%S'))
         return result
 
     return timeit_wrapper

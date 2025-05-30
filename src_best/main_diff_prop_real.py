@@ -10,8 +10,22 @@ from tqdm import tqdm
 
 from base import compute_ith_avg, plot_result
 from data.gen_data import gen_data
+from utils import timer
 
 
+def find_indices(init_centroids, points):
+    # Find closest index in points for each init_centroid
+    indices = []
+    for centroid in init_centroids:
+        # Compute Euclidean distance from centroid to all points
+        distances = np.linalg.norm(points - centroid, axis=1)
+        # Find index of the closest point
+        closest_idx = np.argmin(distances)
+        indices.append(closest_idx)
+
+    return np.asarray(indices)
+
+@timer
 def main():
     parser = argparse.ArgumentParser()
     # parser.add_argument('--force', default=False,   # whether overwrite the previous results or not?
@@ -112,17 +126,21 @@ def main():
                 if init_method == 'random':
                     indices = rng.choice(range(len(points)), size=n_centroids, replace=False)
                     init_centroids = points[indices, :]
+                    init_centroids_indices = indices
                 elif init_method == 'robust_init':
                     import init_k_cent
                     init_centroids, _ = init_k_cent.iodk(points, n_centroids, m1=20, m=10, beta=0.1)
+                    init_centroids_indices = find_indices(init_centroids, points)
                 else:
                     init_centroids = true_centroids
+                    init_centroids_indices = find_indices(init_centroids, points)
                 data = {
                     "true_centroids": true_centroids, "true_labels": true_labels,
                     "true_single_cluster_size": true_single_cluster_size,
                     "n_centroids": n_centroids,
                     'points': points,
                     'init_centroids': init_centroids,
+                    'init_centroids_indices': init_centroids_indices,
                     "random_state": seed
                 }
                 datasets.append(data)

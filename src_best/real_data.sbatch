@@ -1,6 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=real_data_array
-#SBATCH --array=0-11%2
+#SBATCH --account=kunyang_nvflare_py31012_0001
+#SBATCH --array=0-11
 #SBATCH --time=20:30:00
 #SBATCH --output=out/logs/out_%A_%a.txt
 #SBATCH --error=out/logs/err_%A_%a.txt
@@ -20,7 +21,7 @@ uname -a
 
 # Parameters (shared across jobs)
 OUT_DIR="out"
-n_repetitions=50
+n_repetitions=100
 true_single_cluster_size=100
 add_outlier=True
 n_neighbors=0
@@ -44,6 +45,12 @@ TASKS=(
   "pen_digits robust_init OMC"
   "pen_digits robust_init OOC"
 )
+#
+#
+## Define task list inline (space-separated strings)
+#TASKS=(
+#  "letter_recognition omniscient OMC"
+#)
 
 # Extract current task
 IFS=' ' read -r data_name init_method fake_label <<< "${TASKS[$SLURM_ARRAY_TASK_ID]}"
