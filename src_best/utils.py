@@ -19,10 +19,10 @@ def timer(func):
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="This script performs clustering on given data.")
-    parser.add_argument("--n_repetitions", type=int, default=5,
+    parser.add_argument("--n_repetitions", type=int, default=5000,
                         help="Number of experiment repetitions for the clustering method.")
     parser.add_argument("--true_single_cluster_size", type=int, default=100)
-    parser.add_argument("--init_method", type=str, default='omniscient', choices=['omniscient', 'random'])
+    parser.add_argument("--init_method", type=str, default='random', choices=['omniscient', 'random'])
     parser.add_argument("--add_outlier", type=str, default='True', choices=['True', 'False'],
                         help='Whether to add outliers to training set or not.')
     parser.add_argument("--out_dir", type=str, default='out')

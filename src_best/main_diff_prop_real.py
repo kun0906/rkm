@@ -21,11 +21,12 @@ def main():
     parser.add_argument("--init_method", type=str, default='omniscient')
     parser.add_argument("--add_outlier", type=str, default='True')
     parser.add_argument("--out_dir", type=str, default='out')
-    parser.add_argument("--data_name", type=str, default='pen_digits')
+    parser.add_argument("--data_name", type=str, default='pen_digits')  # pen_digits or letter_recognition
+    # random (Outliers from Multiple Classes (OMC)) or special (Outliers from One Class (OOC))
     parser.add_argument("--fake_label", type=str, default='special')
     parser.add_argument("--cluster_std", type=float, default=1)  # sigma of outliers, not used in real data.
-    parser.add_argument("--n_neighbors", type=int, default=15)
-    parser.add_argument("--theta", type=int, default=50,
+    parser.add_argument("--n_neighbors", type=int, default=15)     # not used
+    parser.add_argument("--theta", type=int, default=50,            # not used
                         help='Number of edges will be removed when computing robust spectral clustering (RSC).')
     parser.add_argument("--m", type=float, default=0.5,
                         help='For node i, percentage of neighbor nodes will be ignored '
@@ -49,7 +50,7 @@ def main():
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
-    if init_method == 'random':
+    if init_method == 'random' or init_method == 'robust_init':
         from clustering_random import get_ith_results_random
     else:
         from clustering import get_ith_results
@@ -111,6 +112,9 @@ def main():
                 if init_method == 'random':
                     indices = rng.choice(range(len(points)), size=n_centroids, replace=False)
                     init_centroids = points[indices, :]
+                elif init_method == 'robust_init':
+                    import init_k_cent
+                    init_centroids, _ = init_k_cent.iodk(points, n_centroids, m1=20, m=10, beta=0.1)
                 else:
                     init_centroids = true_centroids
                 data = {
@@ -122,7 +126,7 @@ def main():
                     "random_state": seed
                 }
                 datasets.append(data)
-            if init_method == 'random':
+            if init_method == 'random' or init_method == 'robust_init':
                 ith_prop_results = get_ith_results_random(datasets, out_dir=out_dir, x_axis=prop)
             else:
                 ith_prop_results = get_ith_results(datasets, out_dir=out_dir, x_axis=prop)

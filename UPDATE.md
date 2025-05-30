@@ -1,3 +1,6 @@
+v0.6.9: add init_k_cent.py (robust initialization)
+   
+
 v0.6.8: add robust_sdp_lp.py
    Srivastava, Prateek R., Purnamrita Sarkar, and Grani A. Hanasusanto. "A robust spectral clustering algorithm
     for sub-Gaussian mixture models with outliers." Operations Research 71, no. 1 (2023): 224-244.

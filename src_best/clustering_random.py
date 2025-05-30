@@ -10,7 +10,8 @@ from base import *
 # Filter or ignore the RuntimeWarning
 # warnings.filterwarnings("error", category=RuntimeWarning)
 
-def get_ith_results_random(datasets, out_dir='', x_axis='', affinity = 'rbf', tuning=0, show=0, n_init=1, normalize_project=0):
+def get_ith_results_random(datasets, out_dir='', x_axis='', affinity='rbf', tuning=0, show=0, n_init=1,
+                           normalize_project=0):
     results = {}
     for clustering_method in CLUSTERING_METHODS:
 
@@ -40,34 +41,42 @@ def get_ith_results_random(datasets, out_dir='', x_axis='', affinity = 'rbf', tu
                         # find the projected centroids
                         k = n_centroids
                         projected_points = sc_projection(points, k, affinity=affinity, n_neighbors=n_neighbors,
-                                                         normalize=normalize_project, q = q,
+                                                         normalize=normalize_project, q=q,
                                                          random_state=random_state)
                         # projected_points = points
-                        best_inertia  = np.inf
-                        for seed in range(1, n_init+1):
+                        best_inertia = np.inf
+                        for seed in range(1, n_init + 1):
                             # random select initial centroids
-                            rng = np.random.RandomState(seed=random_state*seed)
+                            rng = np.random.RandomState(seed=random_state * seed)
                             indices = rng.choice(range(len(points)), size=k, replace=False)
                             projected_init_centroids_0 = projected_points[indices, :]
                             # projected_init_centroids = init_centroids
                             if show and clustering_method == 'sc_k_medians_l2' and seed == 1:
-                                plot_projected_data(points, projected_points, cluster_size=100, clustering_method=clustering_method,
-                                                    centroids=true_centroids, projected_centroids=projected_init_centroids_0,
+                                plot_projected_data(points, projected_points, cluster_size=100,
+                                                    clustering_method=clustering_method,
+                                                    centroids=true_centroids,
+                                                    projected_centroids=projected_init_centroids_0,
                                                     title=f'{clustering_method}, seed: {random_state * seed}, inertia_0:{inertia_0},nn:{n_neighbors}, q:{q}',
-                                                    out_dir = out_dir, x_axis = x_axis, random_state=random_state)
+                                                    out_dir=out_dir, x_axis=x_axis, random_state=random_state)
                             # align the labels with true_labels
                             if clustering_method == 'sc_k_medians_l2':
-                                centroids_0, labels_0, inertia_0 = sc_k_medians_l2(projected_points, points, k, projected_init_centroids_0,
-                                                                      max_iterations=300,
-                                                                      true_centroids=None, true_labels=true_labels)
+                                centroids_0, labels_0, inertia_0 = sc_k_medians_l2(projected_points, points, k,
+                                                                                   projected_init_centroids_0,
+                                                                                   max_iterations=300,
+                                                                                   true_centroids=None,
+                                                                                   true_labels=true_labels)
                             elif clustering_method == 'sc_k_medians_l1':
-                                centroids_0, labels_0, inertia_0 = sc_k_medians_l1(projected_points, points, k, projected_init_centroids_0,
-                                                                      max_iterations=300,
-                                                                      true_centroids=None, true_labels=true_labels)
+                                centroids_0, labels_0, inertia_0 = sc_k_medians_l1(projected_points, points, k,
+                                                                                   projected_init_centroids_0,
+                                                                                   max_iterations=300,
+                                                                                   true_centroids=None,
+                                                                                   true_labels=true_labels)
                             elif clustering_method == 'sc_k_means':
-                                centroids_0, labels_0, inertia_0 = sc_k_means(projected_points, points, k, projected_init_centroids_0,
-                                                                 max_iterations=300,
-                                                                 true_centroids=None, true_labels=true_labels)
+                                centroids_0, labels_0, inertia_0 = sc_k_means(projected_points, points, k,
+                                                                              projected_init_centroids_0,
+                                                                              max_iterations=300,
+                                                                              true_centroids=None,
+                                                                              true_labels=true_labels)
                             else:
                                 raise NotImplementedError()
                             if best_inertia > inertia_0:
@@ -90,7 +99,8 @@ def get_ith_results_random(datasets, out_dir='', x_axis='', affinity = 'rbf', tu
                             plt.show()
 
                         # print(clustering_method, len(labels_), flush=True)
-                        mp = sum(labels_[range(n_centroids * true_single_cluster_size)] != true_labels) / len(true_labels)
+                        mp = sum(labels_[range(n_centroids * true_single_cluster_size)] != true_labels) / len(
+                            true_labels)
                         acd = 0  # np.sum((centroids_ - true_centroids) ** 2) / n_centroids
                         mps.append(mp)
                     except Exception as e:
@@ -146,35 +156,43 @@ def get_ith_results_random(datasets, out_dir='', x_axis='', affinity = 'rbf', tu
                         init_centroids = data['init_centroids']
                         # find the projected centroids
                         k = n_centroids
-                        projected_points = rsc_projection(points, k, n_neighbors, theta=theta, m=m, q = q,
+                        projected_points = rsc_projection(points, k, n_neighbors, theta=theta, m=m, q=q,
                                                           normalize=normalize_project, affinity=affinity,
                                                           random_state=random_state)
                         # projected_points  = points
                         best_inertia = np.inf
                         for seed in range(1, n_init + 1):
                             # random select initial centroids
-                            rng = np.random.RandomState(seed=random_state*seed)
+                            rng = np.random.RandomState(seed=random_state * seed)
                             indices = rng.choice(range(len(points)), size=k, replace=False)
                             projected_init_centroids_0 = projected_points[indices, :]
                             # projected_init_centroids = init_centroids
                             if show and clustering_method == 'rsc_k_medians_l2' and seed == 1:
-                                plot_projected_data(points, projected_points, cluster_size=100, clustering_method=clustering_method,
-                                                    centroids=true_centroids, projected_centroids=projected_init_centroids_0,
+                                plot_projected_data(points, projected_points, cluster_size=100,
+                                                    clustering_method=clustering_method,
+                                                    centroids=true_centroids,
+                                                    projected_centroids=projected_init_centroids_0,
                                                     title=f'x_axis:{x_axis}, n_init:{seed}, nn:{n_neighbors}, theta:{theta}, m:{m}, q:{q}',
-                                                    out_dir = out_dir, x_axis = x_axis, random_state=random_state)
+                                                    out_dir=out_dir, x_axis=x_axis, random_state=random_state)
                             # align the labels with true_labels
                             if clustering_method == 'rsc_k_medians_l2':
-                                centroids_0, labels_0, inertia_0 = sc_k_medians_l2(projected_points, points, k, projected_init_centroids_0,
-                                                                      max_iterations=300,
-                                                                      true_centroids=None, true_labels=true_labels)
+                                centroids_0, labels_0, inertia_0 = sc_k_medians_l2(projected_points, points, k,
+                                                                                   projected_init_centroids_0,
+                                                                                   max_iterations=300,
+                                                                                   true_centroids=None,
+                                                                                   true_labels=true_labels)
                             elif clustering_method == 'rsc_k_medians_l1':
-                                centroids_0, labels_0, inertia_0 = sc_k_medians_l1(projected_points, points, k, projected_init_centroids_0,
-                                                                      max_iterations=300,
-                                                                      true_centroids=None, true_labels=true_labels)
+                                centroids_0, labels_0, inertia_0 = sc_k_medians_l1(projected_points, points, k,
+                                                                                   projected_init_centroids_0,
+                                                                                   max_iterations=300,
+                                                                                   true_centroids=None,
+                                                                                   true_labels=true_labels)
                             elif clustering_method == 'rsc_k_means':
-                                centroids_0, labels_0, inertia_0 = sc_k_means(projected_points, points, k, projected_init_centroids_0,
-                                                                 max_iterations=300,
-                                                                 true_centroids=None, true_labels=true_labels)
+                                centroids_0, labels_0, inertia_0 = sc_k_means(projected_points, points, k,
+                                                                              projected_init_centroids_0,
+                                                                              max_iterations=300,
+                                                                              true_centroids=None,
+                                                                              true_labels=true_labels)
                             elif clustering_method == 'rsc_k_means_orig':  # robust k_means from the original api
                                 # rsc = RSC(k=k, nn=n_neighbors, theta=theta, m=m, laplacian=1, normalize=False, verbose=False,
                                 #           random_state=random_state)
@@ -185,8 +203,9 @@ def get_ith_results_random(datasets, out_dir='', x_axis='', affinity = 'rbf', tu
                                 # centroids_ = rsc.centroids
                                 from _kmeans import k_means as sklearn_k_means
                                 centroids_0, labels_0, inertia_0, *_ = sklearn_k_means(X=projected_points, n_clusters=k,
-                                                                init=projected_init_centroids_0, n_init=n_init,
-                                                                random_state=random_state)
+                                                                                       init=projected_init_centroids_0,
+                                                                                       n_init=n_init,
+                                                                                       random_state=random_state)
                             else:
                                 raise NotImplementedError()
                             # if show and clustering_method.startswith('rsc_'):
@@ -200,7 +219,8 @@ def get_ith_results_random(datasets, out_dir='', x_axis='', affinity = 'rbf', tu
                                 labels_ = copy.deepcopy(labels_0)
                                 projected_init_centroids_ = copy.deepcopy(projected_init_centroids_0)
                                 # print(f'{clustering_method}, best_inertia: {best_inertia}')
-                            if show: print(clustering_method, ' n_init:', seed, random_state,  inertia_0, -1, best_inertia, n_neighbors, theta, m)
+                            if show: print(clustering_method, ' n_init:', seed, random_state, inertia_0, -1,
+                                           best_inertia, n_neighbors, theta, m)
                         # TODO: double check if we can align the labels for omniscient initialization.
                         # After sc_project, it's better to align the labels with true_labels.
                         from clustering_random import align_labels
@@ -214,7 +234,8 @@ def get_ith_results_random(datasets, out_dir='', x_axis='', affinity = 'rbf', tu
                             plt.show()
 
                         # print(clustering_method, len(labels_), flush=True)
-                        mp = sum(labels_[range(n_centroids * true_single_cluster_size)] != true_labels) / len(true_labels)
+                        mp = sum(labels_[range(n_centroids * true_single_cluster_size)] != true_labels) / len(
+                            true_labels)
                         acd = 0  # np.sum((centroids_ - true_centroids) ** 2) / n_centroids
                         mps.append(mp)
                     except Exception as e:
@@ -267,17 +288,25 @@ def get_ith_results_random(datasets, out_dir='', x_axis='', affinity = 'rbf', tu
                     init_centroids_0 = points[indices, :]
                     if clustering_method == 'k_medians_l2':
                         centroids_0, labels_0, inertia_0 = k_medians_l2(points, centroids_input=init_centroids_0,
-                                                           k=n_centroids, true_centroids=true_centroids)
+                                                                        k=n_centroids, true_centroids=true_centroids)
                     elif clustering_method == 'k_medians_l1':
                         centroids_0, labels_0, inertia_0 = k_medians_l1(points, centroids_input=init_centroids_0,
-                                                           k=n_centroids, true_centroids=true_centroids)
+                                                                        k=n_centroids, true_centroids=true_centroids)
                     elif clustering_method == 'k_means':
                         centroids_0, labels_0, inertia_0 = k_means(points, centroids_input=init_centroids_0,
-                                                      k=n_centroids, true_centroids=true_centroids)
-                    elif clustering_method == 'k_means_sdp':
-                        centroids_0, labels_0, inertia_0 = regularised_k_means_SDP(points,
-                                                                                   centroids_input=init_centroids_0,
-                                                                      k=n_centroids, true_centroids=true_centroids)
+                                                                   k=n_centroids, true_centroids=true_centroids)
+                    # elif clustering_method == 'k_means_sdp':
+                    #     centroids_0, labels_0, inertia_0 = regularised_k_means_SDP(points,
+                    #                                                                centroids_input=init_centroids_0,
+                    #                                                                k=n_centroids,
+                    #                                                                true_centroids=true_centroids)
+                    elif clustering_method == 'k_means_robust_lp':
+                        centroids_0, labels_0, inertia_0 = robust_k_means_LP_SDP(points,
+                                                                                 centroids_input=indices,
+                                                                                 k=n_centroids,
+                                                                                 true_centroids=true_centroids,
+                                                                                 true_labels=true_labels,
+                                                                                 is_sdp=False)
                     else:
                         raise NotImplementedError()
                     # if show and clustering_method.startswith('k_'):
@@ -294,7 +323,7 @@ def get_ith_results_random(datasets, out_dir='', x_axis='', affinity = 'rbf', tu
                         # print(f'{clustering_method}, best_inertia: {best_inertia}')
                     # if show: print(clustering_method, seed, random_state, centroids_0, inertia_0, -1, best_inertia)
                 # TODO: double check if we can align the labels for omniscient initialization.
-                # After sc_project, it's better to align the labels with true_labels.
+                # it's better to align the labels with true_labels.
                 from clustering_random import align_labels
                 labels_ = align_labels(labels_, true_labels)
 
@@ -381,6 +410,8 @@ def align_labels(labels, true_labels, method='name'):
 
 tot_iterate = 50
 sub_iterate = 4
+
+
 # tolerance = 1e-4
 
 
@@ -699,8 +730,6 @@ def robust_sc_random(points, k, max_iterations=tot_iterate, clustering_method='k
     return centroids, labels
 
 
-
-
 def regularised_k_means_SDP(X, centroids_input, k, max_iterations=tot_iterate,
                             true_centroids=None, true_labels=None,
                             lambda_=0.5, threshold=0.5):
@@ -723,4 +752,50 @@ def regularised_k_means_SDP(X, centroids_input, k, max_iterations=tot_iterate,
     labels = np.argmin(distances, axis=1)
 
     inertia = np.sum(np.min(distances, axis=1))
+    return new_centroids, labels, inertia
+
+
+def robust_k_means_LP_SDP(X, centroids_input, k,
+                          true_centroids=None, true_labels=None,
+                          is_sdp=False, random_state=42):
+    import numpy as np
+    from numpy.linalg import eigh
+    from scipy.spatial.distance import cdist
+    from robust_sdp_lp import choose_theta_gamma, solve_lp_sdp
+
+    Y = X
+    theta, gamma = choose_theta_gamma(Y, beta=0.06, alpha=0.2)
+    print(f'theta: {theta}, gamma: {gamma}')
+    N = Y.shape[0]
+
+    # Step 1: Construct Gaussian kernel matrix
+    pairwise_sq_dists = cdist(Y, Y, 'sqeuclidean')
+    K = np.exp(-pairwise_sq_dists / (2 * theta ** 2))
+
+    # Step 2: Solve Robust-LP/SDP
+    X_hat = solve_lp_sdp(K, N, gamma, is_sdp=is_sdp)
+
+    # Step 3: Eigen-decomposition
+    # Compute top-r eigenvectors
+    vals, vecs = eigh(X_hat)
+    r = k
+    print(f'top {r} eigenvalues: {vals[-r:]}')
+    U_hat = vecs[:, -r:]  # top r eigenvectors
+
+    # # Step 4: Apply k-means clustering on rows of U_hat
+    print('Apply k-means clustering')
+    # rng = np.random.RandomState(seed=random_state)
+    # indices = rng.choice(range(len(U_hat)), size=r, replace=False)
+    indices = centroids_input
+
+    # Compute the true centroids based on U_hat
+    new_centroids = np.zeros((k, k))
+    for j in range(k):
+        if sum(true_labels == j) == 0:
+            # new_centroids[j] use the previous centroid
+            continue
+        new_centroids[j] = np.mean(U_hat[:len(true_labels)][true_labels == j], axis=0)
+
+    new_centroids, labels, inertia = k_means(U_hat, k=r, centroids_input=U_hat[indices, :],
+                                             max_iterations=tot_iterate, true_centroids=new_centroids)
     return new_centroids, labels, inertia

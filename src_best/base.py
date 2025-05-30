@@ -17,21 +17,24 @@ tolerance = 1e-4
 
 import matplotlib.pyplot as plt
 
-# for testing
-CLUSTERING_METHODS = ['k_means_sdp'
-                      # 'rsc_k_means_orig' # robust k_means from the original api
-                      ]
-#
-# CLUSTERING_METHODS = ['k_medians_l2', 'k_medians_l1', 'k_means',
-#                       'sc_k_medians_l2', 'sc_k_medians_l1', 'sc_k_means',
-#                       # 'rsc_k_medians_l2', 'rsc_k_medians_l1', 'rsc_k_means',
-#                       # 'rsc_k_means_orig'  # robust k_means from the original api
+# # for testing
+# CLUSTERING_METHODS = ['k_means',
+#                      # 'k_means_robust_lp',
+#                       # 'k_means_sdp'
+#                       # 'rsc_k_means_orig' # robust k_means from the original api
 #                       ]
+#
+CLUSTERING_METHODS = ['k_medians_l2', 'k_medians_l1', 'k_means', 'k_means_robust_lp',
+                      # 'sc_k_medians_l2', 'sc_k_medians_l1', 'sc_k_means',
+                      # 'rsc_k_medians_l2', 'rsc_k_medians_l1', 'rsc_k_means',
+                      # 'rsc_k_means_orig'  # robust k_means from the original api
+                      ]
 
 LINESTYLES_COLORS_LABELS = {
     'k_medians_l2': ('-.', 'green', '$k$-medians-hybrid'),  # linestyle, color, label
     'k_medians_l1': ('--', 'purple', '$k$-medians-$\ell_1$'),
-    'k_means': ('-', 'blue', '$k$_means'),
+    'k_means': ('-', 'blue', '$k$-means'),
+    'k_means_robust_lp': (':', 'tab:orange', '$k$-means_robust_lp'),
 
     'sc_k_medians_l2': ('-o', 'lightgreen', 'SC-$k$-medians-hybrid'),
     'sc_k_medians_l1': ('-^', 'violet', 'SC-$k$-medians-$\ell_1$'),
@@ -41,18 +44,19 @@ LINESTYLES_COLORS_LABELS = {
     'rsc_k_medians_l1': ('-x', 'fuchsia', 'RSC-$k$-medians-$\ell_1$'),
     'rsc_k_means': ('-p', 'steelblue', 'RSC-$k$_means'),
 
-    'rsc_k_means_orig': ('-*', 'red', 'RSC-k_means-orig')
+    'rsc_k_means_orig': ('-*', 'red', 'RSC-k_means-orig'),
+
 }
 
 
-def plot_result(df, out_dir, out_name='mp', xlabel='', ylabel='', title='', show=True):
+def plot_result(df, out_dir, out_name='mp', xlabel='', ylabel='', title='', show=False):
     os.makedirs(out_dir, exist_ok=True)
     # Plot the line plot with error bars
     fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(15, 12))
 
     X_axis = df['x_axis']
 
-    for clustering_method in ['k_medians_l2', 'k_medians_l1', 'k_means']:
+    for clustering_method in ['k_medians_l2', 'k_medians_l1', 'k_means', 'k_means_robust_lp']:
         ls, color, label = LINESTYLES_COLORS_LABELS[clustering_method]
         if f'{clustering_method}_mp_mu' not in df.columns:
             continue
@@ -78,7 +82,7 @@ def plot_result(df, out_dir, out_name='mp', xlabel='', ylabel='', title='', show
         ax[0, 1].set_ylabel(ylabel)
         ax[0, 1].legend(loc='upper left')
 
-    for clustering_method in ['rsc_k_medians_l2', 'rsc_k_medians_l1', 'rsc_k_means']: # 'rsc_k_means_orig'
+    for clustering_method in ['rsc_k_medians_l2', 'rsc_k_medians_l1', 'rsc_k_means']:  # 'rsc_k_means_orig'
         ls, color, label = LINESTYLES_COLORS_LABELS[clustering_method]
         if f'{clustering_method}_mp_mu' not in df.columns:
             continue
@@ -112,7 +116,8 @@ def plot_result(df, out_dir, out_name='mp', xlabel='', ylabel='', title='', show
     # plt.pause(2)
     plt.close()
 
-def compute_bandwidth(X, q =0.3):
+
+def compute_bandwidth(X, q=0.3):
     pd = pairwise_distances(X, Y=None, metric='euclidean')
 
     qs = np.quantile(pd, q=q, axis=1)
@@ -126,7 +131,7 @@ def compute_bandwidth(X, q =0.3):
 
 
 # @timer
-def sc_projection(points, k, n_neighbors=10, affinity = 'knn', q=0.3, normalize=False, random_state=42):
+def sc_projection(points, k, n_neighbors=10, affinity='knn', q=0.3, normalize=False, random_state=42):
     """
     Löffler, M., Zhang, A. Y., & Zhou, H. H. (2021). Optimality of spectral clustering in the Gaussian mixture model.
     Annals of Statistics, 49(5), 2506–2530. https://doi.org/10.1214/20-AOS2044
@@ -144,7 +149,7 @@ def sc_projection(points, k, n_neighbors=10, affinity = 'knn', q=0.3, normalize=
     -------
 
     """
-    X = points.T    #  # points.T is a p x n matrix
+    X = points.T  # # points.T is a p x n matrix
     U, S, VT = np.linalg.svd(points.T)
     # U is a p x p matrix, S is a p x 1 vector, and VT is a n x n matrix
     # Reconstruct the original matrix
@@ -153,15 +158,14 @@ def sc_projection(points, k, n_neighbors=10, affinity = 'knn', q=0.3, normalize=
     # X_reconstructed = np.dot(U, np.dot(Sigma, VT))
     # print(X_reconstructed)
 
-    X_sc = U[:, :k].T @  X     # kxp @ pxn -> X_sc is a k x n matrix
+    X_sc = U[:, :k].T @ X  # kxp @ pxn -> X_sc is a k x n matrix
     projected_points = X_sc.T
 
     return projected_points
 
 
-
 # @timer
-def sc_projection_sklearn(points, k, n_neighbors=10, affinity = 'knn', q=0.3, normalize=False, random_state=42):
+def sc_projection_sklearn(points, k, n_neighbors=10, affinity='knn', q=0.3, normalize=False, random_state=42):
     from sklearn.metrics import pairwise_kernels
     params = {}  # default value in slkearn
     # https://github.com/scikit-learn/scikit-learn/blob/872124551/sklearn/cluster/_spectral.py#L667
@@ -180,12 +184,12 @@ def sc_projection_sklearn(points, k, n_neighbors=10, affinity = 'knn', q=0.3, no
         # It can be faster on very large, sparse problems, but may also lead to instabilities.
         # If None, then 'arpack' is used. See [4] for more details regarding 'lobpcg'.
         affinity_matrix_ = pairwise_kernels(
-            points, metric=affinity, filter_params=True,gamma=gamma,
+            points, metric=affinity, filter_params=True, gamma=gamma,
         )
     else:
         # if affinity == "nearest_neighbors":
         connectivity = kneighbors_graph(
-            points, n_neighbors=n_neighbors, metric = 'euclidean', include_self = False, mode = 'connectivity')
+            points, n_neighbors=n_neighbors, metric='euclidean', include_self=False, mode='connectivity')
         # affinity_matrix_ = 0.5 * (connectivity + connectivity.T).toarray()
         affinity_matrix_ = connectivity.maximum(connectivity.T).toarray()  # make the graph undirected
 
@@ -218,7 +222,7 @@ def sc_projection_sklearn(points, k, n_neighbors=10, affinity = 'knn', q=0.3, no
     return projected_points
 
 
-def rsc_projection(points, k, n_neighbors=15, theta=50, m=0.5, affinity='rbf', q=0.3, normalize = False, random_state=42):
+def rsc_projection(points, k, n_neighbors=15, theta=50, m=0.5, affinity='rbf', q=0.3, normalize=False, random_state=42):
     """ Robust Spectral clustering
         https://github.com/abojchevski/rsc/tree/master
 
@@ -228,7 +232,8 @@ def rsc_projection(points, k, n_neighbors=15, theta=50, m=0.5, affinity='rbf', q
         m is minimum  percentage of neighbours will be removed for each node (omega_i constraints)
 
         """
-    rsc = RSC(k=k, nn=n_neighbors, theta=theta, m=m, laplacian=1, affinity=affinity,q=q, normalize=normalize, verbose=False,
+    rsc = RSC(k=k, nn=n_neighbors, theta=theta, m=m, laplacian=1, affinity=affinity, q=q, normalize=normalize,
+              verbose=False,
               random_state=random_state)
     # y_rsc = rsc.fit_predict(X)
     Ag, Ac, H = rsc._RSC__latent_decomposition(points)
@@ -264,6 +269,7 @@ def compute_ith_avg(ith_prop_results, prop):
 
     return ith_avg_results
 
+
 def find_min_mp(ith_avg_best, ith_avg_results, ith_params):
     if len(ith_avg_best) == 0:
         return copy.deepcopy(ith_avg_results)
@@ -282,8 +288,8 @@ def find_min_mp(ith_avg_best, ith_avg_results, ith_params):
 
 
 def plot_projected_data_0(points, projected_points, cluster_size=100, clustering_method='k_means',
-                        centroids=None, projected_centroids=None, n_clusters=4,
-                        out_dir='', x_axis=None, random_state=42):
+                          centroids=None, projected_centroids=None, n_clusters=4,
+                          out_dir='', x_axis=None, random_state=42):
     # Create a color map for 5 classes
     colors = ['red', 'green', 'blue', 'purple', 'orange']
 
@@ -360,7 +366,7 @@ def plot_projected_data_0(points, projected_points, cluster_size=100, clustering
 
 
 def plot_projected_data(points, projected_points, cluster_size=100, clustering_method='k_means',
-                        centroids=None, projected_centroids=None, n_clusters=4, title = '',
+                        centroids=None, projected_centroids=None, n_clusters=4, title='',
                         out_dir='', x_axis=None, random_state=42):
     # Create a color map for 5 classes
     colors = ['green', 'blue', 'purple', "orange", 'red']
@@ -370,30 +376,32 @@ def plot_projected_data(points, projected_points, cluster_size=100, clustering_m
     # fig, axes = plt.subplots(2, 2)
 
     # Plot points with outliers
-    cols = min(n_clusters+1, points.shape[1])
-    for col in range(cols-1):
+    cols = min(n_clusters + 1, points.shape[1])
+    for col in range(cols - 1):
         for i in range(n_clusters + 1):
             x1 = points[i * cluster_size: (i + 1) * cluster_size, col]
-            x2 = points[i * cluster_size: (i + 1) * cluster_size, col+1]
+            x2 = points[i * cluster_size: (i + 1) * cluster_size, col + 1]
             axes[0, col].scatter(x1, x2, color=colors[i], label=f'Class {i}', alpha=0.4)
             if centroids is not None and i < centroids.shape[0]:
-                axes[0, col].scatter(centroids[i, col], centroids[i, col+1], color='black', marker='x', s=100, label=f'{i}')
+                axes[0, col].scatter(centroids[i, col], centroids[i, col + 1], color='black', marker='x', s=100,
+                                     label=f'{i}')
             # if projected_centroids is not None and i < projected_centroids.shape[0]:
             #     axes[0, 0].scatter(projected_centroids[i, 0], projected_centroids[i, 1], color='black', marker='s',  s = 100, label=f'{i}')
-        axes[0, col].set_title(f'Points:{col} vs. {col+1} col')
+        axes[0, col].set_title(f'Points:{col} vs. {col + 1} col')
         # axes[0, 0].set_xlabel('col: {col}')
         # axes[0, 0].set_ylabel('Y axis')
         # axes[0, 0].legend()
 
     # Plot projected points with outliers
-    cols = min(n_clusters+1, projected_points.shape[1])
+    cols = min(n_clusters + 1, projected_points.shape[1])
     for col in range(cols - 1):
         for i in range(n_clusters + 1):
             x1 = projected_points[i * cluster_size: (i + 1) * cluster_size, col]
             x2 = projected_points[i * cluster_size: (i + 1) * cluster_size, col + 1]
             axes[1, col].scatter(x1, x2, color=colors[i], label=f'Class {i}', alpha=0.4)
             if projected_centroids is not None and i < projected_centroids.shape[0]:
-                axes[1, col].scatter(projected_centroids[i, col], projected_centroids[i, col + 1], color='black', marker='x', s=100,
+                axes[1, col].scatter(projected_centroids[i, col], projected_centroids[i, col + 1], color='black',
+                                     marker='x', s=100,
                                      label=f'{i}')
             # if projected_centroids is not None and i < projected_centroids.shape[0]:
             #     axes[0, 0].scatter(projected_centroids[i, 0], projected_centroids[i, 1], color='black', marker='s',  s = 100, label=f'{i}')
@@ -409,11 +417,10 @@ def plot_projected_data(points, projected_points, cluster_size=100, clustering_m
     plt.show()
 
 
-
 def plot_centroids(points, final_labels=None, cluster_size=100, clustering_method='k_means',
-                        init_centroids=None, final_centroids=None, true_centroids = None,
-                        n_clusters=4, title = '',
-                        out_dir='', x_axis=None, random_state=42):
+                   init_centroids=None, final_centroids=None, true_centroids=None,
+                   n_clusters=4, title='',
+                   out_dir='', x_axis=None, random_state=42):
     # Create a color map for 5 classes
     colors = ['green', 'blue', 'purple', "orange", 'red']
 
@@ -421,7 +428,7 @@ def plot_centroids(points, final_labels=None, cluster_size=100, clustering_metho
     fig, axes = plt.subplots(2, n_clusters, figsize=(15, 8))
     # fig, axes = plt.subplots(2, 2)
     # Plot projected points with outliers
-    cols = min(n_clusters+1, points.shape[1])
+    cols = min(n_clusters + 1, points.shape[1])
     for col in range(cols - 1):
         ls, cs = np.unique(final_labels, return_counts=True)
         for i, l in enumerate(ls):
@@ -430,7 +437,8 @@ def plot_centroids(points, final_labels=None, cluster_size=100, clustering_metho
             x2 = points[mask, col + 1]
             axes[1, col].scatter(x1, x2, color=colors[i], label=f'Class {i}', alpha=0.4)
             if init_centroids is not None and i < init_centroids.shape[0]:
-                axes[1, col].scatter(init_centroids[i, col], init_centroids[i, col + 1], color='black', marker='x', s=100,
+                axes[1, col].scatter(init_centroids[i, col], init_centroids[i, col + 1], color='black', marker='x',
+                                     s=100,
                                      label=f'{i}')
                 axes[1, col].scatter(final_centroids[i, col], final_centroids[i, col + 1], color='red', marker='*',
                                      s=200,

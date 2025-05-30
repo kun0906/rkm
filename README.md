@@ -16,6 +16,7 @@
 ## Environment requirement <a name="Environment"></a>
 
 - Conda 4.10.3 # conda -V
+  - conda activate py3104_rkm
 - Python 3.10.4 # python3 -V
 - Pip3 22.1.2 # pip3 -V
 
@@ -59,6 +60,12 @@ $module load anaconda3/2021.11
 #conda activate py3104
 #pip install -r ../requirements.txt  # you should install in the login node (not in compute nodes)
 $python3 hpc_sbatch.py
+
+ssh kunyang@slogin-01.superpod.smu.edu
+srun -A kunyang_nvflare_py31012_0001 -G 1 -t 800 --nodelist=bcm-dgxa100-0018 --pty $SHELL
+conda activate py3104_rkm
+./run_real_data.sh
+
 ```
 
 [//]: # ()

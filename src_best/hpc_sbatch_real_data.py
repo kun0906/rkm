@@ -75,11 +75,11 @@ def generate_sh(name, cmd, log_file):
 
 date
 module purge
-cd /scratch/gpfs/ky8517/rkm/src_best
-module load anaconda3/2021.11
+# cd /scratch/gpfs/ky8517/rkm/src_best
+# module load anaconda3/2021.11
 #conda env list
 #conda create --name py3104_rkm python=3.10.4
-#conda activate py3104
+#conda activate py3104_rkm 
 #pip install -r ../requirements.txt 
 
 pwd
@@ -113,26 +113,19 @@ def main():
     # for synthetic datasets
     for n_repetitions in [args.n_repetitions]:  # [5000]
         for true_single_cluster_size in [100]:
-            # for std in [2]:  # [0.5, 1, 2]: #[0.1, 0.25, 0.5, 1, 0.1, 0.25, ]:
-            for std in [5]: #[2, 5, 10, 20]:  # [0.5, 1, 2]: #[0.1, 0.25, 0.5, 1, 0.1, 0.25, ]:
+            for data_name in ['letter_recognition', 'pen_digits']:
                 for add_outlier in [True]:  # [True, False]:
                     n_neighbors, theta, m = 0, 0, 0
                     for init_method in ['omniscient', 'random', 'robust_init']:  # ['omniscient', 'random']:
-                        pys = [
-                            "main_diff_dim.py",
-                            "main_diff_rad.py",
-                            "main_diff_var.py",
-                            "main_diff_prop.py",
-                        ]
-                        for py in pys:
+                        py = 'main_diff_prop_real.py'
+                        for fake_label in ['OMC', 'OOC']:   # random (OMC), and special (OOC)
                             cnt += 1
-                            _std = str(std).replace('.', '')
-                            _out_dir = f"{OUT_DIR}/cluster_std_2_radius_{_std}/R_{n_repetitions}-S_{true_single_cluster_size}-O_{add_outlier}-B_{n_neighbors}-t_{theta}-m_{m}/{init_method}/{py}".replace(
+                            _out_dir = f"{OUT_DIR}/R_{n_repetitions}-S_{true_single_cluster_size}-O_{add_outlier}-{fake_label}-B_{n_neighbors}-t_{theta}-m_{m}/{init_method}/{py}".replace(
                                 '.', '_')
 
                             cmd = f"python3 {py} --n_repetitions {n_repetitions} --true_single_cluster_size {true_single_cluster_size} " \
                                   f"--add_outlier {add_outlier} --init_method {init_method} --out_dir {_out_dir} " \
-                                  f"--cluster_std 2 --radius {std} --n_neighbors {n_neighbors} --theta {theta} --m {m}"
+                                  f"--cluster_std 2 --data_name {data_name} --n_neighbors {n_neighbors} --theta {theta} --m {m} --fake_label {fake_label}"
 
                             log_file = f"{_out_dir}/log.txt"
 

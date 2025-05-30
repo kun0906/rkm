@@ -32,7 +32,7 @@ def main():
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
-    if init_method == 'random':
+    if init_method == 'random' or init_method == 'robust_init':
         from clustering_random import get_ith_results_random
     else:
         from clustering import get_ith_results
@@ -93,6 +93,9 @@ def main():
                 if init_method == 'random':
                     indices = rng.choice(range(len(points)), size=n_centroids, replace=False)
                     init_centroids = points[indices, :]
+                elif init_method == 'robust_init':
+                    import init_k_cent
+                    init_centroids, _ = init_k_cent.iodk(points, n_centroids, m1=20, m=10, beta=0.1)
                 else:
                     init_centroids = true_centroids
                 data = {
@@ -104,7 +107,7 @@ def main():
                     "random_state": seed
                 }
                 datasets.append(data)
-            if init_method == 'random':
+            if init_method == 'random' or init_method == 'robust_init':
                 ith_dim_results = get_ith_results_random(datasets, out_dir=out_dir, x_axis=dim)
             else:
                 ith_dim_results = get_ith_results(datasets, out_dir=out_dir, x_axis=dim)
