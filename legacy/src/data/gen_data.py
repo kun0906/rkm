@@ -400,7 +400,7 @@ def gen_data(data_name='letter_recognition', fake_label=True, n_clusters=4, each
     # df = pd.read_csv(in_file)
     # labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
     if data_name == 'letter_recognition':
-        df, labels = letter_recognition(n_clusters=n_clusters)
+        df, labels = letter_recognition(n_clusters=n_clusters)      # choose A, C, F
         dim = df.shape[-1] - 1
         if add_outlier:
             if fake_label == 'synthetic':
@@ -423,18 +423,20 @@ def gen_data(data_name='letter_recognition', fake_label=True, n_clusters=4, each
                                                    np.eye(dim) * outlier_std ** 2,
                                                    size=math.floor(each_cluster_size * prop))
 
-            elif fake_label == 'random':
+            elif fake_label == 'OMC':
                 # outliers from any class (including the inlier classes)
                 outliers = df[~df.iloc[:, 0].isin(labels)].values  # true label with random feature values
                 m, _ = outliers.shape
                 indices = rng.choice(range(m), math.floor(each_cluster_size * prop))
                 outliers = outliers[indices, 1:].astype('float')  # only features without labels.
-            else: # J may work, R, D, H
+            elif fake_label == 'OOC': # J may work, R, D, H
                 outliers = df[df.iloc[:, 0] == 'J'].values  # outliers from one class
                 m, _ = outliers.shape
                 # because prop changes, so rng.choice() will be effected to the latter results.
                 indices = rng.choice(range(m), math.floor(each_cluster_size * prop))
                 outliers = outliers[indices, 1:].astype('float')
+            else:
+                raise ValueError('fake_label must be either "synthetic" or OMC or OOC')
         else:
             outliers = None
 
@@ -449,14 +451,14 @@ def gen_data(data_name='letter_recognition', fake_label=True, n_clusters=4, each
                                                    np.eye(dim) * outlier_std ** 2,
                                                    size=math.floor(each_cluster_size * prop))
 
-            elif fake_label == 'random':
+            elif fake_label == 'OMC':
                 # outliers from any class (including the inlier classes)
                 # outliers = df.values        # true label with random feature values
                 outliers = df[~df.iloc[:, 0].isin(labels)].values
                 m, _ = outliers.shape
                 indices = rng.choice(range(m), math.floor(each_cluster_size * prop))
                 outliers = outliers[indices, 1:].astype('float')  # only features without labels.
-            else:
+            elif fake_label == 'OOC':
                 outliers = df[df.iloc[:, 0] == 'montrealNoobCrypt'].values  # outliers from one class
                 m, _ = outliers.shape
                 indices = rng.choice(range(m), math.floor(each_cluster_size * prop))
@@ -465,7 +467,7 @@ def gen_data(data_name='letter_recognition', fake_label=True, n_clusters=4, each
             outliers = None
 
     elif data_name == "pen_digits":
-        df, labels = pen_digits(n_clusters=n_clusters)
+        df, labels = pen_digits(n_clusters=n_clusters)      # 0, 2, 5.
         dim = df.shape[-1] - 1
         if add_outlier:
             if fake_label== 'synthetic':
@@ -485,18 +487,20 @@ def gen_data(data_name='letter_recognition', fake_label=True, n_clusters=4, each
                 outliers = rng.multivariate_normal(mu,
                                                    np.eye(dim) * outlier_std ** 2,
                                                    size=math.floor(each_cluster_size * prop))
-            elif fake_label == 'random':
+            elif fake_label == 'OMC':
                 # outliers from any class (including the inlier classes)
                 # outliers = df.values        # true label with random feature values
                 outliers = df[~df.iloc[:, 0].isin(labels)].values
                 m, _ = outliers.shape
                 indices = rng.choice(range(m), math.floor(each_cluster_size * prop))
                 outliers = outliers[indices, 1:].astype('float')  # only features without labels.
-            else:
+            elif fake_label == 'OOC':
                 outliers = df[df.iloc[:, 0] == 8].values  # outliers from one class
                 m, _ = outliers.shape
                 indices = rng.choice(range(m), math.floor(each_cluster_size * prop))
                 outliers = outliers[indices, 1:].astype('float')
+            else:
+                raise ValueError('fake_label must be either "synthetic" or OMC or OOC')
         else:
             outliers = None
 

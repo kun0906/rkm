@@ -320,15 +320,15 @@ def get_ith_results_random(datasets, out_dir='', x_axis='', affinity='rbf', tuni
                     init_centroids_ = copy.deepcopy(init_centroids_0)
                     # print(f'{clustering_method}, best_inertia: {best_inertia}')
                 # if show: print(clustering_method, seed, random_state, centroids_0, inertia_0, -1, best_inertia)
-            # TODO: double check if we can align the labels for omniscient initialization.
-            # it's better to align the labels with true_labels.
-            from clustering_random import align_labels
-            labels_ = align_labels(labels_, true_labels)
+                # TODO: double check if we can align the labels for omniscient initialization.
+                # it's better to align the labels with true_labels.
+                from clustering_random import align_labels
+                labels_ = align_labels(labels_, true_labels)
 
-            # print(clustering_method, len(labels_), flush=True)
-            mp = sum(labels_[range(n_centroids * true_single_cluster_size)] != true_labels) / len(true_labels)
-            acd = 0  # np.sum((centroids_ - true_centroids) ** 2) / n_centroids
-            mps.append(mp)
+                # print(clustering_method, len(labels_), flush=True)
+                mp = sum(labels_[range(n_centroids * true_single_cluster_size)] != true_labels) / len(true_labels)
+                acd = 0  # np.sum((centroids_ - true_centroids) ** 2) / n_centroids
+                mps.append(mp)
             print(clustering_method, mps, x_axis)
             # if show and clustering_method.startswith('k_'):
             #     # only align the labels, do we need to align the centroids too for plotting.
@@ -338,6 +338,7 @@ def get_ith_results_random(datasets, out_dir='', x_axis='', affinity='rbf', tuni
             #                    out_dir=out_dir, x_axis=x_axis, random_state=random_state)
             mean_, std_ = np.mean(mps), 1.96 * np.std(mps) / np.sqrt(len(mps))
             best_ = (mean_, std_)
+            # print(clustering_method, best_, x_axis)
             results[clustering_method] = {f'mp_mu': best_[0],
                                           f'mp_std': best_[1],
                                           f'acd_mu': 0,

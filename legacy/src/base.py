@@ -16,7 +16,7 @@ tolerance = 1e-4
 import matplotlib.pyplot as plt
 
 # for testing
-CLUSTERING_METHODS = ['k_means_sdp'
+CLUSTERING_METHODS = ['k_medians_l2', 'k_medians_l1', 'k_means',
                       # 'rsc_k_means_orig' # robust k_means from the original api
                       ]
 #
@@ -61,27 +61,27 @@ def plot_result(df, out_dir, out_name='mp', xlabel='', ylabel='', title='', show
         ax[0, 0].set_ylabel(ylabel)
         ax[0, 0].legend(loc='upper left')
 
-    for clustering_method in ['sc_k_medians_l2', 'sc_k_medians_l1', 'sc_k_means']:
-        ls, color, label = LINESTYLES_COLORS_LABELS[clustering_method]
-        y, yerr = df[f'{clustering_method}_mp_mu'], df[f'{clustering_method}_mp_std']
-        ax[0, 1].plot(X_axis, y, ls, label=label, color=color)
-        ax[0, 1].errorbar(X_axis, y, yerr=yerr, fmt='none', ecolor='black', capsize=3)
-        ax[0, 1].set_xticks(X_axis)
-        # ax[0, 1].set_title('Projected Points with SC')
-        ax[0, 1].set_xlabel(xlabel)
-        ax[0, 1].set_ylabel(ylabel)
-        ax[0, 1].legend(loc='upper left')
-
-    for clustering_method in ['rsc_k_medians_l2', 'rsc_k_medians_l1', 'rsc_k_means', 'rsc_k_means_orig']:
-        ls, color, label = LINESTYLES_COLORS_LABELS[clustering_method]
-        y, yerr = df[f'{clustering_method}_mp_mu'], df[f'{clustering_method}_mp_std']
-        ax[1, 0].plot(X_axis, y, ls, label=label, color=color)
-        ax[1, 0].errorbar(X_axis, y, yerr=yerr, fmt='none', ecolor='black', capsize=3)
-        ax[1, 0].set_xticks(X_axis)
-        # ax[1, 0].set_title('Projected Points with RSC')
-        ax[1, 0].set_xlabel(xlabel)
-        ax[1, 0].set_ylabel(ylabel)
-        ax[1, 0].legend(loc='upper left')
+    # for clustering_method in ['sc_k_medians_l2', 'sc_k_medians_l1', 'sc_k_means']:
+    #     ls, color, label = LINESTYLES_COLORS_LABELS[clustering_method]
+    #     y, yerr = df[f'{clustering_method}_mp_mu'], df[f'{clustering_method}_mp_std']
+    #     ax[0, 1].plot(X_axis, y, ls, label=label, color=color)
+    #     ax[0, 1].errorbar(X_axis, y, yerr=yerr, fmt='none', ecolor='black', capsize=3)
+    #     ax[0, 1].set_xticks(X_axis)
+    #     # ax[0, 1].set_title('Projected Points with SC')
+    #     ax[0, 1].set_xlabel(xlabel)
+    #     ax[0, 1].set_ylabel(ylabel)
+    #     ax[0, 1].legend(loc='upper left')
+    #
+    # for clustering_method in ['rsc_k_medians_l2', 'rsc_k_medians_l1', 'rsc_k_means', 'rsc_k_means_orig']:
+    #     ls, color, label = LINESTYLES_COLORS_LABELS[clustering_method]
+    #     y, yerr = df[f'{clustering_method}_mp_mu'], df[f'{clustering_method}_mp_std']
+    #     ax[1, 0].plot(X_axis, y, ls, label=label, color=color)
+    #     ax[1, 0].errorbar(X_axis, y, yerr=yerr, fmt='none', ecolor='black', capsize=3)
+    #     ax[1, 0].set_xticks(X_axis)
+    #     # ax[1, 0].set_title('Projected Points with RSC')
+    #     ax[1, 0].set_xlabel(xlabel)
+    #     ax[1, 0].set_ylabel(ylabel)
+    #     ax[1, 0].legend(loc='upper left')
 
     for clustering_method in CLUSTERING_METHODS:
         ls, color, label = LINESTYLES_COLORS_LABELS[clustering_method]

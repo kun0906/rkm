@@ -400,7 +400,7 @@ def gen_data(data_name='letter_recognition', fake_label=True, n_clusters=4, each
     # df = pd.read_csv(in_file)
     # labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
     if data_name == 'letter_recognition':
-        df, labels = letter_recognition(n_clusters=n_clusters)
+        df, labels = letter_recognition(n_clusters=n_clusters)      # choose A, C, F
         dim = df.shape[-1] - 1
         if add_outlier:
             if fake_label == 'synthetic':
@@ -467,7 +467,7 @@ def gen_data(data_name='letter_recognition', fake_label=True, n_clusters=4, each
             outliers = None
 
     elif data_name == "pen_digits":
-        df, labels = pen_digits(n_clusters=n_clusters)
+        df, labels = pen_digits(n_clusters=n_clusters)      # 0, 2, 5.
         dim = df.shape[-1] - 1
         if add_outlier:
             if fake_label== 'synthetic':

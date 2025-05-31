@@ -14,7 +14,7 @@ if __name__ == '__main__':
     for data_name in ['letter_recognition', 'pen_digits']:  # 'letter_recognition', 'pen_digits'
         for fake_label in ['OMC', 'OOC']:  # ['synthetic', 'random', 'special']:
 
-            R = 2  # 5000  # number of repeats
+            R = 1000  # 5000  # number of repeats
             S = 100
             # in_dir = 'paper_results-20230614/out-outlier_prop_0.6-std_10-normal_std_2/std_2/R_5000-S_100-O_True'
             # in_dir = f'paper_results-20230614/real_data_20230803/{data_name}/F_{fake_label}/std_0/R_5000-S_100-O_True'

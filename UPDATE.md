@@ -1,7 +1,9 @@
+v0.7.1: correct mps in for in clustering_random.py
+
+
 v0.7.0: fix bugs 
    1. remove n_init 
    2. add initial indices 
-
 
 
 v0.6.9: add init_k_cent.py (robust initialization)

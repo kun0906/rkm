@@ -18,12 +18,12 @@ tolerance = 1e-4
 import matplotlib.pyplot as plt
 
 # # for testing
-# CLUSTERING_METHODS = ['k_means',
+# CLUSTERING_METHODS = ['k_medians_l2', 'k_medians_l1', 'k_means'
 #                      # 'k_means_robust_lp',
 #                       # 'k_means_sdp'
 #                       # 'rsc_k_means_orig' # robust k_means from the original api
 #                       ]
-#
+
 CLUSTERING_METHODS = ['k_medians_l2', 'k_medians_l1', 'k_means', 'k_means_robust_lp',
                       # 'sc_k_medians_l2', 'sc_k_medians_l1', 'sc_k_means',
                       # 'rsc_k_medians_l2', 'rsc_k_medians_l1', 'rsc_k_means',

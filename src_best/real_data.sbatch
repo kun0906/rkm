@@ -2,7 +2,7 @@
 #SBATCH --job-name=real_data_array
 #SBATCH --account=kunyang_nvflare_py31012_0001
 #SBATCH --array=0-11
-#SBATCH --time=20:30:00
+#SBATCH --time=40:30:00
 #SBATCH --output=out/logs/out_%A_%a.txt
 #SBATCH --error=out/logs/err_%A_%a.txt
 #SBATCH --mem=16G
@@ -21,7 +21,7 @@ uname -a
 
 # Parameters (shared across jobs)
 OUT_DIR="out"
-n_repetitions=100
+n_repetitions=101
 true_single_cluster_size=100
 add_outlier=True
 n_neighbors=0
