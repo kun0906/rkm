@@ -16,15 +16,18 @@ tot_iterate = 50
 tolerance = 1e-4
 
 import matplotlib.pyplot as plt
+#
+# # # for testing
+# CLUSTERING_METHODS = [
+#     # 'k_medians_l2', 'k_medians_l1', 'k_means'
+#     'robust_lp_k_medians_l2', 'robust_lp_k_medians_l1', 'robust_lp_k_means',
+#     # 'k_means_robust_lp',
+#     # 'k_means_sdp'
+#     # 'rsc_k_means_orig' # robust k_means from the original api
+# ]
 
-# # for testing
-# CLUSTERING_METHODS = ['k_medians_l2', 'k_medians_l1', 'k_means'
-#                      # 'k_means_robust_lp',
-#                       # 'k_means_sdp'
-#                       # 'rsc_k_means_orig' # robust k_means from the original api
-#                       ]
-
-CLUSTERING_METHODS = ['k_medians_l2', 'k_medians_l1', 'k_means', 'k_means_robust_lp',
+CLUSTERING_METHODS = ['k_medians_l2', 'k_medians_l1', 'k_means',
+                      'robust_lp_k_medians_l2', 'robust_lp_k_medians_l1', 'robust_lp_k_means',
                       # 'sc_k_medians_l2', 'sc_k_medians_l1', 'sc_k_means',
                       # 'rsc_k_medians_l2', 'rsc_k_medians_l1', 'rsc_k_means',
                       # 'rsc_k_means_orig'  # robust k_means from the original api
@@ -34,7 +37,10 @@ LINESTYLES_COLORS_LABELS = {
     'k_medians_l2': ('-.', 'green', '$k$-medians-hybrid'),  # linestyle, color, label
     'k_medians_l1': ('--', 'purple', '$k$-medians-$\ell_1$'),
     'k_means': ('-', 'blue', '$k$-means'),
-    'k_means_robust_lp': (':', 'tab:orange', '$k$-means_robust_lp'),
+
+    'robust_lp_k_medians_l2': ('-.', 'tab:green', 'robust_lp_$k$-medians-hybrid'),  # linestyle, color, label
+    'robust_lp_k_medians_l1': ('--', 'tab:purple', 'robust_lp_$k$-medians-$\ell_1$'),
+    'robust_lp_k_means': ('-', 'tab:blue', 'robust_lp_$k$-means'),
 
     'sc_k_medians_l2': ('-o', 'lightgreen', 'SC-$k$-medians-hybrid'),
     'sc_k_medians_l1': ('-^', 'violet', 'SC-$k$-medians-$\ell_1$'),
@@ -45,6 +51,7 @@ LINESTYLES_COLORS_LABELS = {
     'rsc_k_means': ('-p', 'steelblue', 'RSC-$k$_means'),
 
     'rsc_k_means_orig': ('-*', 'red', 'RSC-k_means-orig'),
+    # 'k_means_robust_lp': (':', 'tab:orange', '$k$-means_robust_lp'),
 
 }
 
@@ -56,7 +63,7 @@ def plot_result(df, out_dir, out_name='mp', xlabel='', ylabel='', title='', show
 
     X_axis = df['x_axis']
 
-    for clustering_method in ['k_medians_l2', 'k_medians_l1', 'k_means', 'k_means_robust_lp']:
+    for clustering_method in ['k_medians_l2', 'k_medians_l1', 'k_means']:
         ls, color, label = LINESTYLES_COLORS_LABELS[clustering_method]
         if f'{clustering_method}_mp_mu' not in df.columns:
             continue
@@ -95,8 +102,10 @@ def plot_result(df, out_dir, out_name='mp', xlabel='', ylabel='', title='', show
         ax[1, 0].set_ylabel(ylabel)
         ax[1, 0].legend(loc='upper left')
 
-    for clustering_method in CLUSTERING_METHODS:
+    for clustering_method in ['robust_lp_k_medians_l2', 'robust_lp_k_medians_l1', 'robust_lp_k_means']:
         ls, color, label = LINESTYLES_COLORS_LABELS[clustering_method]
+        if f'{clustering_method}_mp_mu' not in df.columns:
+            continue
         y, yerr = df[f'{clustering_method}_mp_mu'], df[f'{clustering_method}_mp_std']
         ax[1, 1].plot(X_axis, y, ls, label=label, color=color)
         ax[1, 1].errorbar(X_axis, y, yerr=yerr, fmt='none', ecolor='black', capsize=3)
@@ -105,6 +114,17 @@ def plot_result(df, out_dir, out_name='mp', xlabel='', ylabel='', title='', show
         ax[1, 1].set_xlabel(xlabel)
         ax[1, 1].set_ylabel(ylabel)
         ax[1, 1].legend(loc='upper left')
+
+    # for clustering_method in CLUSTERING_METHODS:
+    #     ls, color, label = LINESTYLES_COLORS_LABELS[clustering_method]
+    #     y, yerr = df[f'{clustering_method}_mp_mu'], df[f'{clustering_method}_mp_std']
+    #     ax[1, 1].plot(X_axis, y, ls, label=label, color=color)
+    #     ax[1, 1].errorbar(X_axis, y, yerr=yerr, fmt='none', ecolor='black', capsize=3)
+    #     ax[1, 1].set_xticks(X_axis)
+    #     # ax[1, 1].set_title('Points')
+    #     ax[1, 1].set_xlabel(xlabel)
+    #     ax[1, 1].set_ylabel(ylabel)
+    #     ax[1, 1].legend(loc='upper left')
 
     fig.suptitle(title)
     # plt.legend()

@@ -298,13 +298,30 @@ def get_ith_results_random(datasets, out_dir='', x_axis='', affinity='rbf', tuni
                 #                                                                centroids_input=init_centroids_0,
                 #                                                                k=n_centroids,
                 #                                                                true_centroids=true_centroids)
-                elif clustering_method == 'k_means_robust_lp':
-                    centroids_0, labels_0, inertia_0 = robust_k_means_LP_SDP(points,
-                                                                             centroids_input=indices,
-                                                                             k=n_centroids,
-                                                                             true_centroids=true_centroids,
-                                                                             true_labels=true_labels,
-                                                                             is_sdp=False)
+                # elif clustering_method == 'k_means_robust_lp':
+                #     centroids_0, labels_0, inertia_0 = robust_k_means_LP_SDP(points,
+                #                                                              centroids_input=indices,
+                #                                                              k=n_centroids,
+                #                                                              true_centroids=true_centroids,
+                #                                                              true_labels=true_labels,
+                #                                                              is_sdp=False)
+
+                elif clustering_method.startswith('robust_lp'):
+                    U_hat, new_true_centroids = robust_LP_SDP(points, k=n_centroids,  true_labels=true_labels,
+                                                                            is_sdp=False)
+                    init_centroids_0 = U_hat[indices, :]
+                    if clustering_method == 'robust_lp_k_medians_l2':
+                        centroids_0, labels_0, inertia_0 = k_medians_l2(U_hat, centroids_input=init_centroids_0,
+                                                                        k=n_centroids, true_centroids=new_true_centroids)
+                    elif clustering_method == 'robust_lp_k_medians_l1':
+                        centroids_0, labels_0, inertia_0 = k_medians_l1(U_hat, centroids_input=init_centroids_0,
+                                                                        k=n_centroids, true_centroids=new_true_centroids)
+                    elif clustering_method == 'robust_lp_k_means':
+                        centroids_0, labels_0, inertia_0 = k_means(U_hat, centroids_input=init_centroids_0,
+                                                                   k=n_centroids, true_centroids=new_true_centroids)
+                    else:
+                        raise NotImplementedError()
+
                 else:
                     raise NotImplementedError()
                 # if show and clustering_method.startswith('k_'):
@@ -764,7 +781,7 @@ def robust_k_means_LP_SDP(X, centroids_input, k,
 
     Y = X
     theta, gamma = choose_theta_gamma(Y, beta=0.06, alpha=0.2)
-    print(f'theta: {theta}, gamma: {gamma}')
+    # print(f'theta: {theta}, gamma: {gamma}')
     N = Y.shape[0]
 
     # Step 1: Construct Gaussian kernel matrix
@@ -778,11 +795,11 @@ def robust_k_means_LP_SDP(X, centroids_input, k,
     # Compute top-r eigenvectors
     vals, vecs = eigh(X_hat)
     r = k
-    print(f'top {r} eigenvalues: {vals[-r:]}')
+    # print(f'top {r} eigenvalues: {vals[-r:]}')
     U_hat = vecs[:, -r:]  # top r eigenvectors
 
     # # Step 4: Apply k-means clustering on rows of U_hat
-    print('Apply k-means clustering')
+    # print('Apply k-means clustering')
     # rng = np.random.RandomState(seed=random_state)
     # indices = rng.choice(range(len(U_hat)), size=r, replace=False)
     indices = centroids_input
@@ -798,3 +815,48 @@ def robust_k_means_LP_SDP(X, centroids_input, k,
     new_centroids, labels, inertia = k_means(U_hat, k=r, centroids_input=U_hat[indices, :],
                                              max_iterations=tot_iterate, true_centroids=new_centroids)
     return new_centroids, labels, inertia
+
+
+def robust_LP_SDP(X, k,
+                          true_labels=None,
+                          is_sdp=False, random_state=42):
+    import numpy as np
+    from numpy.linalg import eigh
+    from scipy.spatial.distance import cdist
+    from robust_sdp_lp import choose_theta_gamma, solve_lp_sdp
+
+    Y = X
+    theta, gamma = choose_theta_gamma(Y, beta=0.06, alpha=0.2)
+    # print(f'theta: {theta}, gamma: {gamma}')
+    N = Y.shape[0]
+
+    # Step 1: Construct Gaussian kernel matrix
+    pairwise_sq_dists = cdist(Y, Y, 'sqeuclidean')
+    K = np.exp(-pairwise_sq_dists / (2 * theta ** 2))
+
+    # Step 2: Solve Robust-LP/SDP
+    X_hat = solve_lp_sdp(K, N, gamma, is_sdp=is_sdp)
+
+    # Step 3: Eigen-decomposition
+    # Compute top-r eigenvectors
+    vals, vecs = eigh(X_hat)
+    r = k
+    # print(f'top {r} eigenvalues: {vals[-r:]}')
+    U_hat = vecs[:, -r:]  # top r eigenvectors
+
+    # # Step 4: Apply k-means clustering on rows of U_hat
+    # print('Apply k-means clustering')
+    # rng = np.random.RandomState(seed=random_state)
+    # indices = rng.choice(range(len(U_hat)), size=r, replace=False)
+    # indices = centroids_input
+
+    # Compute the true centroids based on U_hat
+    new_centroids = np.zeros((k, k))
+    for j in range(k):
+        if sum(true_labels == j) == 0:
+            # new_centroids[j] use the previous centroid
+            continue
+        new_centroids[j] = np.mean(U_hat[:len(true_labels)][true_labels == j], axis=0)
+
+    return U_hat, new_centroids
+

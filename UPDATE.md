@@ -1,3 +1,6 @@
+v0.7.2: Add  'robust_lp_k_medians_l2', 'robust_lp_k_medians_l1', 'robust_lp_k_means'
+
+
 v0.7.1: correct mps in for in clustering_random.py
 
 

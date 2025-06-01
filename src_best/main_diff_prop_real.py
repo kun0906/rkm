@@ -30,9 +30,9 @@ def main():
     parser = argparse.ArgumentParser()
     # parser.add_argument('--force', default=False,   # whether overwrite the previous results or not?
     #                     action='store_true', help='force')
-    parser.add_argument("--n_repetitions", type=int, default=1000)  #
+    parser.add_argument("--n_repetitions", type=int, default=1)  #
     parser.add_argument("--true_single_cluster_size", type=int, default=100)
-    parser.add_argument("--init_method", type=str, default='random')
+    parser.add_argument("--init_method", type=str, default='omniscient')
     parser.add_argument("--add_outlier", type=str, default='True')
     parser.add_argument("--out_dir", type=str, default='out')
     parser.add_argument("--data_name", type=str, default='letter_recognition')  # pen_digits or letter_recognition
