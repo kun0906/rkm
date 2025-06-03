@@ -21,7 +21,7 @@ uname -a
 
 # Parameters (shared across jobs)
 OUT_DIR="out"
-n_repetitions=102
+n_repetitions=201
 true_single_cluster_size=100
 add_outlier=True
 n_neighbors=0

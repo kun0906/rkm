@@ -32,7 +32,7 @@ def main():
     #                     action='store_true', help='force')
     parser.add_argument("--n_repetitions", type=int, default=1)  #
     parser.add_argument("--true_single_cluster_size", type=int, default=100)
-    parser.add_argument("--init_method", type=str, default='omniscient')
+    parser.add_argument("--init_method", type=str, default='random')
     parser.add_argument("--add_outlier", type=str, default='True')
     parser.add_argument("--out_dir", type=str, default='out')
     parser.add_argument("--data_name", type=str, default='letter_recognition')  # pen_digits or letter_recognition
@@ -141,7 +141,9 @@ def main():
                     'points': points,
                     'init_centroids': init_centroids,
                     'init_centroids_indices': init_centroids_indices,
-                    "random_state": seed
+                    "random_state": seed,
+                    "init_method": init_method,
+                    "rng": rng,
                 }
                 datasets.append(data)
             if init_method == 'random' or init_method == 'robust_init':

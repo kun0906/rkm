@@ -12,7 +12,12 @@ import pandas as pd
 
 from base import *
 
-CLUSTERING_METHODS = ['k_medians_l2', 'k_medians_l1', 'k_means', 'k_means_robust_lp',
+CLUSTERING_METHODS = [
+                      # 'k_medians_l2', 'k_medians_l1', 'k_means',
+                      # 'k_means_robust_lp',
+                      # 'robust_lp_k_medians_l2', 'robust_lp_k_medians_l1', 'robust_lp_k_means',
+
+                     'robust_lp_k_medians_l2', 'k_medians_l1', 'k_means',
                       # 'sc_k_medians_l2', 'sc_k_medians_l1', 'sc_k_means',
                       # 'rsc_k_medians_l2', 'rsc_k_medians_l1', 'rsc_k_means',
                       # 'rsc_k_means_orig'  # robust k_means from the original api

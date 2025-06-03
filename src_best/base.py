@@ -38,9 +38,9 @@ LINESTYLES_COLORS_LABELS = {
     'k_medians_l1': ('--', 'purple', '$k$-medians-$\ell_1$'),
     'k_means': ('-', 'blue', '$k$-means'),
 
-    'robust_lp_k_medians_l2': ('-.', 'tab:green', 'robust_lp_$k$-medians-hybrid'),  # linestyle, color, label
-    'robust_lp_k_medians_l1': ('--', 'tab:purple', 'robust_lp_$k$-medians-$\ell_1$'),
-    'robust_lp_k_means': ('-', 'tab:blue', 'robust_lp_$k$-means'),
+    'robust_lp_k_medians_l2': ('-o', 'tab:green', 'robust_lp_$k$-medians-hybrid'),  # linestyle, color, label
+    'robust_lp_k_medians_l1': ('-^', 'tab:purple', 'robust_lp_$k$-medians-$\ell_1$'),
+    'robust_lp_k_means': ('-x', 'tab:blue', 'robust_lp_$k$-means'),
 
     'sc_k_medians_l2': ('-o', 'lightgreen', 'SC-$k$-medians-hybrid'),
     'sc_k_medians_l1': ('-^', 'violet', 'SC-$k$-medians-$\ell_1$'),
