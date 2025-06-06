@@ -82,8 +82,8 @@ if __name__ == '__main__':
                 xlabel = "Outlier Proportion"
 
                 for init_method_0 in ['random', 'omniscient']:
-                    # for init_method, clustering_method in [('robust_init', 'k_medians_l2'), (init_method_0, 'k_medians_l1'), (init_method_0, 'k_means')]:
-                    for init_method, clustering_method in [('robust_init', 'robust_lp_k_medians_l2'), (init_method_0, 'robust_lp_k_medians_l1'), (init_method_0, 'robust_lp_k_means')]:
+                    for init_method, clustering_method in [('robust_init', 'k_medians_l2'), (init_method_0, 'k_medians_l1'), (init_method_0, 'k_means')]:
+                    # for init_method, clustering_method in [('robust_init', 'robust_lp_k_medians_l2'), (init_method_0, 'robust_lp_k_medians_l1'), (init_method_0, 'robust_lp_k_means')]:
                         f = f'{in_dir}/{init_method}/{py}/data_3_clusters.csv'
                         print(f)
                         fontsize = 12

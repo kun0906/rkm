@@ -1,3 +1,6 @@
+v0.7.4: Run robust_init on reduced data (after robust_lp)
+
+
 v0.7.3: Add initialization inside of robust_lp on for random initialization
 
 

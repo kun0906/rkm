@@ -9,7 +9,8 @@
 #SBATCH --gres=gpu:1
 
 # Move to project directory and activate environment
-cd ~/rkm/src_best
+cd ~/rkm/src_best_robust
+pwd
 source activate py3104_rkm
 
 # Show context
@@ -21,7 +22,7 @@ uname -a
 
 # Parameters (shared across jobs)
 OUT_DIR="out"
-n_repetitions=201
+n_repetitions=53
 true_single_cluster_size=100
 add_outlier=True
 n_neighbors=0

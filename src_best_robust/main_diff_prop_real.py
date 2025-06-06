@@ -32,7 +32,7 @@ def main():
     #                     action='store_true', help='force')
     parser.add_argument("--n_repetitions", type=int, default=1)  #
     parser.add_argument("--true_single_cluster_size", type=int, default=100)
-    parser.add_argument("--init_method", type=str, default='random')
+    parser.add_argument("--init_method", type=str, default='robust_init')
     parser.add_argument("--add_outlier", type=str, default='True')
     parser.add_argument("--out_dir", type=str, default='out')
     parser.add_argument("--data_name", type=str, default='letter_recognition')  # pen_digits or letter_recognition
@@ -71,7 +71,7 @@ def main():
 
     for n_centroids in range(3, 9, 9):
         # True labels
-        true_labels = np.concatenate([np.ones(true_single_cluster_size) * i for i in range(n_centroids)]).astype(int)
+        # true_labels = np.concatenate([np.ones(true_single_cluster_size) * i for i in range(n_centroids)]).astype(int)
 
         # dim = 50
         props = [0.0, 0.2, 0.4, 0.6, 0.8]
@@ -128,9 +128,9 @@ def main():
                     init_centroids = points[indices, :]
                     init_centroids_indices = indices
                 elif init_method == 'robust_init':
-                    import init_k_cent
-                    init_centroids, _ = init_k_cent.iodk(points, n_centroids, m1=20, m=10, beta=0.1)
-                    init_centroids_indices = find_indices(init_centroids, points)
+                    # we will do the initialization in side of get_ith_results_random()
+                    init_centroids = None
+                    init_centroids_indices = None
                 else:
                     init_centroids = true_centroids
                     init_centroids_indices = find_indices(init_centroids, points)
