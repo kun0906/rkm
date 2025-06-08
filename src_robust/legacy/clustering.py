@@ -1,5 +1,8 @@
 """
-
+    In each algorithm, we don't need to align the new centroids with true centroids
+    i.e., we don't use the following code
+        new_centroids = align_centroids(new_centroids, true_centroids, method='k_means')
+    which is needed in clustering_random
 """
 import copy
 import itertools

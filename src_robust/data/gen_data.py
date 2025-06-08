@@ -331,20 +331,32 @@ def credit_loan(in_dir='data', n_clusters=3):
     return df, labels[:n_clusters]
 
 
-def plot_xy(X, Y, random_state=42, true_centroids = None, title=''):
+def plot_xy(X, Y, random_state=42, true_centroids=None, init_centroids=None, final_centroids=None, title=''):
     import matplotlib.pyplot as plt
-    # PCA
-    from sklearn.decomposition import PCA
-
     fig, axes = plt.subplots(1, 1, figsize=(10, 8))
-    print(X.shape)
-    pca = PCA(n_components=2, svd_solver='full', random_state=random_state)
-    pca.fit(X)
-    print(pca.explained_variance_ratio_)
-    # print(pca.singular_values_)
-    # Y_true = Y.values
-    X_embedded = pca.transform(X)
-    centroids_embedded = pca.transform(true_centroids)
+
+    if True:
+        # PCA
+        from sklearn.decomposition import PCA
+        print(X.shape)
+        print(np.mean(X, axis=0), np.std(X, axis=0))
+        pca = PCA(n_components=2, svd_solver='full', random_state=random_state)
+        pca.fit(X)
+        print(pca.explained_variance_ratio_)
+        # print(pca.singular_values_)
+        # Y_true = Y.values
+        X_embedded = pca.transform(X)
+        centroids_embedded = pca.transform(true_centroids)
+        init_centroids_embedded = pca.transform(init_centroids)
+        if final_centroids is not None:
+            final_centroids_embedded = pca.transform(final_centroids)
+    else:
+        from sklearn.manifold import TSNE
+        X1  = np.concatenate((X, true_centroids, init_centroids, final_centroids), axis=0)
+        X_embedded1 = TSNE(n_components=2,
+                              init='pca', perplexity=100, random_state=random_state).fit_transform(X1)
+        k = len(true_centroids)
+        X_embedded, centroids_embedded, init_centroids_embedded, final_centroids_embedded= X_embedded1[:-3*k, :], X_embedded1[-3*k:-2*k, :], X_embedded1[-2*k:-k, :], X_embedded1[-k:, :]
     # plt.rcParams["figure.figsize"] = (4,3)
     # colors = {'NT': 'r', 'OTG': 'g', 'RL': 'b'}
     colors = ["g", "b", "orange", "r", "m", 'black', 'brown', 'tab:green', 'tab:blue', 'tab:orange', 'tab:red']
@@ -362,10 +374,16 @@ def plot_xy(X, Y, random_state=42, true_centroids = None, title=''):
         # for idx, txt in enumerate(Y[mask]):
         #     axes.annotate(txt, (X_embedded[mask, 0][idx], X_embedded[mask, 1][idx]))
         axes.legend(loc="upper right", title="Label")
-        if i >= len(centroids_embedded): break
-        axes.scatter(centroids_embedded[i, 0], centroids_embedded[i, 1], marker='X', label=l, color=colors[i], alpha=1, s=200)
+        if i < len(centroids_embedded):
+            axes.scatter(centroids_embedded[i, 0], centroids_embedded[i, 1], marker='s', label=f'{l}:true', color=colors[i], alpha=1, s=100)
+            axes.scatter(init_centroids_embedded[i, 0], init_centroids_embedded[i, 1], marker='o', label=f'{l}:init', color=colors[i],
+                         alpha=0.8, s=200)
+            if final_centroids is not None:
+                axes.scatter(final_centroids_embedded[i, 0], final_centroids_embedded[i, 1], marker='X', label=f'{l}:final',
+                             color=colors[i],
+                             alpha=0.8, s=200)
     # title = f"Data projected by PCA"
-    axes.set_title(f'PCA {title}')
+    axes.set_title(f'{title}, after PCA.')
     plt.legend(title='Legend')
     # axes.set_axis_off()
     plt.show()

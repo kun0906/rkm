@@ -2,6 +2,7 @@
 
 """
 import argparse
+import copy
 import os
 
 import numpy as np
@@ -9,38 +10,33 @@ import pandas as pd
 from tqdm import tqdm
 
 from base import compute_ith_avg, plot_result
-from data.gen_data import gen_data
+from data.gen_data import gen_data, plot_xy
 from utils import timer
 
-
-def find_indices(init_centroids, points):
-    # Find closest index in points for each init_centroid
-    indices = []
-    for centroid in init_centroids:
-        # Compute Euclidean distance from centroid to all points
-        distances = np.linalg.norm(points - centroid, axis=1)
-        # Find index of the closest point
-        closest_idx = np.argmin(distances)
-        indices.append(closest_idx)
-
-    return np.asarray(indices)
 
 @timer
 def main():
     parser = argparse.ArgumentParser()
     # parser.add_argument('--force', default=False,   # whether overwrite the previous results or not?
     #                     action='store_true', help='force')
+    # parser.add_argument(
+    #     "--algorithms",
+    #     nargs='+',
+    #     default=['k_medians_l2', 'k_medians_l1', 'k_means'],
+    #     help="List of algorithms to run"
+    # )
+    parser.add_argument("--clustering_method", type=str, default='k_medians_l2')  # robust_lp_k_medians_l2
     parser.add_argument("--n_repetitions", type=int, default=1)  #
     parser.add_argument("--true_single_cluster_size", type=int, default=100)
-    parser.add_argument("--init_method", type=str, default='robust_init')
+    parser.add_argument("--init_method", type=str, default='random')
     parser.add_argument("--add_outlier", type=str, default='True')
     parser.add_argument("--out_dir", type=str, default='out')
-    parser.add_argument("--data_name", type=str, default='letter_recognition')  # pen_digits or letter_recognition
+    parser.add_argument("--data_name", type=str, default='pen_digits')  # pen_digits or letter_recognition
     # random (Outliers from Multiple Classes (OMC)) or special (Outliers from One Class (OOC))
-    parser.add_argument("--fake_label", type=str, default='OMC')
+    parser.add_argument("--fake_label", type=str, default='OOC')
     parser.add_argument("--cluster_std", type=float, default=1)  # sigma of outliers, not used in real data.
-    parser.add_argument("--n_neighbors", type=int, default=15)     # not used
-    parser.add_argument("--theta", type=int, default=50,            # not used
+    parser.add_argument("--n_neighbors", type=int, default=15)  # not used
+    parser.add_argument("--theta", type=int, default=50,  # not used
                         help='Number of edges will be removed when computing robust spectral clustering (RSC).')
     parser.add_argument("--m", type=float, default=0.5,
                         help='For node i, percentage of neighbor nodes will be ignored '
@@ -119,28 +115,14 @@ def main():
                         true_centroids[j] = np.mean(points[idx:idx + true_single_cluster_size], axis=0)
                         j += 1
 
-                # plot_xy(points, np.concatenate([true_labels, [max(true_labels)+1] * len(outliers)]),
-                #         random_state=i, true_centroids= copy.deepcopy(centroids),
-                #         title=f'prop: {prop} after std')
-
-                if init_method == 'random':
-                    indices = rng.choice(range(len(points)), size=n_centroids, replace=False)
-                    init_centroids = points[indices, :]
-                    init_centroids_indices = indices
-                elif init_method == 'robust_init':
-                    # we will do the initialization in side of get_ith_results_random()
-                    init_centroids = None
-                    init_centroids_indices = None
-                else:
-                    init_centroids = true_centroids
-                    init_centroids_indices = find_indices(init_centroids, points)
                 data = {
+                    "clustering_method": args.clustering_method,
                     "true_centroids": true_centroids, "true_labels": true_labels,
                     "true_single_cluster_size": true_single_cluster_size,
                     "n_centroids": n_centroids,
                     'points': points,
-                    'init_centroids': init_centroids,
-                    'init_centroids_indices': init_centroids_indices,
+                    # 'init_centroids': init_centroids,
+                    # 'init_centroids_indices': init_centroids_indices,
                     "random_state": seed,
                     "init_method": init_method,
                     "rng": rng,
