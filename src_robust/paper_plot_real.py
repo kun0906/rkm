@@ -13,7 +13,7 @@ def plot_results(out_dir='', out_name='diffdim_random_mp', xlabel='', ylabel='MP
     # Plot the line plot with error bars
     fig, ax = plt.subplots(figsize=(8, 6))
 
-    for clustering_method in ['k_medians_l2', 'k_medians_l1', 'k_means',
+    for clustering_method in [   'k_medians_l2', 'k_medians_l1', 'k_means',
                       'robust_lp_k_medians_l2', 'robust_lp_k_medians_l1', 'robust_lp_k_means']:
         py = f"main_{alg_method}_real_py"
         # if alg_method=='diffrad':
@@ -65,14 +65,15 @@ if __name__ == '__main__':
         for data_name in ['letter_recognition', 'pen_digits']:  # 'letter_recognition', 'pen_digits'
             for fake_label in ['OMC', 'OOC']:  # ['synthetic', 'random', 'special']:
 
-                R = 100  # 5000  # number of repeats
+                R = 50  # 5000  # number of repeats
+                t = 0.2
                 S = 100
                 # in_dir = 'paper_results-20230614/out-outlier_prop_0.6-std_10-normal_std_2/std_2/R_5000-S_100-O_True'
                 # in_dir = f'paper_results-20230614/real_data_20230803/{data_name}/F_{fake_label}/std_0/R_5000-S_100-O_True'
                 # in_dir = f'paper_results-20240504/{data_name}/F_{fake_label}/std_0/R_{R}-S_100-O_True'
                 # in_dir = f'out_SC_beta=0.3_20240508/{data_name}/F_{fake_label}/std_0/R_{R}-S_100-O_True'
                 # in_dir = f'out/R_{R}-S_{S}-O_True-{fake_label}-B_0-t_0-m_0/{data_name}'
-                in_dir = f'out/R_{R}-S_{S}-O_True-B_0-t_0-m_0/{data_name}/{fake_label}'
+                in_dir = f'out/R_{R}-S_{S}-O_True-B_0-t_{t}-m_0/{data_name}/{fake_label}'
                 out_dir = f'{in_dir}/paper_plot'
                 if os.path.exists(out_dir):
                     shutil.rmtree(out_dir)
@@ -80,7 +81,7 @@ if __name__ == '__main__':
                     os.makedirs(out_dir)
 
                 for alg_method in ['diff_prop']:  # ['diffdim', 'diffrad', 'diffvar', 'diffprop']:
-                    for init_method in ['omniscient', 'random', 'robust_init']:
+                    for init_method in ['random', 'robust_init']: #['omniscient', 'random', 'robust_init']:
                         out_name = f'{data_name}_{fake_label}_{alg_method}_{init_method}'
                         try:
                             plot_results(out_dir, out_name)
@@ -96,13 +97,14 @@ if __name__ == '__main__':
         for data_name in ['letter_recognition', 'pen_digits']:  # 'letter_recognition', 'pen_digits'
             for fake_label in ['OMC', 'OOC']:  # ['synthetic', 'random', 'special']:
 
-                R = 3  # 5000  # number of repeats
+                R = 50  # 5000  # number of repeats
+                t = 0.2
                 S = 100
                 # in_dir = 'paper_results-20230614/out-outlier_prop_0.6-std_10-normal_std_2/std_2/R_5000-S_100-O_True'
                 # in_dir = f'paper_results-20230614/real_data_20230803/{data_name}/F_{fake_label}/std_0/R_5000-S_100-O_True'
                 # in_dir = f'paper_results-20240504/{data_name}/F_{fake_label}/std_0/R_{R}-S_100-O_True'
                 # in_dir = f'out_SC_beta=0.3_20240508/{data_name}/F_{fake_label}/std_0/R_{R}-S_100-O_True'
-                in_dir = f'out/R_{R}-S_{S}-O_True-B_0-t_0-m_0/{data_name}/{fake_label}'
+                in_dir = f'out/R_{R}-S_{S}-O_True-B_0-t_{t}-m_0/{data_name}/{fake_label}'
                 out_dir = f'{in_dir}/paper_plot'
                 if os.path.exists(out_dir):
                     shutil.rmtree(out_dir)

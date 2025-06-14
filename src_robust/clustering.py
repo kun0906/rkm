@@ -29,7 +29,7 @@ def get_ith_results(datasets, out_dir='', x_axis='', affinity='rbf', tuning=0, s
         print(f'idx_data: {idx_data}, clustering_method: {clustering_method}')
         if clustering_method.startswith('robust_lp'):
             U_hat, new_true_centroids = robust_LP_SDP(points, k=n_centroids, true_labels=true_labels,
-                                                      is_sdp=True)
+                                                      is_sdp=False)
             if init_method == 'omniscient':
                 init_centroids = new_true_centroids
                 # init_indices = find_indices(new_true_centroids, U_hat)

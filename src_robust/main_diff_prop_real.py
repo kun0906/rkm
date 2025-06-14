@@ -25,20 +25,20 @@ def main():
     #     default=['k_medians_l2', 'k_medians_l1', 'k_means'],
     #     help="List of algorithms to run"
     # )
-    parser.add_argument("--clustering_method", type=str, default='k_medians_l2')  # robust_lp_k_medians_l2
+    parser.add_argument("--clustering_method", type=str, default='robust_lp_k_medians_l2')  # robust_lp_k_medians_l2
     parser.add_argument("--n_repetitions", type=int, default=1)  #
     parser.add_argument("--true_single_cluster_size", type=int, default=100)
     parser.add_argument("--init_method", type=str, default='random')
     parser.add_argument("--add_outlier", type=str, default='True')
     parser.add_argument("--out_dir", type=str, default='out')
-    parser.add_argument("--data_name", type=str, default='pen_digits')  # pen_digits or letter_recognition
+    parser.add_argument("--data_name", type=str, default='letter_recognition')  # pen_digits or letter_recognition
     # random (Outliers from Multiple Classes (OMC)) or special (Outliers from One Class (OOC))
     parser.add_argument("--fake_label", type=str, default='OOC')
     parser.add_argument("--cluster_std", type=float, default=1)  # sigma of outliers, not used in real data.
     parser.add_argument("--n_neighbors", type=int, default=15)  # not used
-    parser.add_argument("--theta", type=int, default=50,  # not used
+    parser.add_argument("--theta", type=float, default=0.8,  # not used
                         help='Number of edges will be removed when computing robust spectral clustering (RSC).')
-    parser.add_argument("--m", type=float, default=0.5,
+    parser.add_argument("--m", type=float, default=0,
                         help='For node i, percentage of neighbor nodes will be ignored '
                              'when computing robust spectral clustering (RSC).')
     args = parser.parse_args()
@@ -125,6 +125,7 @@ def main():
                     # 'init_centroids_indices': init_centroids_indices,
                     "random_state": seed,
                     "init_method": init_method,
+                    "beta": args.theta,
                     "rng": rng,
                 }
                 datasets.append(data)

@@ -1,3 +1,9 @@
+v0.7.6: Update the code and the plot function  
+
+
+v0.7.5: Rewrite the code for real data for sbatch purpose 
+
+
 v0.7.4: Run robust_init on reduced data (after robust_lp)
 
 

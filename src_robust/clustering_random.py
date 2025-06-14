@@ -30,10 +30,12 @@ def get_ith_results_random(datasets, out_dir='', x_axis='', affinity='rbf', tuni
         rng = data['rng']
         init_method = data['init_method']
 
-        print(f'idx_data: {idx_data}, clustering_method: {clustering_method}', flush=True)
+        # print(f'idx_data: {idx_data}, clustering_method: {clustering_method}', flush=True)
         if clustering_method.startswith('robust_lp'):
+            beta = data['beta']
             U_hat, new_true_centroids = robust_LP_SDP(points, k=n_centroids, true_labels=true_labels,
-                                                      is_sdp=True)
+                                                      beta = beta, 
+                                                      is_sdp=False)
             if init_method == 'random':
                 indices = rng.choice(range(len(U_hat)), size=n_centroids, replace=False)
                 init_centroids = U_hat[indices, :]
@@ -620,7 +622,7 @@ def robust_k_means_LP_SDP(X, centroids_input, k,
 
 
 def robust_LP_SDP(X, k,
-                  true_labels=None,
+                  true_labels=None, beta=0.06, 
                   is_sdp=False, random_state=42):
     import numpy as np
     from numpy.linalg import eigh
@@ -628,7 +630,7 @@ def robust_LP_SDP(X, k,
     from robust_sdp_lp import choose_theta_gamma, solve_lp_sdp
 
     Y = X
-    theta, gamma = choose_theta_gamma(Y, beta=0.06, alpha=0.2)
+    theta, gamma = choose_theta_gamma(Y, beta=beta, alpha=0.2)
     # print(f'theta: {theta}, gamma: {gamma}')
     N = Y.shape[0]
 

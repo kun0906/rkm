@@ -152,6 +152,31 @@ def main(tuning_param):
     print('finished')
 
 
+
 if __name__ == '__main__':
-    for tuning_param in [5]: #: [2, 5, 10, 20]:
-        main(tuning_param)
+    # for tuning_param in [5]: #: [2, 5, 10, 20]:
+    #     main(tuning_param)
+
+    fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(15, 12))
+
+    X_axis = [0, 0.2, 0.4, 0.6, 0.8]
+    for clustering_method in ['k_medians_l2', 'k_medians_l1', 'k_means']:   # 'k_medians_l2',
+        df = pd.read_csv(f'out/data_3_clusters_{clustering_method}.csv')
+        ls, color, label = LINESTYLES_COLORS_LABELS[clustering_method]
+        if f'{clustering_method}_mp_mu' not in df.columns:
+            continue
+        y, yerr = df[f'{clustering_method}_mp_mu'], df[f'{clustering_method}_mp_std']
+        ax[0, 0].plot(X_axis, y, ls, label=label, color=color)
+        ax[0, 0].errorbar(X_axis, y, yerr=yerr, fmt='none', ecolor='black', capsize=3)
+        ax[0, 0].set_xticks(X_axis)
+        # ax[0, 0].set_title('Original Points')
+        # ax[0, 0].set_xlabel(xlabel)
+        # ax[0, 0].set_ylabel(ylabel)
+        ax[0, 0].legend(loc='upper left')
+
+    # save the figure
+    # temp = time.time()
+    # temp = 0
+    img_pth = f"out/_mp.png"
+    plt.savefig(img_pth, dpi=300)
+    plt.show(block=False)

@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=real_data_array
 #SBATCH --account=kunyang_nvflare_py31012_0001
-#SBATCH --array=0-71
+#SBATCH --array=0-100
 #SBATCH --time=48:00:00
 #SBATCH --output=out/logs/out_%A_%a.txt
 #SBATCH --error=out/logs/err_%A_%a.txt
@@ -28,7 +28,7 @@ uname -a
 
 # Parameters (shared across jobs)
 OUT_DIR="out"
-n_repetitions=600
+n_repetitions=50
 true_single_cluster_size=100
 add_outlier=True
 n_neighbors=0
@@ -40,13 +40,15 @@ py_cleaned=${py//./_}
 # Initialize an empty array
 TASKS=()
 cnt=0
-for dataset in letter_recognition pen_digits; do
-  for fake_label in OMC OOC; do
-    for clustering_method in k_medians_l2 k_medians_l1 k_means \
-        robust_lp_k_medians_l2 robust_lp_k_medians_l1 robust_lp_k_means; do
-      for init_method in random omniscient robust_init; do    # robust_init
-        TASKS+=("$dataset $fake_label $clustering_method $init_method")
-        ((cnt++))  # increment counter correctly
+for theta in 0.3 0.8; do  # use it for beta: 0.01 0.05 0.08 0.1 0.2
+  for dataset in letter_recognition pen_digits; do
+    for fake_label in OMC OOC; do
+      for clustering_method in k_medians_l2 k_medians_l1 k_means \
+          robust_lp_k_medians_l2 robust_lp_k_medians_l1 robust_lp_k_means; do
+        for init_method in random robust_init; do    # robust_init
+          TASKS+=("$theta $dataset $fake_label $clustering_method $init_method")
+          ((cnt++))  # increment counter correctly
+        done
       done
     done
   done
@@ -64,8 +66,9 @@ echo
 # Read into individual variables
 echo "SLURM_ARRAY_TASK_ID: ${SLURM_ARRAY_TASK_ID}"
 echo "TASKS[SLURM_ARRAY_TASK_ID]: ${TASKS[$SLURM_ARRAY_TASK_ID]}"
-IFS=' ' read -r data_name fake_label clustering_method init_method <<< "${TASKS[$SLURM_ARRAY_TASK_ID]}"
+IFS=' ' read -r theta data_name fake_label clustering_method init_method <<< "${TASKS[$SLURM_ARRAY_TASK_ID]}"
 # Optional: print values for debugging
+echo "theta: $theta"
 echo "data_name: $data_name"
 echo "fake_label: $fake_label"
 echo "clustering_method: $clustering_method"

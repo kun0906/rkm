@@ -4,7 +4,7 @@
 
 OUT_DIR="out"
 cnt=0
-n_repetitions=50
+n_repetitions=1000
 true_single_cluster_size=100
 add_outlier=true
 

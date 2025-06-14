@@ -76,7 +76,7 @@ def solve_lp_sdp(K, N, gamma, is_sdp=False):
 
     # Solve the problem
     problem = cp.Problem(objective, constraints)
-    problem.solve()
+    problem.solve(verbose=False)     # verbose=True
 
     # Get the optimized X matrix
     return X.value
